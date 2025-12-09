@@ -1,9 +1,14 @@
 # Wishes
 ### Pending
--
+1. 🇭🇷 Croacia
+2. 🇦🇹 Austria
+3. 🇬🇷 Grecia
+4. 
 
 ### In review
--
+1. 🇪🇬 Egipto
+2. x
+3. x
 
 ### Done
 1. 🇧🇷 Brasil
