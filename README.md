@@ -1,4 +1,4 @@
-<img width="480" height="480" alt="image" src="https://github.com/user-attachments/assets/8e56990c-0725-4603-be32-6519262d1f8e" /># Wishes
+# Wishes
 
 ### Pending
 1. 🇭🇷 Croacia
@@ -7,14 +7,18 @@
 4. 🇨🇿 Chequia (praga)
 5. 🇩🇪 Alemania
 6. 🇮🇸 Islandia
-7. x
-8. x
-
+7. 🇸🇮 Eslovenia
+8. 🇸🇰 Eslovaquia
+9. 🇵🇱 Polonia
+10. x
+11. x
 
 ### In progress
 1. 🇪🇬 Egipto
 2. x
 3. x
+4. x
+5. x
 
 ### Done
 1. 🇧🇷 Brasil
