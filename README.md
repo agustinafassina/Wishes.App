@@ -10,7 +10,7 @@
 7. 🇸🇮 Eslovenia
 8. 🇸🇰 Eslovaquia
 9. 🇵🇱 Polonia
-10. x
+10. 🇵🇪 Peru
 11. x
 
 ### In progress
