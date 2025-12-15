@@ -4,7 +4,6 @@
 1. 🇭🇷 Croacia
 2. 🇦🇹 Austria
 3. 🇬🇷 Grecia
-4. 🇨🇿 Chequia (praga)
 5. 🇩🇪 Alemania
 6. 🇮🇸 Islandia
 7. 🇸🇮 Eslovenia
@@ -15,7 +14,7 @@
 
 ### In progress
 1. 🇪🇬 Egipto
-2. x
+2.  🇨🇿 Chequia (praga)
 3. x
 4. x
 5. x
