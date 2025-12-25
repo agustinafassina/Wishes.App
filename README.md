@@ -8,7 +8,7 @@
 6. 🇮🇸 Islandia
 7. 🇨🇿 Chequia (praga)
 8. 🇸🇰 Eslovaquia
-9.🇸🇮 Eslovenia
+9. 🇸🇮 Eslovenia
 10. 🇵🇪 Peru
 11. x
 
