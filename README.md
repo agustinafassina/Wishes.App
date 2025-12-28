@@ -1,5 +1,4 @@
 # Wishes
-
 ### Pending
 1. 🇭🇷 Croacia
 2. 🇦🇹 Austria
