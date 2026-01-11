@@ -1,6 +1,13 @@
 # Wishes and Personal blog 🧳
 La idea es armar una app donde muestre un mapa interactivo con las location por ciudades y paises donde estuve, tambien sumar futuros planes.
 
+### Que tendria?
+1. Solo una seccion que lea un json donde de administra la data
+2. Imagen con nombre y apellido
+3. Ver si se puede mezclar con google.
+4. Ver librerias con mapas interactivos.
+5.
+
 ### Pending
 1. 🇭🇷 Croacia
 2. 🇦🇹 Austria
