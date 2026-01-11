@@ -1,4 +1,4 @@
-# Wishes and Personal blog 🧳
+# Wishes and personal blog 🧳
 La idea es armar una app donde muestre un mapa interactivo con las location por ciudades y paises donde estuve, tambien sumar futuros planes.
 
 ### Que tendria?
@@ -12,7 +12,7 @@ La idea es armar una app donde muestre un mapa interactivo con las location por 
 1. 🇭🇷 Croacia
 2. 🇦🇹 Austria
 3. 🇬🇷 Grecia
-5. 🇩🇪 Alemania
+5. 
 6. 🇮🇸 Islandia
 7. 🇨🇿 Chequia (praga)
 8. 🇸🇰 Eslovaquia
@@ -22,7 +22,7 @@ La idea es armar una app donde muestre un mapa interactivo con las location por 
 
 ### In progress
 1. 🇵🇱 Polonia
-2. 
+2. 🇩🇪 Alemania
 3. 
 4. 
 5. 
