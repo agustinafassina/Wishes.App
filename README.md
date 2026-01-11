@@ -6,7 +6,7 @@ La idea es armar una app donde muestre un mapa interactivo con las location por 
 2. Imagen con nombre y apellido
 3. Ver si se puede mezclar con google.
 4. Ver librerias con mapas interactivos.
-5.
+5. Pasar el listsdo que esta abajo a un json (antes definir las propierties)
 
 ### Pending
 1. 🇭🇷 Croacia
