@@ -9,11 +9,11 @@
 8. 🇸🇰 Eslovaquia
 9. 🇸🇮 Eslovenia
 10. 🇵🇪 Peru
-11.  Irlanda
+11. 🇮🇪 Irlanda
 
 ### In progress
-1. 🇪🇬 Egipto
-2. 🇵🇱 Polonia
+1. 🇵🇱 Polonia
+2. 
 3. 
 4. 
 5. 
@@ -37,5 +37,5 @@
 16. 🇨🇭 Suiza
 17. 🇸🇬 Singapur
 18. 🇹🇭 Tailandia
-19. x
+19. 🇪🇬 Egipto
 20. x
