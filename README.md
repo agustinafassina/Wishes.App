@@ -1,4 +1,5 @@
 # Wishes and Personal blog 🧳
+La idea es armar una app donde muestre un mapa interactivo con las location por ciudades y paises donde estuve, tambien sumar futuros planes.
 
 ### Pending
 1. 🇭🇷 Croacia
