@@ -11,7 +11,7 @@ a. Armar un mini diseno(hay un libreria para armar los divs), el diseño se pued
     - Checklist interactivas, que puedas agarrarlas y arrastrarlas entre columnas
 5. Pasar el listado que esta abajo a un json (antes definir las propierties).
 6. Framework: nextjs?
-7. 
+7. Fuente de letra: tipo pizarron
 
 ### Pending
 1. 🇭🇷 Croacia
