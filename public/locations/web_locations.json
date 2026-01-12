@@ -1,0 +1,42 @@
+[
+  {
+      "name": "Argentina",
+      "code": "AR",
+      "latitude": -38.4161,
+      "longitude": -63.6167,
+      "population": 45195777,
+      "capital": "Buenos Aires"
+  },
+  {
+      "name": "Brasil",
+      "code": "BR",
+      "latitude": -14.2350,
+      "longitude": -51.9253,
+      "population": 211049527,
+      "capital": "Brasilia"
+  },
+  {
+      "name": "Chile",
+      "code": "CL",
+      "latitude": -35.6751,
+      "longitude": -71.5374,
+      "population": 19116209,
+      "capital": "Santiago"
+  },
+  {
+      "name": "Francia",
+      "code": "FR",
+      "latitude": 46.6034,
+      "longitude": 1.8883,
+      "population": 65273511,
+      "capital": "París"
+  },
+  {
+      "name": "Japón",
+      "code": "JP",
+      "latitude": 36.2048,
+      "longitude": 138.2529,
+      "population": 126476461,
+      "capital": "Tokio"
+  }
+]
