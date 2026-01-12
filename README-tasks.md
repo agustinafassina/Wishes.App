@@ -1,0 +1,53 @@
+# Wishes and personal blog 🧳
+La idea es armar una app donde muestre un mapa interactivo con las location por ciudades y paises donde estuve, tambien sumar futuros planes.
+
+### Que tendria?
+1. Solo una seccion que lea un json donde de administra la data.
+a. Armar un mini diseno(hay un libreria para armar los divs), el diseño se puede crear con alguna tool como diagram.io.
+2. Imagen con nombre y apellido
+3. Ver si se puede mezclar con google.
+4. Ver librerias con mapas interactivos.
+5. Pasar el listado que esta abajo a un json (antes definir las propierties).
+6. Framework: nextjs?
+7. 
+
+### Pending
+1. 🇭🇷 Croacia
+2. 🇦🇹 Austria
+3. 🇬🇷 Grecia
+5. 
+6. 🇮🇸 Islandia
+7. 🇨🇿 Chequia (praga)
+8. 🇸🇰 Eslovaquia
+9. 🇸🇮 Eslovenia
+10. 🇵🇪 Peru
+11. 🇮🇪 Irlanda
+
+### In progress
+1. 🇵🇱 Polonia
+2. 🇩🇪 Alemania
+3. 
+4. 
+5. 
+
+### Done
+1. 🇧🇷 Brasil
+2. 🇺🇾 Uruguay
+3. 🇨🇴 Colomvia
+4. 🇨🇱 Chile
+5. 🇲🇽 Mexico
+6. 🇪🇸 España
+7. 🇮🇹 Italia
+8. 🇲🇹 Malta
+9. 🇦🇩 Andorra
+10. 🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra
+11. 🏴󠁧󠁢󠁳󠁣󠁴󠁿 Escocia
+12. 🇳🇱 Paises Bajos
+13. 🇱🇺 Luxemburgo
+14. 🇧🇪 Belgica
+15. 🇫🇷 Francia
+16. 🇨🇭 Suiza
+17. 🇸🇬 Singapur
+18. 🇹🇭 Tailandia
+19. 🇪🇬 Egipto
+20. x
