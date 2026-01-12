@@ -28,7 +28,7 @@ export default function Home() {
             Aquí encontrarás mi checklist de países por conocer y mucha más información sobre mis viajes.
           </p>
         </div>
-
+        <Map />
       </main>
     </div>
   );
