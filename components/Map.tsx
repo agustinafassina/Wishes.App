@@ -86,7 +86,8 @@ const DroppableColumn = ({
   icon, 
   locations, 
   status, 
-  emptyMessage 
+  emptyMessage,
+  onDoubleClick
 }: { 
   id: string;
   title: string;
@@ -94,6 +95,7 @@ const DroppableColumn = ({
   locations: CountryLocation[];
   status: string;
   emptyMessage: string;
+  onDoubleClick: () => void;
 }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
@@ -103,7 +105,7 @@ const DroppableColumn = ({
   const statusClass = status.replace(/\s+/g, '-');
 
   return (
-    <div className={`country-card ${statusClass}`}>
+    <div className={`country-card ${statusClass}`} onDoubleClick={onDoubleClick}>
       <div className="card-header">
         <div className={`card-icon card-icon-${statusClass}`}>{icon}</div>
         <h2 className="country-title">{title}</h2>
@@ -130,6 +132,16 @@ const Map = () => {
   const [zoom, setZoom] = useState(2);
   const [selectedLocation, setSelectedLocation] = useState<CountryLocation | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [targetStatus, setTargetStatus] = useState<string>('pending');
+  const [newCountry, setNewCountry] = useState({
+    name: '',
+    code: '',
+    latitude: '',
+    longitude: '',
+    flag: '',
+    photos: [] as string[],
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -242,6 +254,86 @@ const Map = () => {
   const getActiveCountry = () => {
     if (!activeId) return null;
     return locations.find(loc => loc.code === activeId) || null;
+  };
+
+  const handleColumnDoubleClick = (status: string) => {
+    setTargetStatus(status);
+    setNewCountry({
+      name: '',
+      code: '',
+      latitude: '',
+      longitude: '',
+      flag: '',
+      photos: [],
+    });
+    setShowAddModal(true);
+  };
+
+  const handleAddCountry = async () => {
+    // Validate required fields
+    if (!newCountry.name || !newCountry.code || !newCountry.latitude || !newCountry.longitude) {
+      alert('Por favor completa todos los campos requeridos (nombre, código, latitud, longitud)');
+      return;
+    }
+
+    // Generate flag URL if code is provided
+    const flagUrl = newCountry.flag || `https://flagcdn.com/w40/${newCountry.code.toLowerCase()}.png`;
+
+    const countryData = {
+      name: newCountry.name,
+      code: newCountry.code.toUpperCase(),
+      latitude: parseFloat(newCountry.latitude),
+      longitude: parseFloat(newCountry.longitude),
+      flag: flagUrl,
+      photos: newCountry.photos.filter(p => p.trim() !== ''),
+      status: targetStatus,
+    };
+
+    try {
+      const response = await fetch('/api/add-country', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(countryData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add country');
+      }
+
+      const result = await response.json();
+      console.log('Country added:', result);
+
+      // Reload locations from JSON
+      const locationsResponse = await fetch('/locations/web_locations.json');
+      const locationsData = await locationsResponse.json();
+      const places: CountryLocation[] = locationsData.map((country: CountryData) => ({
+        name: country.name,
+        code: country.code,
+        position: {
+          lat: country.latitude,
+          lng: country.longitude
+        },
+        photos: country.photos || [],
+        status: country.status || "pending",
+        flag: country.flag || ""
+      }));
+
+      setLocations(places);
+      setShowAddModal(false);
+      setNewCountry({
+        name: '',
+        code: '',
+        latitude: '',
+        longitude: '',
+        flag: '',
+        photos: [],
+      });
+    } catch (error) {
+      console.error('Error adding country:', error);
+      alert('Error al agregar el país. Por favor, intenta nuevamente.');
+    }
   };
 
   const doneLocations = locations.filter(location => location.status === 'done');
@@ -380,6 +472,7 @@ const Map = () => {
               locations={doneLocations}
               status="done"
               emptyMessage="No countries completed yet"
+              onDoubleClick={() => handleColumnDoubleClick('done')}
             />
             <DroppableColumn
               id="in review"
@@ -388,6 +481,7 @@ const Map = () => {
               locations={inReviewLocations}
               status="in review"
               emptyMessage="No countries in review"
+              onDoubleClick={() => handleColumnDoubleClick('in review')}
             />
             <DroppableColumn
               id="pending"
@@ -396,6 +490,7 @@ const Map = () => {
               locations={pendingLocations}
               status="pending"
               emptyMessage="No pending countries"
+              onDoubleClick={() => handleColumnDoubleClick('pending')}
             />
           </div>
           <DragOverlay>
@@ -413,6 +508,87 @@ const Map = () => {
             ) : null}
           </DragOverlay>
         </DndContext>
+
+        {/* Add Country Modal */}
+        {showAddModal && (
+          <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2 className="modal-title">Agregar Nuevo País</h2>
+                <button className="modal-close" onClick={() => setShowAddModal(false)}>×</button>
+              </div>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label htmlFor="country-name">Nombre del País *</label>
+                  <input
+                    id="country-name"
+                    type="text"
+                    value={newCountry.name}
+                    onChange={(e) => setNewCountry({ ...newCountry, name: e.target.value })}
+                    placeholder="Ej: Francia"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="country-code">Código del País (ISO) *</label>
+                  <input
+                    id="country-code"
+                    type="text"
+                    value={newCountry.code}
+                    onChange={(e) => setNewCountry({ ...newCountry, code: e.target.value.toUpperCase() })}
+                    placeholder="Ej: FR"
+                    maxLength={2}
+                  />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="country-latitude">Latitud *</label>
+                    <input
+                      id="country-latitude"
+                      type="number"
+                      step="any"
+                      value={newCountry.latitude}
+                      onChange={(e) => setNewCountry({ ...newCountry, latitude: e.target.value })}
+                      placeholder="Ej: 46.2276"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="country-longitude">Longitud *</label>
+                    <input
+                      id="country-longitude"
+                      type="number"
+                      step="any"
+                      value={newCountry.longitude}
+                      onChange={(e) => setNewCountry({ ...newCountry, longitude: e.target.value })}
+                      placeholder="Ej: 2.2137"
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="country-flag">URL de la Bandera (opcional)</label>
+                  <input
+                    id="country-flag"
+                    type="text"
+                    value={newCountry.flag}
+                    onChange={(e) => setNewCountry({ ...newCountry, flag: e.target.value })}
+                    placeholder="Dejar vacío para usar flagcdn.com automático"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Estado: <strong>{targetStatus}</strong></label>
+                  <p className="form-help">Este país se agregará a la columna "{targetStatus}"</p>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn-cancel" onClick={() => setShowAddModal(false)}>
+                  Cancelar
+                </button>
+                <button className="btn-submit" onClick={handleAddCountry}>
+                  Agregar País
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </LoadScript>
   );
