@@ -67,6 +67,12 @@ const Map = () => {
   const doneLocations = locations.filter(location => location.status === 'done');
   const pendingLocations = locations.filter(location => location.status === 'pending');
   const inReviewLocations = locations.filter(location => location.status === 'in review');
+  
+  // Total countries in the world (UN recognized)
+  const TOTAL_COUNTRIES = 195;
+  const visitedCount = doneLocations.length;
+  const remainingCount = TOTAL_COUNTRIES - visitedCount;
+  const progressPercentage = (visitedCount / TOTAL_COUNTRIES) * 100;
 
   const mapOptions = {
     styles: [
@@ -141,6 +147,29 @@ const Map = () => {
               </InfoWindow>
             )}
           </GoogleMap>
+        </div>
+
+        <div className="progress-timeline">
+          <div className="progress-header">
+            <h3 className="progress-title">World Travel Progress</h3>
+            <div className="progress-stats">
+              <span className="progress-visited">{visitedCount}</span>
+              <span className="progress-separator">/</span>
+              <span className="progress-total">{TOTAL_COUNTRIES}</span>
+              <span className="progress-label">countries visited</span>
+            </div>
+          </div>
+          <div className="progress-bar-container">
+            <div 
+              className="progress-bar-fill" 
+              style={{ width: `${progressPercentage}%` }}
+            >
+              <span className="progress-percentage">{progressPercentage.toFixed(1)}%</span>
+            </div>
+            <div className="progress-bar-remaining">
+              <span className="progress-remaining-text">{remainingCount} remaining</span>
+            </div>
+          </div>
         </div>
 
         <div className="stats-container">
