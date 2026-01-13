@@ -45,7 +45,7 @@
             "https://example.com/peru-photo1.jpg",
             "https://example.com/peru-photo2.jpg"
         ],
-        "status": "in review"
+        "status": "pending"
     },
     {
         "name": "Colombia",
