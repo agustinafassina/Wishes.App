@@ -146,7 +146,7 @@ body {
 
 .header-text {
   flex: 1;
-  text-align: left;
+  text-align: right !important;
 }
 
 .page-title {
@@ -464,7 +464,7 @@ body {
 }
 
 .country-card::after {
-  content: 'Doble clic para agregar país';
+  content: 'Double-click to add country';
   position: absolute;
   bottom: 0.5rem;
   left: 50%;

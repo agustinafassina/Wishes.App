@@ -513,41 +513,41 @@ const Map = () => {
           <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
-                <h2 className="modal-title">Agregar Nuevo País</h2>
+                <h2 className="modal-title">Add new country</h2>
                 <button className="modal-close" onClick={() => setShowAddModal(false)}>×</button>
               </div>
               <div className="modal-body">
                 <div className="form-group">
-                  <label htmlFor="country-name">Nombre del País *</label>
+                  <label htmlFor="country-name">Country name *</label>
                   <input
                     id="country-name"
                     type="text"
                     value={newCountry.name}
                     onChange={(e) => setNewCountry({ ...newCountry, name: e.target.value })}
-                    placeholder="Ej: Francia"
+                    placeholder="Ex: Francia"
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="country-code">Código del País (ISO) *</label>
+                  <label htmlFor="country-code">Country code (ISO) *</label>
                   <input
                     id="country-code"
                     type="text"
                     value={newCountry.code}
                     onChange={(e) => setNewCountry({ ...newCountry, code: e.target.value.toUpperCase() })}
-                    placeholder="Ej: FR"
+                    placeholder="Ex: FR"
                     maxLength={2}
                   />
                 </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="country-latitude">Latitud *</label>
+                    <label htmlFor="country-latitude">Latitude *</label>
                     <input
                       id="country-latitude"
                       type="number"
                       step="any"
                       value={newCountry.latitude}
                       onChange={(e) => setNewCountry({ ...newCountry, latitude: e.target.value })}
-                      placeholder="Ej: 46.2276"
+                      placeholder="Ex: 46.2276"
                     />
                   </div>
                   <div className="form-group">
@@ -558,12 +558,12 @@ const Map = () => {
                       step="any"
                       value={newCountry.longitude}
                       onChange={(e) => setNewCountry({ ...newCountry, longitude: e.target.value })}
-                      placeholder="Ej: 2.2137"
+                      placeholder="Ex: 2.2137"
                     />
                   </div>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="country-flag">URL de la Bandera (opcional)</label>
+                  <label htmlFor="country-flag">Flag URL (optional)</label>
                   <input
                     id="country-flag"
                     type="text"
@@ -574,15 +574,15 @@ const Map = () => {
                 </div>
                 <div className="form-group">
                   <label>Estado: <strong>{targetStatus}</strong></label>
-                  <p className="form-help">Este país se agregará a la columna "{targetStatus}"</p>
+                  <p className="form-help">This country will be added to the "{targetStatus}" column</p>
                 </div>
               </div>
               <div className="modal-footer">
                 <button className="btn-cancel" onClick={() => setShowAddModal(false)}>
-                  Cancelar
+                  Cancel
                 </button>
                 <button className="btn-submit" onClick={handleAddCountry}>
-                  Agregar País
+                  Add country
                 </button>
               </div>
             </div>
