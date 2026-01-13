@@ -297,7 +297,7 @@
             "https://example.com/austria-photo1.jpg",
             "https://example.com/austria-photo2.jpg"
         ],
-        "status": "pending"
+        "status": "in review"
     },
     {
         "name": "Grecia",
