@@ -14,7 +14,7 @@
     {
         "name": "Brasil",
         "code": "BR",
-        "latitude": -14.2350,
+        "latitude": -14.235,
         "longitude": -51.9253,
         "flag": "https://flagcdn.com/w40/br.png",
         "photos": [
@@ -230,7 +230,7 @@
     {
         "name": "Tailandia",
         "code": "TH",
-        "latitude": 15.8700,
+        "latitude": 15.87,
         "longitude": 100.9925,
         "flag": "https://flagcdn.com/w40/th.png",
         "photos": [
@@ -278,8 +278,8 @@
     {
         "name": "Croacia",
         "code": "HR",
-        "latitude": 45.1000,
-        "longitude": 15.2000,
+        "latitude": 45.1,
+        "longitude": 15.2,
         "flag": "https://flagcdn.com/w40/hr.png",
         "photos": [
             "https://example.com/croatia-photo1.jpg",
@@ -327,7 +327,7 @@
         "name": "Chequia",
         "code": "CZ",
         "latitude": 49.8175,
-        "longitude": 15.4730,
+        "longitude": 15.473,
         "flag": "https://flagcdn.com/w40/cz.png",
         "photos": [
             "https://example.com/czechia-photo1.jpg",
@@ -338,8 +338,8 @@
     {
         "name": "Eslovaquia",
         "code": "SK",
-        "latitude": 48.6690,
-        "longitude": 19.6990,
+        "latitude": 48.669,
+        "longitude": 19.699,
         "flag": "https://flagcdn.com/w40/sk.png",
         "photos": [
             "https://example.com/slovakia-photo1.jpg",

@@ -541,6 +541,13 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  min-height: 100px;
+  transition: background-color 0.2s ease;
+}
+
+.country-list-content.drag-over {
+  background-color: rgba(74, 222, 128, 0.1);
+  border-radius: 8px;
 }
 
 .country-item {
@@ -549,8 +556,30 @@ body {
   gap: 1rem;
   padding: 0.875rem 1rem;
   border-radius: 8px;
-  transition: background-color 0.2s ease;
-  cursor: default;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: grab;
+  touch-action: none;
+}
+
+.country-item:active {
+  cursor: grabbing;
+}
+
+.country-item.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.country-item-dragging {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
+  border-radius: 8px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-lg);
+  transform: rotate(5deg);
+  opacity: 0.9;
 }
 
 .country-flag {
@@ -563,8 +592,9 @@ body {
   flex-shrink: 0;
 }
 
-.country-item:hover {
+.country-item:hover:not(.dragging) {
   background-color: var(--bg-tertiary);
+  transform: translateX(4px);
 }
 
 .country-badge {
@@ -585,7 +615,8 @@ body {
   border: 1px solid rgba(74, 222, 128, 0.4);
 }
 
-.country-item-review .country-badge {
+.country-item-review .country-badge,
+.country-item-in-review .country-badge {
   background: rgba(245, 221, 144, 0.15);
   color: var(--warning);
   border: 1px solid rgba(245, 221, 144, 0.4);
