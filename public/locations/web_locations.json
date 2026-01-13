@@ -1,42 +1,122 @@
 [
-  {
-      "name": "Argentina",
-      "code": "AR",
-      "latitude": -38.4161,
-      "longitude": -63.6167,
-      "population": 45195777,
-      "capital": "Buenos Aires"
-  },
-  {
-      "name": "Brasil",
-      "code": "BR",
-      "latitude": -14.2350,
-      "longitude": -51.9253,
-      "population": 211049527,
-      "capital": "Brasilia"
-  },
-  {
-      "name": "Chile",
-      "code": "CL",
-      "latitude": -35.6751,
-      "longitude": -71.5374,
-      "population": 19116209,
-      "capital": "Santiago"
-  },
-  {
-      "name": "Francia",
-      "code": "FR",
-      "latitude": 46.6034,
-      "longitude": 1.8883,
-      "population": 65273511,
-      "capital": "París"
-  },
-  {
-      "name": "Japón",
-      "code": "JP",
-      "latitude": 36.2048,
-      "longitude": 138.2529,
-      "population": 126476461,
-      "capital": "Tokio"
-  }
+    {
+        "name": "Argentina",
+        "code": "AR",
+        "latitude": -38.4161,
+        "longitude": -63.6167,
+        "flag": "https://flagcdn.com/w40/ar.png",
+        "photos": [
+            "https://example.com/argentina-photo1.jpg",
+            "https://example.com/argentina-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Brasil",
+        "code": "BR",
+        "latitude": -14.2350,
+        "longitude": -51.9253,
+        "flag": "https://flagcdn.com/w40/br.png",
+        "photos": [
+            "https://example.com/brazil-photo1.jpg",
+            "https://example.com/brazil-photo2.jpg"
+        ],
+        "status": "pending"
+    },
+    {
+        "name": "Chile",
+        "code": "CL",
+        "latitude": -35.6751,
+        "longitude": -71.5374,
+        "flag": "https://flagcdn.com/w40/cl.png",
+        "photos": [
+            "https://example.com/chile-photo1.jpg",
+            "https://example.com/chile-photo2.jpg"
+        ],
+        "status": "in review"
+    },
+    {
+        "name": "Perú",
+        "code": "PE",
+        "latitude": -9.19,
+        "longitude": -75.0152,
+        "flag": "https://flagcdn.com/w40/pe.png",
+        "photos": [
+            "https://example.com/peru-photo1.jpg",
+            "https://example.com/peru-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Colombia",
+        "code": "CO",
+        "latitude": 4.5709,
+        "longitude": -74.2973,
+        "flag": "https://flagcdn.com/w40/co.png",
+        "photos": [
+            "https://example.com/colombia-photo1.jpg",
+            "https://example.com/colombia-photo2.jpg"
+        ],
+        "status": "pending"
+    },
+    {
+        "name": "Uruguay",
+        "code": "UY",
+        "latitude": -32.5228,
+        "longitude": -55.7658,
+        "flag": "https://flagcdn.com/w40/uy.png",
+        "photos": [
+            "https://example.com/uruguay-photo1.jpg",
+            "https://example.com/uruguay-photo2.jpg"
+        ],
+        "status": "in review"
+    },
+    {
+        "name": "Paraguay",
+        "code": "PY",
+        "latitude": -23.4424,
+        "longitude": -58.4438,
+        "flag": "https://flagcdn.com/w40/py.png",
+        "photos": [
+            "https://example.com/paraguay-photo1.jpg",
+            "https://example.com/paraguay-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Venezuela",
+        "code": "VE",
+        "latitude": 6.4238,
+        "longitude": -66.5897,
+        "flag": "https://flagcdn.com/w40/ve.png",
+        "photos": [
+            "https://example.com/venezuela-photo1.jpg",
+            "https://example.com/venezuela-photo2.jpg"
+        ],
+        "status": "pending"
+    },
+    {
+        "name": "Bolivia",
+        "code": "BO",
+        "latitude": -16.2902,
+        "longitude": -63.5887,
+        "flag": "https://flagcdn.com/w40/bo.png",
+        "photos": [
+            "https://example.com/bolivia-photo1.jpg",
+            "https://example.com/bolivia-photo2.jpg"
+        ],
+        "status": "in review"
+    },
+    {
+        "name": "Ecuador",
+        "code": "EC",
+        "latitude": -1.8312,
+        "longitude": -78.1834,
+        "flag": "https://flagcdn.com/w40/ec.png",
+        "photos": [
+            "https://example.com/ecuador-photo1.jpg",
+            "https://example.com/ecuador-photo2.jpg"
+        ],
+        "status": "done"
+    }
 ]
