@@ -366,7 +366,6 @@ const Map = () => {
       <div className="map-section">
         <div className="map-header">
           <h2 className="section-title">My Travel Map</h2>
-          <p className="section-subtitle">Countries visited and on my wishlist</p>
         </div>
         
         <div className="map-wrapper">

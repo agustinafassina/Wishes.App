@@ -2,52 +2,57 @@
 @import "tailwindcss";
 
 :root {
-  /* Custom Color Palette - Blue/Gold/Coral Scale */
-  --smart-blue: #586ba4;
-  --french-blue: #324376;
-  --light-gold: #f5dd90;
-  --tangerine-dream: #f68e5f;
-  --vibrant-coral: #f76c5e;
+  /* Modern Color Palette - Vibrant & Cohesive */
+  --primary-purple: #8b5cf6;
+  --primary-purple-light: #a78bfa;
+  --primary-purple-dark: #7c3aed;
+  --accent-pink: #ec4899;
+  --accent-pink-light: #f472b6;
+  --accent-blue: #3b82f6;
+  --accent-blue-light: #60a5fa;
   
-  /* Background Colors - Using darkest tones */
-  --bg-primary: #0f1520;
-  --bg-secondary: var(--french-blue);
-  --bg-tertiary: #1f2a3f;
-  --bg-card: #1a2438;
-  --bg-card-hover: #24304a;
+  /* Background Colors - Rich dark tones */
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #1a1f35;
+  --bg-tertiary: #252b42;
+  --bg-card: #1e2339;
+  --bg-card-hover: #2a3049;
   
-  /* Accent Colors - Using vibrant colors */
-  --accent-primary: var(--vibrant-coral);
-  --accent-primary-light: #ff7d6f;
-  --accent-secondary: var(--tangerine-dream);
-  --accent-secondary-light: #ffa37f;
-  --accent-tertiary: var(--light-gold);
+  /* Accent Colors - Vibrant & Modern */
+  --accent-primary: var(--primary-purple);
+  --accent-primary-light: var(--primary-purple-light);
+  --accent-secondary: var(--accent-pink);
+  --accent-secondary-light: var(--accent-pink-light);
+  --accent-tertiary: var(--accent-blue);
   
-  /* Status Colors - Using palette colors */
-  --success: #4ade80;
-  --success-light: #86efac;
-  --warning: var(--light-gold);
-  --warning-light: #fff0b8;
-  --pending: var(--vibrant-coral);
-  --pending-light: #ff7d6f;
+  /* Status Colors - Distinct & Beautiful */
+  --success: #10b981;
+  --success-light: #34d399;
+  --success-dark: #059669;
+  --warning: #f59e0b;
+  --warning-light: #fbbf24;
+  --warning-dark: #d97706;
+  --pending: #ef4444;
+  --pending-light: #f87171;
+  --pending-dark: #dc2626;
   
   /* Text Colors */
   --text-primary: #ffffff;
-  --text-secondary: #d0d4e0;
-  --text-tertiary: #a0a8b8;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
   
   /* Borders */
-  --border: var(--smart-blue);
-  --border-light: #6b7fb4;
+  --border: rgba(139, 92, 246, 0.3);
+  --border-light: rgba(139, 92, 246, 0.2);
   
-  /* Shadows - Using vibrant glows */
-  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.6);
-  --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.7);
-  --shadow-lg: 0 8px 48px rgba(0, 0, 0, 0.8);
-  --shadow-glow: 0 0 30px rgba(247, 108, 94, 0.4);
-  --shadow-glow-success: 0 0 30px rgba(74, 222, 128, 0.3);
-  --shadow-glow-warning: 0 0 30px rgba(245, 221, 144, 0.3);
-  --shadow-glow-pending: 0 0 30px rgba(247, 108, 94, 0.3);
+  /* Shadows - Enhanced glows */
+  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 8px 48px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 30px rgba(139, 92, 246, 0.4);
+  --shadow-glow-success: 0 0 30px rgba(16, 185, 129, 0.4);
+  --shadow-glow-warning: 0 0 30px rgba(245, 158, 11, 0.4);
+  --shadow-glow-pending: 0 0 30px rgba(239, 68, 68, 0.4);
 }
 
 * {
@@ -88,12 +93,12 @@ body {
 
 /* Header Styles */
 .page-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  padding: 1.25rem 1.5rem;
+  background: #d66853;
+  padding: 1.5rem 2rem;
   color: var(--text-primary);
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 -2px 20px rgba(0, 0, 0, 0.2), 0 4px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.1), 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
 .page-header::before {
@@ -103,18 +108,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
-  pointer-events: none;
-}
-
-.page-header::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, transparent 0%, rgba(0, 0, 0, 0.15) 100%);
+  background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.08) 0%, transparent 60%);
   pointer-events: none;
 }
 
@@ -152,7 +146,7 @@ body {
 
 .header-text {
   flex: 1;
-  text-align: center;
+  text-align: left;
 }
 
 .page-title {
@@ -305,7 +299,7 @@ body {
   font-size: 2rem;
   font-weight: 700;
   color: var(--success);
-  text-shadow: 0 0 15px rgba(74, 222, 128, 0.5);
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
 }
 
 .progress-separator {
@@ -349,7 +343,7 @@ body {
   justify-content: flex-end;
   padding-right: 1rem;
   transition: width 1s ease-in-out;
-  box-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
   z-index: 2;
 }
 
@@ -425,7 +419,7 @@ body {
 
 .stat-done .stat-number {
   color: var(--success);
-  text-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
 }
 
 .stat-review {
@@ -435,7 +429,7 @@ body {
 
 .stat-review .stat-number {
   color: var(--warning);
-  text-shadow: 0 0 20px rgba(245, 221, 144, 0.5);
+  text-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
 }
 
 .stat-pending {
@@ -445,7 +439,7 @@ body {
 
 .stat-pending .stat-number {
   color: var(--pending);
-  text-shadow: 0 0 20px rgba(247, 108, 94, 0.5);
+  text-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
 }
 
 /* Country Lists Container */
@@ -514,24 +508,25 @@ body {
 }
 
 .card-icon-done {
-  background: rgba(74, 222, 128, 0.15);
+  background: rgba(16, 185, 129, 0.15);
   color: var(--success);
-  border: 1px solid rgba(74, 222, 128, 0.4);
-  box-shadow: 0 0 15px rgba(74, 222, 128, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
-.card-icon-review {
-  background: rgba(245, 221, 144, 0.15);
+.card-icon-review,
+.card-icon-in-review {
+  background: rgba(245, 158, 11, 0.15);
   color: var(--warning);
-  border: 1px solid rgba(245, 221, 144, 0.4);
-  box-shadow: 0 0 15px rgba(245, 221, 144, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
 }
 
 .card-icon-pending {
-  background: rgba(247, 108, 94, 0.15);
+  background: rgba(239, 68, 68, 0.15);
   color: var(--pending);
-  border: 1px solid rgba(247, 108, 94, 0.4);
-  box-shadow: 0 0 15px rgba(247, 108, 94, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
 }
 
 .country-title {
@@ -629,22 +624,22 @@ body {
 }
 
 .country-item-done .country-badge {
-  background: rgba(74, 222, 128, 0.15);
+  background: rgba(16, 185, 129, 0.15);
   color: var(--success);
-  border: 1px solid rgba(74, 222, 128, 0.4);
+  border: 1px solid rgba(16, 185, 129, 0.4);
 }
 
 .country-item-review .country-badge,
 .country-item-in-review .country-badge {
-  background: rgba(245, 221, 144, 0.15);
+  background: rgba(245, 158, 11, 0.15);
   color: var(--warning);
-  border: 1px solid rgba(245, 221, 144, 0.4);
+  border: 1px solid rgba(245, 158, 11, 0.4);
 }
 
 .country-item-pending .country-badge {
-  background: rgba(247, 108, 94, 0.15);
+  background: rgba(239, 68, 68, 0.15);
   color: var(--pending);
-  border: 1px solid rgba(247, 108, 94, 0.4);
+  border: 1px solid rgba(239, 68, 68, 0.4);
 }
 
 .country-name {
@@ -760,7 +755,7 @@ body {
 .form-group input:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(247, 108, 94, 0.1);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
 }
 
 .form-row {
@@ -812,7 +807,7 @@ body {
 
 .btn-submit:hover {
   background: var(--accent-primary-light);
-  box-shadow: 0 4px 12px rgba(247, 108, 94, 0.3);
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
 }
 
 /* Responsive Design */
