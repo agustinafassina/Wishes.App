@@ -247,7 +247,7 @@ const Map = () => {
             : location
         );
       });
-      alert('Error al actualizar el estado del país. Por favor, intenta nuevamente.');
+      alert('Failed to update country status. Please try again.');
     }
   };
 
@@ -272,7 +272,7 @@ const Map = () => {
   const handleAddCountry = async () => {
     // Validate required fields
     if (!newCountry.name || !newCountry.code || !newCountry.latitude || !newCountry.longitude) {
-      alert('Por favor completa todos los campos requeridos (nombre, código, latitud, longitud)');
+      alert('Please complete all required fields (name, code, latitude, longitude)');
       return;
     }
 
@@ -332,7 +332,7 @@ const Map = () => {
       });
     } catch (error) {
       console.error('Error adding country:', error);
-      alert('Error al agregar el país. Por favor, intenta nuevamente.');
+      alert('Failed to add country. Please try again.');
     }
   };
 
@@ -551,7 +551,7 @@ const Map = () => {
                     />
                   </div>
                   <div className="form-group">
-                    <label htmlFor="country-longitude">Longitud *</label>
+                    <label htmlFor="country-longitude">Longitude *</label>
                     <input
                       id="country-longitude"
                       type="number"
@@ -569,11 +569,11 @@ const Map = () => {
                     type="text"
                     value={newCountry.flag}
                     onChange={(e) => setNewCountry({ ...newCountry, flag: e.target.value })}
-                    placeholder="Dejar vacío para usar flagcdn.com automático"
+                    placeholder="Leave empty to use flagcdn.com automatically"
                   />
                 </div>
                 <div className="form-group">
-                  <label>Estado: <strong>{targetStatus}</strong></label>
+                  <label>Status: <strong>{targetStatus}</strong></label>
                   <p className="form-help">This country will be added to the "{targetStatus}" column</p>
                 </div>
               </div>
