@@ -21,7 +21,7 @@
             "https://example.com/brazil-photo1.jpg",
             "https://example.com/brazil-photo2.jpg"
         ],
-        "status": "pending"
+        "status": "done"
     },
     {
         "name": "Chile",
@@ -33,7 +33,7 @@
             "https://example.com/chile-photo1.jpg",
             "https://example.com/chile-photo2.jpg"
         ],
-        "status": "in review"
+        "status": "done"
     },
     {
         "name": "Perú",
@@ -45,7 +45,7 @@
             "https://example.com/peru-photo1.jpg",
             "https://example.com/peru-photo2.jpg"
         ],
-        "status": "done"
+        "status": "pending"
     },
     {
         "name": "Colombia",
@@ -57,7 +57,7 @@
             "https://example.com/colombia-photo1.jpg",
             "https://example.com/colombia-photo2.jpg"
         ],
-        "status": "pending"
+        "status": "done"
     },
     {
         "name": "Uruguay",
@@ -69,54 +69,306 @@
             "https://example.com/uruguay-photo1.jpg",
             "https://example.com/uruguay-photo2.jpg"
         ],
-        "status": "in review"
+        "status": "done"
     },
     {
-        "name": "Paraguay",
-        "code": "PY",
-        "latitude": -23.4424,
-        "longitude": -58.4438,
-        "flag": "https://flagcdn.com/w40/py.png",
+        "name": "México",
+        "code": "MX",
+        "latitude": 23.6345,
+        "longitude": -102.5528,
+        "flag": "https://flagcdn.com/w40/mx.png",
         "photos": [
-            "https://example.com/paraguay-photo1.jpg",
-            "https://example.com/paraguay-photo2.jpg"
+            "https://example.com/mexico-photo1.jpg",
+            "https://example.com/mexico-photo2.jpg"
         ],
         "status": "done"
     },
     {
-        "name": "Venezuela",
-        "code": "VE",
-        "latitude": 6.4238,
-        "longitude": -66.5897,
-        "flag": "https://flagcdn.com/w40/ve.png",
+        "name": "España",
+        "code": "ES",
+        "latitude": 40.4637,
+        "longitude": -3.7492,
+        "flag": "https://flagcdn.com/w40/es.png",
         "photos": [
-            "https://example.com/venezuela-photo1.jpg",
-            "https://example.com/venezuela-photo2.jpg"
+            "https://example.com/spain-photo1.jpg",
+            "https://example.com/spain-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Italia",
+        "code": "IT",
+        "latitude": 41.8719,
+        "longitude": 12.5674,
+        "flag": "https://flagcdn.com/w40/it.png",
+        "photos": [
+            "https://example.com/italy-photo1.jpg",
+            "https://example.com/italy-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Malta",
+        "code": "MT",
+        "latitude": 35.9375,
+        "longitude": 14.3754,
+        "flag": "https://flagcdn.com/w40/mt.png",
+        "photos": [
+            "https://example.com/malta-photo1.jpg",
+            "https://example.com/malta-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Andorra",
+        "code": "AD",
+        "latitude": 42.5462,
+        "longitude": 1.6016,
+        "flag": "https://flagcdn.com/w40/ad.png",
+        "photos": [
+            "https://example.com/andorra-photo1.jpg",
+            "https://example.com/andorra-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Inglaterra",
+        "code": "GB",
+        "latitude": 52.3555,
+        "longitude": -1.1743,
+        "flag": "https://flagcdn.com/w40/gb-eng.png",
+        "photos": [
+            "https://example.com/england-photo1.jpg",
+            "https://example.com/england-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Escocia",
+        "code": "GB",
+        "latitude": 56.4907,
+        "longitude": -4.2026,
+        "flag": "https://flagcdn.com/w40/gb-sct.png",
+        "photos": [
+            "https://example.com/scotland-photo1.jpg",
+            "https://example.com/scotland-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Países Bajos",
+        "code": "NL",
+        "latitude": 52.1326,
+        "longitude": 5.2913,
+        "flag": "https://flagcdn.com/w40/nl.png",
+        "photos": [
+            "https://example.com/netherlands-photo1.jpg",
+            "https://example.com/netherlands-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Luxemburgo",
+        "code": "LU",
+        "latitude": 49.8153,
+        "longitude": 6.1296,
+        "flag": "https://flagcdn.com/w40/lu.png",
+        "photos": [
+            "https://example.com/luxembourg-photo1.jpg",
+            "https://example.com/luxembourg-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Bélgica",
+        "code": "BE",
+        "latitude": 50.5039,
+        "longitude": 4.4699,
+        "flag": "https://flagcdn.com/w40/be.png",
+        "photos": [
+            "https://example.com/belgium-photo1.jpg",
+            "https://example.com/belgium-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Francia",
+        "code": "FR",
+        "latitude": 46.2276,
+        "longitude": 2.2137,
+        "flag": "https://flagcdn.com/w40/fr.png",
+        "photos": [
+            "https://example.com/france-photo1.jpg",
+            "https://example.com/france-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Suiza",
+        "code": "CH",
+        "latitude": 46.8182,
+        "longitude": 8.2275,
+        "flag": "https://flagcdn.com/w40/ch.png",
+        "photos": [
+            "https://example.com/switzerland-photo1.jpg",
+            "https://example.com/switzerland-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Singapur",
+        "code": "SG",
+        "latitude": 1.3521,
+        "longitude": 103.8198,
+        "flag": "https://flagcdn.com/w40/sg.png",
+        "photos": [
+            "https://example.com/singapore-photo1.jpg",
+            "https://example.com/singapore-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Tailandia",
+        "code": "TH",
+        "latitude": 15.8700,
+        "longitude": 100.9925,
+        "flag": "https://flagcdn.com/w40/th.png",
+        "photos": [
+            "https://example.com/thailand-photo1.jpg",
+            "https://example.com/thailand-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Egipto",
+        "code": "EG",
+        "latitude": 26.0975,
+        "longitude": 31.2357,
+        "flag": "https://flagcdn.com/w40/eg.png",
+        "photos": [
+            "https://example.com/egypt-photo1.jpg",
+            "https://example.com/egypt-photo2.jpg"
+        ],
+        "status": "done"
+    },
+    {
+        "name": "Polonia",
+        "code": "PL",
+        "latitude": 51.9194,
+        "longitude": 19.1451,
+        "flag": "https://flagcdn.com/w40/pl.png",
+        "photos": [
+            "https://example.com/poland-photo1.jpg",
+            "https://example.com/poland-photo2.jpg"
+        ],
+        "status": "in review"
+    },
+    {
+        "name": "Alemania",
+        "code": "DE",
+        "latitude": 51.1657,
+        "longitude": 10.4515,
+        "flag": "https://flagcdn.com/w40/de.png",
+        "photos": [
+            "https://example.com/germany-photo1.jpg",
+            "https://example.com/germany-photo2.jpg"
+        ],
+        "status": "in review"
+    },
+    {
+        "name": "Croacia",
+        "code": "HR",
+        "latitude": 45.1000,
+        "longitude": 15.2000,
+        "flag": "https://flagcdn.com/w40/hr.png",
+        "photos": [
+            "https://example.com/croatia-photo1.jpg",
+            "https://example.com/croatia-photo2.jpg"
         ],
         "status": "pending"
     },
     {
-        "name": "Bolivia",
-        "code": "BO",
-        "latitude": -16.2902,
-        "longitude": -63.5887,
-        "flag": "https://flagcdn.com/w40/bo.png",
+        "name": "Austria",
+        "code": "AT",
+        "latitude": 47.5162,
+        "longitude": 14.5501,
+        "flag": "https://flagcdn.com/w40/at.png",
         "photos": [
-            "https://example.com/bolivia-photo1.jpg",
-            "https://example.com/bolivia-photo2.jpg"
+            "https://example.com/austria-photo1.jpg",
+            "https://example.com/austria-photo2.jpg"
         ],
-        "status": "in review"
+        "status": "pending"
     },
     {
-        "name": "Ecuador",
-        "code": "EC",
-        "latitude": -1.8312,
-        "longitude": -78.1834,
-        "flag": "https://flagcdn.com/w40/ec.png",
+        "name": "Grecia",
+        "code": "GR",
+        "latitude": 39.0742,
+        "longitude": 21.8243,
+        "flag": "https://flagcdn.com/w40/gr.png",
         "photos": [
-            "https://example.com/ecuador-photo1.jpg",
-            "https://example.com/ecuador-photo2.jpg"
+            "https://example.com/greece-photo1.jpg",
+            "https://example.com/greece-photo2.jpg"
         ],
-        "status": "done"
+        "status": "pending"
+    },
+    {
+        "name": "Islandia",
+        "code": "IS",
+        "latitude": 64.9631,
+        "longitude": -19.0208,
+        "flag": "https://flagcdn.com/w40/is.png",
+        "photos": [
+            "https://example.com/iceland-photo1.jpg",
+            "https://example.com/iceland-photo2.jpg"
+        ],
+        "status": "pending"
+    },
+    {
+        "name": "Chequia",
+        "code": "CZ",
+        "latitude": 49.8175,
+        "longitude": 15.4730,
+        "flag": "https://flagcdn.com/w40/cz.png",
+        "photos": [
+            "https://example.com/czechia-photo1.jpg",
+            "https://example.com/czechia-photo2.jpg"
+        ],
+        "status": "pending"
+    },
+    {
+        "name": "Eslovaquia",
+        "code": "SK",
+        "latitude": 48.6690,
+        "longitude": 19.6990,
+        "flag": "https://flagcdn.com/w40/sk.png",
+        "photos": [
+            "https://example.com/slovakia-photo1.jpg",
+            "https://example.com/slovakia-photo2.jpg"
+        ],
+        "status": "pending"
+    },
+    {
+        "name": "Eslovenia",
+        "code": "SI",
+        "latitude": 46.1512,
+        "longitude": 14.9955,
+        "flag": "https://flagcdn.com/w40/si.png",
+        "photos": [
+            "https://example.com/slovenia-photo1.jpg",
+            "https://example.com/slovenia-photo2.jpg"
+        ],
+        "status": "pending"
+    },
+    {
+        "name": "Irlanda",
+        "code": "IE",
+        "latitude": 53.4129,
+        "longitude": -8.2439,
+        "flag": "https://flagcdn.com/w40/ie.png",
+        "photos": [
+            "https://example.com/ireland-photo1.jpg",
+            "https://example.com/ireland-photo2.jpg"
+        ],
+        "status": "pending"
     }
 ]
