@@ -7,12 +7,11 @@ En public/locations hay un json que es la base de datos de este project, como es
 ### Implementations
 - [x] Databases: json file (no recomendado si se va a usar para trabajar con datos realaes, ya que se puede perder).
 - [x] GoogleMaps: use key credential (.env file in the root)
-- [x] Add country from chckelist
+- [x] Add country from checklist
 - [x] Add change status with the scroll
 
 ### 🚀 Run project
-First, run the development server:
-
+Run the development server:
 ```bash
 npm run dev
 # or
