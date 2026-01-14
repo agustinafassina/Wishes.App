@@ -15,8 +15,8 @@ export default function Home() {
                 className="logo"
                 src="/agus_animada.PNG"
                 alt="Agus"
-                width={80}
-                height={80}
+                width={110}
+                height={110}
                 priority
               />
             </div>
