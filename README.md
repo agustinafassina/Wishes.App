@@ -10,7 +10,7 @@ En public/locations hay un json que es la base de datos de este project, como es
 - [x] Add country from checklist
 - [x] Add change status with the scroll
 
-Web review:
+### Web review:
 <img src="first-part.png" alt="First part of the web" width="400" height="450">
 <img src="second-part.png" alt="Second part of the web" width="400" height="450">
 
