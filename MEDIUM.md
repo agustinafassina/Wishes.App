@@ -1,5 +1,8 @@
 # Building My Travel Bucket List App with Cursor AI: A Journey of Code and Dreams 🗺️
 
+<img src="first-part.png" alt="Logo del proyecto" width="400" height="450">
+<img src="second-part.png" alt="Logo del proyecto" width="400" height="450">
+
 ## The Spark: From Recommendation to Reality
 
 A few days ago, a colleague recommended I try an AI-powered IDE or add an AI extension to VSCode to see what the experience was like. That's how I discovered **Cursor** — and I was immediately intrigued.
