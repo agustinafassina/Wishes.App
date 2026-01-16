@@ -524,7 +524,7 @@ const Map = () => {
                     type="text"
                     value={newCountry.name}
                     onChange={(e) => setNewCountry({ ...newCountry, name: e.target.value })}
-                    placeholder="Ex: Francia"
+                    placeholder="Ex: France"
                   />
                 </div>
                 <div className="form-group">
