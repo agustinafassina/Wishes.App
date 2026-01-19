@@ -2,16 +2,19 @@
 "use client";
 
 import Image from "next/image";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Map from "../components/Map";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
 export default function Home() {
   const contentRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const handleExportPDF = async () => {
-    if (!contentRef.current) return;
+    if (!contentRef.current || isExporting) return;
+
+    setIsExporting(true);
 
     try {
       const infoWindows = document.querySelectorAll('[role="dialog"]');
@@ -56,6 +59,8 @@ export default function Home() {
     } catch (error) {
       console.error('Error exporting PDF:', error);
       alert('An error occurred while exporting the PDF. Please try again.');
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -82,21 +87,7 @@ export default function Home() {
         </header>
 
         <div className="content-section">
-          <Map />
-          <div className="export-pdf-container">
-            <button 
-              className="btn-export-pdf"
-              onClick={handleExportPDF}
-              aria-label="Export to PDF"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-              <span>Export PDF</span>
-            </button>
-          </div>
+          <Map onExportPDF={handleExportPDF} isExporting={isExporting} />
         </div>
       </main>
     </div>
