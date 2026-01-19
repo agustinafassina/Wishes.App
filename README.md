@@ -9,6 +9,7 @@ En public/locations hay un json que es la base de datos de este project, como es
 - [x] GoogleMaps: use key credential (.env file in the root)
 - [x] Add country from checklist
 - [x] Add change status with the scroll
+- [x] Add export pdf button
 
 ### Web review
 <img src="first-part.png" alt="First part of the web" width="500" height="450">
