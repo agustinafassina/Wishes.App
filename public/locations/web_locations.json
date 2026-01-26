@@ -370,5 +370,50 @@
             "https://example.com/ireland-photo2.jpg"
         ],
         "status": "pending"
+    },
+    {
+        "name": "Hungría",
+        "code": "HU",
+        "latitude": 47.1625,
+        "longitude": 19.5033,
+        "flag": "https://flagcdn.com/w40/hu.png",
+        "photos": [],
+        "status": "pending"
+    },
+    {
+        "name": "Bosnia y Herzegovina",
+        "code": "BA",
+        "latitude": 43.9159,
+        "longitude": 17.6791,
+        "flag": "https://flagcdn.com/w40/ba.png",
+        "photos": [],
+        "status": "pending"
+    },
+    {
+        "name": "Portugal",
+        "code": "PT",
+        "latitude": 39.3999,
+        "longitude": -8.2245,
+        "flag": "https://flagcdn.com/w40/pt.png",
+        "photos": [],
+        "status": "pending"
+    },
+    {
+        "name": "Albania",
+        "code": "AL",
+        "latitude": 41.1533,
+        "longitude": 20.1683,
+        "flag": "https://flagcdn.com/w40/al.png",
+        "photos": [],
+        "status": "pending"
+    },
+    {
+        "name": "Montenegro",
+        "code": "ME",
+        "latitude": 42.7087,
+        "longitude": 19.3744,
+        "flag": "https://flagcdn.com/w40/me.png",
+        "photos": [],
+        "status": "pending"
     }
 ]
