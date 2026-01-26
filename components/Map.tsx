@@ -139,6 +139,11 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [targetStatus, setTargetStatus] = useState<string>('pending');
+  const [statusFilters, setStatusFilters] = useState({
+    done: true,
+    'in review': false,
+    pending: false,
+  });
   const [newCountry, setNewCountry] = useState({
     name: '',
     code: '',
@@ -181,7 +186,9 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
       .catch(error => console.error('Error loading countries:', error));
   }, []);
 
-  const filteredLocations = locations.filter(location => location.status === 'done');
+  const filteredLocations = locations.filter(location => {
+    return statusFilters[location.status as keyof typeof statusFilters] === true;
+  });
 
   const handleMarkerClick = (countryLocation: CountryLocation): void => {
     setSelectedLocation(countryLocation);
@@ -366,11 +373,48 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
     fullscreenControl: true
   };
 
+  const handleFilterToggle = (status: 'done' | 'in review' | 'pending') => {
+    setStatusFilters(prev => ({
+      ...prev,
+      [status]: !prev[status]
+    }));
+  };
+
   return (
     <LoadScript googleMapsApiKey={API_KEY}>
       <div className="map-section">
         <div className="map-header">
           <h2 className="section-title">My Travel Map</h2>
+        </div>
+
+        <div className="map-filters">
+          <div className="filter-label">Filter by status:</div>
+          <div className="filter-buttons">
+            <button
+              className={`filter-btn ${statusFilters.done ? 'active' : ''}`}
+              onClick={() => handleFilterToggle('done')}
+              aria-pressed={statusFilters.done}
+            >
+              <span className="filter-icon">✓</span>
+              <span>Done</span>
+            </button>
+            <button
+              className={`filter-btn ${statusFilters['in review'] ? 'active' : ''}`}
+              onClick={() => handleFilterToggle('in review')}
+              aria-pressed={statusFilters['in review']}
+            >
+              <span className="filter-icon">⏳</span>
+              <span>In Review</span>
+            </button>
+            <button
+              className={`filter-btn ${statusFilters.pending ? 'active' : ''}`}
+              onClick={() => handleFilterToggle('pending')}
+              aria-pressed={statusFilters.pending}
+            >
+              <span className="filter-icon">○</span>
+              <span>Pending</span>
+            </button>
+          </div>
         </div>
         
         <div className="map-wrapper">
