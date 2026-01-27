@@ -360,17 +360,33 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
 
   const mapOptions = {
     styles: [
-      {
-        featureType: "poi",
-        elementType: "labels",
-        stylers: [{ visibility: "off" }]
-      }
+      { featureType: "all", elementType: "geometry", stylers: [{ color: "#1a1f35" }] },
+      { featureType: "all", elementType: "labels.text.stroke", stylers: [{ color: "#0a0e1a" }] },
+      { featureType: "all", elementType: "labels.text.fill", stylers: [{ color: "#94a3b8" }] },
+      { featureType: "water", elementType: "geometry", stylers: [{ color: "#0a0e1a" }] },
+      { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#64748b" }] },
+      { featureType: "road", elementType: "geometry", stylers: [{ color: "#252b42" }] },
+      { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#1e2339" }] },
+      { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2a3049" }] },
+      { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#1a1f35" }] },
+      { featureType: "administrative.land_parcel", elementType: "labels.text.fill", stylers: [{ color: "#64748b" }] },
+      { featureType: "transit", elementType: "labels.text.fill", stylers: [{ color: "#94a3b8" }] },
+      { featureType: "poi", elementType: "geometry", stylers: [{ color: "#252b42" }] },
+      { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#94a3b8" }] },
+      { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
+      { featureType: "landscape.natural", elementType: "geometry", stylers: [{ color: "#1e2339" }] },
+      { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#252b42" }] },
+      { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "rgba(139, 92, 246, 0.3)" }] },
+      { featureType: "administrative.province", elementType: "geometry.stroke", stylers: [{ color: "#252b42" }] }
     ],
     disableDefaultUI: false,
     zoomControl: true,
+    zoomControlOptions: { position: 7 },
     streetViewControl: false,
     mapTypeControl: false,
-    fullscreenControl: true
+    fullscreenControl: true,
+    mapTypeId: "roadmap",
+    backgroundColor: "#0a0e1a"
   };
 
   const handleFilterToggle = (status: 'done' | 'in review' | 'pending') => {
@@ -419,7 +435,8 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
         
         <div className="map-wrapper">
           <GoogleMap
-            mapContainerStyle={{ height: '500px', width: '100%' }}
+            mapContainerClassName="map-container"
+            mapContainerStyle={{ height: '500px', width: '100%', borderRadius: '16px' }}
             center={mapCenter}
             zoom={zoom}
             options={mapOptions}

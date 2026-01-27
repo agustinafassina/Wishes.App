@@ -362,12 +362,32 @@ body::after {
 }
 
 .map-wrapper {
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--border), 0 0 40px rgba(139, 92, 246, 0.08);
   border: 1px solid var(--border);
   margin-bottom: 2rem;
   background: var(--bg-tertiary);
+  position: relative;
+}
+
+.map-wrapper > div {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.map-container {
+  border-radius: 16px;
+}
+
+.map-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  box-shadow: inset 0 0 60px rgba(139, 92, 246, 0.04);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .export-pdf-container {
