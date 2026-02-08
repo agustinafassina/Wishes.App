@@ -81,7 +81,10 @@ export default function Home() {
             </div>
             <div className="header-text">
               <h1 className="page-title">Agustina Fassina</h1>
-              <p className="page-subtitle">My travel bucket list and goals to achieve</p>
+              <p className="page-subtitle">
+                <img src="https://flagcdn.com/w40/ar.png" alt="Argentina" className="header-flag-icon" width={24} height={18} />
+                I´m Agustina Fassina and this is my travel bucket list
+              </p>
             </div>
           </div>
         </header>

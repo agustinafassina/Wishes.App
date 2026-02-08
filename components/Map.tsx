@@ -40,7 +40,7 @@ interface CountryData {
 }
 
 // Draggable Country Item Component
-const DraggableCountryItem = ({ location, status }: { location: CountryLocation; status: string }) => {
+const DraggableCountryItem = ({ location, status, onDelete }: { location: CountryLocation; status: string; onDelete: (code: string) => void }) => {
   const {
     attributes,
     listeners,
@@ -56,8 +56,15 @@ const DraggableCountryItem = ({ location, status }: { location: CountryLocation;
     opacity: isDragging ? 0.5 : 1,
   };
 
-  // Map status for CSS class (replace spaces with hyphens)
   const statusClass = status.replace(/\s+/g, '-');
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (window.confirm(`¿Borrar "${location.name}" de la lista?`)) {
+      onDelete(location.code);
+    }
+  };
 
   return (
     <div
@@ -75,6 +82,21 @@ const DraggableCountryItem = ({ location, status }: { location: CountryLocation;
         />
       )}
       <span className="country-name">{location.name}</span>
+      <button
+        type="button"
+        className="country-item-delete-btn"
+        onClick={handleDeleteClick}
+        onPointerDown={(e) => e.stopPropagation()}
+        aria-label={`Borrar ${location.name}`}
+        title="Borrar país"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          <line x1="10" y1="11" x2="10" y2="17" />
+          <line x1="14" y1="11" x2="14" y2="17" />
+        </svg>
+      </button>
     </div>
   );
 };
@@ -87,7 +109,8 @@ const DroppableColumn = ({
   locations, 
   status, 
   emptyMessage,
-  onDoubleClick
+  onDoubleClick,
+  onDeleteCountry
 }: { 
   id: string;
   title: string;
@@ -96,12 +119,12 @@ const DroppableColumn = ({
   status: string;
   emptyMessage: string;
   onDoubleClick: () => void;
+  onDeleteCountry: (code: string) => void;
 }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
   });
 
-  // Map status for CSS class (replace spaces with hyphens)
   const statusClass = status.replace(/\s+/g, '-');
 
   return (
@@ -116,7 +139,7 @@ const DroppableColumn = ({
       >
         {locations.length > 0 ? (
           locations.map((location) => (
-            <DraggableCountryItem key={location.code} location={location} status={status} />
+            <DraggableCountryItem key={location.code} location={location} status={status} onDelete={onDeleteCountry} />
           ))
         ) : (
           <p className="empty-state">{emptyMessage}</p>
@@ -348,6 +371,32 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
     }
   };
 
+  const handleDeleteCountry = async (countryCode: string) => {
+    try {
+      const response = await fetch('/api/delete-country', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ countryCode }),
+      });
+      if (!response.ok) throw new Error('Failed to delete country');
+
+      const locationsResponse = await fetch('/locations/web_locations.json');
+      const locationsData = await locationsResponse.json();
+      const places: CountryLocation[] = locationsData.map((country: CountryData) => ({
+        name: country.name,
+        code: country.code,
+        position: { lat: country.latitude, lng: country.longitude },
+        photos: country.photos || [],
+        status: country.status || 'pending',
+        flag: country.flag || '',
+      }));
+      setLocations(places);
+    } catch (error) {
+      console.error('Error deleting country:', error);
+      alert('No se pudo borrar el país. Intentá de nuevo.');
+    }
+  };
+
   const doneLocations = locations.filter(location => location.status === 'done');
   const pendingLocations = locations.filter(location => location.status === 'pending');
   const inReviewLocations = locations.filter(location => location.status === 'in review');
@@ -400,7 +449,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
     <LoadScript googleMapsApiKey={API_KEY}>
       <div className="map-section">
         <div className="map-header">
-          <h2 className="section-title">My Travel Map</h2>
+          <h2 className="section-title">Travel Map</h2>
         </div>
 
         <div className="map-filters">
@@ -570,6 +619,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
               status="done"
               emptyMessage="No countries completed yet"
               onDoubleClick={() => handleColumnDoubleClick('done')}
+              onDeleteCountry={handleDeleteCountry}
             />
             <DroppableColumn
               id="in review"
@@ -579,6 +629,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
               status="in review"
               emptyMessage="No countries in review"
               onDoubleClick={() => handleColumnDoubleClick('in review')}
+              onDeleteCountry={handleDeleteCountry}
             />
             <DroppableColumn
               id="pending"
@@ -588,6 +639,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
               status="pending"
               emptyMessage="No pending countries"
               onDoubleClick={() => handleColumnDoubleClick('pending')}
+              onDeleteCountry={handleDeleteCountry}
             />
           </div>
           <DragOverlay>

@@ -197,7 +197,18 @@ body::after {
   opacity: 0.9;
   font-weight: 300;
   color: var(--text-primary);
-  letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.header-flag-icon {
+  flex-shrink: 0;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  vertical-align: middle;
 }
 
 .btn-export-pdf {
@@ -833,6 +844,29 @@ body::after {
   font-weight: 400;
   color: var(--text-primary);
   letter-spacing: 0.01em;
+  flex: 1;
+  min-width: 0;
+}
+
+.country-item-delete-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--pending-light);
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.country-item-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: var(--text-primary);
 }
 
 .empty-state {

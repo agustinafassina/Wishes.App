@@ -1,17 +1,5 @@
 [
     {
-        "name": "Argentina",
-        "code": "AR",
-        "latitude": -38.4161,
-        "longitude": -63.6167,
-        "flag": "https://flagcdn.com/w40/ar.png",
-        "photos": [
-            "https://example.com/argentina-photo1.jpg",
-            "https://example.com/argentina-photo2.jpg"
-        ],
-        "status": "done"
-    },
-    {
         "name": "Brasil",
         "code": "BR",
         "latitude": -14.235,
@@ -34,18 +22,6 @@
             "https://example.com/chile-photo2.jpg"
         ],
         "status": "done"
-    },
-    {
-        "name": "Perú",
-        "code": "PE",
-        "latitude": -9.19,
-        "longitude": -75.0152,
-        "flag": "https://flagcdn.com/w40/pe.png",
-        "photos": [
-            "https://example.com/peru-photo1.jpg",
-            "https://example.com/peru-photo2.jpg"
-        ],
-        "status": "pending"
     },
     {
         "name": "Colombia",
@@ -261,7 +237,7 @@
             "https://example.com/poland-photo1.jpg",
             "https://example.com/poland-photo2.jpg"
         ],
-        "status": "in review"
+        "status": "done"
     },
     {
         "name": "Alemania",
