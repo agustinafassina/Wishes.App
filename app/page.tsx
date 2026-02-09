@@ -92,7 +92,7 @@ export default function Home() {
         </header>
 
         <div className="content-section">
-          <Map onExportPDF={handleExportPDF} isExporting={isExporting} />
+          <Map onExportPDF={handleExportPDF} isExporting={isExporting} shareUserName="Agustina Fassina" />
         </div>
       </main>
     </div>

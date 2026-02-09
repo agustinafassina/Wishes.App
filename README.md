@@ -11,6 +11,9 @@ En public/locations hay un json que es la base de datos de este project, como es
 - [x] Change status with the scroll
 - [x] Export pdf button
 - [x] Filter by country status
+- [x] Order by a-z or z-a
+- [x] Light / dark theme
+- [x] Create, update and delete of countries.
 
 ### Web review💻
 <img src="first-part.png" alt="First part of the web" width="500" height="450">

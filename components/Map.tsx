@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
+import html2canvas from 'html2canvas';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import {
   DndContext,
@@ -244,9 +245,10 @@ const DroppableColumn = ({
 interface MapProps {
   onExportPDF?: () => void;
   isExporting?: boolean;
+  shareUserName?: string;
 }
 
-const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
+const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }: MapProps) => {
   const [locations, setLocations] = useState<CountryLocation[]>([]);
   const [mapCenter, setMapCenter] = useState({ lat: 20.0, lng: 0.0 });
   const [zoom, setZoom] = useState(2);
@@ -288,6 +290,10 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
   const [notesForm, setNotesForm] = useState({ notes: '', visitedAt: '', tag: '' });
   const [showViewModal, setShowViewModal] = useState(false);
   const [locationForView, setLocationForView] = useState<CountryLocation | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareLinkCopied, setShareLinkCopied] = useState(false);
+  const [isSharingImage, setIsSharingImage] = useState(false);
+  const shareCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch('/locations/web_locations.json')
@@ -603,12 +609,45 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
     setColumnSort(nextSort);
     setLocations(prev => reorderLocationsByColumnSort(prev, nextSort));
   };
-  
+
   // Total countries in the world (UN recognized)
   const TOTAL_COUNTRIES = 195;
   const visitedCount = doneLocations.length;
   const remainingCount = TOTAL_COUNTRIES - visitedCount;
   const progressPercentage = (visitedCount / TOTAL_COUNTRIES) * 100;
+
+  const handleCopyShareLink = async () => {
+    try {
+      await navigator.clipboard.writeText(typeof window !== 'undefined' ? window.location.href : '');
+      setShareLinkCopied(true);
+      setTimeout(() => setShareLinkCopied(false), 2000);
+    } catch {
+      alert('Could not copy link.');
+    }
+  };
+
+  const handleDownloadShareImage = async () => {
+    if (!shareCardRef.current || isSharingImage) return;
+    setIsSharingImage(true);
+    try {
+      const canvas = await html2canvas(shareCardRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#1a1f35',
+      });
+      const dataUrl = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = `travel-progress-${visitedCount}-${TOTAL_COUNTRIES}-countries.png`;
+      a.click();
+    } catch (error) {
+      console.error('Share image error:', error);
+      alert('Could not generate image.');
+    } finally {
+      setIsSharingImage(false);
+    }
+  };
 
   const mapOptions = {
     styles: [
@@ -751,11 +790,56 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
         <div className="progress-timeline">
           <div className="progress-header">
             <h3 className="progress-title">World Travel Progress</h3>
-            <div className="progress-stats">
-              <span className="progress-visited">{visitedCount}</span>
-              <span className="progress-separator">/</span>
-              <span className="progress-total">{TOTAL_COUNTRIES}</span>
-              <span className="progress-label">countries visited</span>
+            <div className="progress-header-right">
+              <div className="progress-stats">
+                <span className="progress-visited">{visitedCount}</span>
+                <span className="progress-separator">/</span>
+                <span className="progress-total">{TOTAL_COUNTRIES}</span>
+                <span className="progress-label">countries visited</span>
+              </div>
+              <div className="progress-share-wrap">
+                <button
+                  type="button"
+                  className="btn-share-progress"
+                  onClick={() => setShowShareModal(true)}
+                  aria-label="Share progress"
+                  title="Share progress"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                  </svg>
+                  <span>Share</span>
+                </button>
+                {showShareModal && (
+                  <>
+                    <div className="share-modal-backdrop" onClick={() => setShowShareModal(false)} aria-hidden />
+                    <div className="share-modal" role="dialog" aria-label="Share options">
+                      <button type="button" className="share-modal-close" onClick={() => setShowShareModal(false)} aria-label="Close">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                      </button>
+                      <h4 className="share-modal-title">Share your progress</h4>
+                      <div className="share-modal-actions">
+                        <button type="button" className="share-action-btn" onClick={handleCopyShareLink}>
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                          <span>{shareLinkCopied ? 'Copied!' : 'Copy link'}</span>
+                        </button>
+                        <button type="button" className="share-action-btn" onClick={handleDownloadShareImage} disabled={isSharingImage}>
+                          {isSharingImage ? (
+                            <span className="share-spinner" aria-hidden />
+                          ) : (
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                          )}
+                          <span>{isSharingImage ? 'Creating...' : 'Download image'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
           <div className="progress-bar-container">
@@ -768,6 +852,22 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
             <div className="progress-bar-remaining">
               <span className="progress-remaining-text">{remainingCount} remaining</span>
             </div>
+          </div>
+        </div>
+
+        {/* Off-screen card for share image capture */}
+        <div
+          ref={shareCardRef}
+          className="share-card-for-image"
+          aria-hidden
+        >
+          <div className="share-card-inner">
+            <p className="share-card-name">{shareUserName}</p>
+            <p className="share-card-stats">{visitedCount} / {TOTAL_COUNTRIES} countries visited</p>
+            <div className="share-card-bar-wrap">
+              <div className="share-card-bar-fill" style={{ width: `${progressPercentage}%` }} />
+            </div>
+            <p className="share-card-tagline">My travel bucket list</p>
           </div>
         </div>
 
