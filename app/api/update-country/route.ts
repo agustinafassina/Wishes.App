@@ -5,11 +5,11 @@ import path from 'path';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { countryCode, newStatus } = body;
+    const { countryCode, countryName, newStatus } = body;
 
-    if (!countryCode || !newStatus) {
+    if (!countryCode || !countryName || !newStatus) {
       return NextResponse.json(
-        { error: 'Missing countryCode or newStatus' },
+        { error: 'Missing countryCode, countryName or newStatus' },
         { status: 400 }
       );
     }
@@ -30,8 +30,8 @@ export async function POST(request: NextRequest) {
     const fileContents = await fs.readFile(filePath, 'utf8');
     const countries = JSON.parse(fileContents);
 
-    // Find and update the country
-    const countryIndex = countries.findIndex((country: any) => country.code === countryCode);
+    // Find and update the country (code + name to support e.g. England vs Scotland both GB)
+    const countryIndex = countries.findIndex((country: any) => country.code === countryCode && country.name === countryName);
     
     if (countryIndex === -1) {
       return NextResponse.json(

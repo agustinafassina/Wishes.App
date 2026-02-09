@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import {
   DndContext,
@@ -18,6 +18,7 @@ import { CSS } from '@dnd-kit/utilities';
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 interface CountryLocation {
+  id: string;
   name: string;
   code: string;
   position: {
@@ -55,7 +56,7 @@ const DraggableCountryItem = ({
 }: {
   location: CountryLocation;
   status: string;
-  onDelete: (code: string) => void;
+  onDelete: (id: string) => void;
   onEditNotes?: (loc: CountryLocation) => void;
   onViewNotes?: (loc: CountryLocation) => void;
 }) => {
@@ -65,7 +66,7 @@ const DraggableCountryItem = ({
     setNodeRef,
     transform,
     isDragging,
-  } = useDraggable({ id: location.code });
+  } = useDraggable({ id: location.id });
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -79,7 +80,7 @@ const DraggableCountryItem = ({
     e.stopPropagation();
     e.preventDefault();
     if (window.confirm(`Delete "${location.name}" from the list?`)) {
-      onDelete(location.code);
+      onDelete(location.id);
     }
   };
 
@@ -176,6 +177,8 @@ const DroppableColumn = ({
   onDeleteCountry,
   onEditNotes,
   onViewNotes,
+  onSortClick,
+  sortOrder,
 }: { 
   id: string;
   title: string;
@@ -184,9 +187,11 @@ const DroppableColumn = ({
   status: string;
   emptyMessage: string;
   onDoubleClick: () => void;
-  onDeleteCountry: (code: string) => void;
+  onDeleteCountry: (id: string) => void;
   onEditNotes?: (loc: CountryLocation) => void;
   onViewNotes?: (loc: CountryLocation) => void;
+  onSortClick?: (columnId: string) => void;
+  sortOrder?: 'a-z' | 'z-a';
 }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
@@ -199,6 +204,19 @@ const DroppableColumn = ({
       <div className="card-header">
         <div className={`card-icon card-icon-${statusClass}`}>{icon}</div>
         <h2 className="country-title">{title}</h2>
+        {onSortClick && locations.length > 1 && (
+          <button
+            type="button"
+            className="column-sort-btn"
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onSortClick(id); }}
+            onDoubleClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+            onPointerDown={(e) => e.stopPropagation()}
+            title={sortOrder === 'z-a' ? 'Sort A–Z' : 'Sort Z–A'}
+            aria-label={sortOrder === 'z-a' ? 'Sort A–Z' : 'Sort Z–A'}
+          >
+            {sortOrder === 'z-a' ? 'Z–A' : 'A–Z'}
+          </button>
+        )}
       </div>
       <div 
         ref={setNodeRef} 
@@ -207,7 +225,7 @@ const DroppableColumn = ({
         {locations.length > 0 ? (
           locations.map((location) => (
             <DraggableCountryItem
-              key={location.code}
+              key={location.id}
               location={location}
               status={status}
               onDelete={onDeleteCountry}
@@ -241,6 +259,13 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
     'in review': false,
     pending: false,
   });
+  const [columnSort, setColumnSort] = useState<Record<string, 'a-z' | 'z-a'>>({
+    done: 'a-z',
+    'in review': 'a-z',
+    pending: 'a-z',
+  });
+  const columnSortRef = useRef(columnSort);
+  columnSortRef.current = columnSort;
   const [newCountry, setNewCountry] = useState({
     name: '',
     code: '',
@@ -269,6 +294,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
       .then(response => response.json())
       .then((data: CountryData[]) => {
         const places: CountryLocation[] = data.map((country) => ({
+          id: `${country.code}-${country.name}`,
           name: country.name,
           code: country.code,
           position: {
@@ -283,7 +309,8 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
           tag: country.tag,
         }));
 
-        setLocations(places);
+        const initialSort = { done: 'a-z' as const, 'in review': 'a-z' as const, pending: 'a-z' as const };
+        setLocations(reorderLocationsByColumnSort(places, initialSort));
         if (places.length > 0) {
           setMapCenter(places[0].position);
           setZoom(2);
@@ -310,7 +337,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
 
     if (!over) return;
 
-    const countryCode = active.id as string;
+    const countryId = active.id as string;
     const newStatus = over.id as string;
 
     // Valid status values
@@ -318,7 +345,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
     if (!validStatuses.includes(newStatus)) return;
 
     // Find the original location
-    const originalLocation = locations.find(loc => loc.code === countryCode);
+    const originalLocation = locations.find(loc => loc.id === countryId);
     if (!originalLocation) return;
 
     // If the status hasn't changed, don't do anything
@@ -330,7 +357,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
     // Optimistically update the UI
     setLocations((prevLocations) => {
       return prevLocations.map((location) =>
-        location.code === countryCode
+        location.id === countryId
           ? { ...location, status: newStatus }
           : location
       );
@@ -344,7 +371,8 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          countryCode,
+          countryCode: originalLocation.code,
+          countryName: originalLocation.name,
           newStatus,
         }),
       });
@@ -360,7 +388,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
       // Revert the optimistic update on error
       setLocations((prevLocations) => {
         return prevLocations.map((location) =>
-          location.code === countryCode
+          location.id === countryId
             ? { ...location, status: originalStatus }
             : location
         );
@@ -371,7 +399,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
 
   const getActiveCountry = () => {
     if (!activeId) return null;
-    return locations.find(loc => loc.code === activeId) || null;
+    return locations.find(loc => loc.id === activeId) || null;
   };
 
   const handleColumnDoubleClick = (status: string) => {
@@ -427,6 +455,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
       const locationsResponse = await fetch('/locations/web_locations.json');
       const locationsData = await locationsResponse.json();
       const places: CountryLocation[] = locationsData.map((country: CountryData) => ({
+        id: `${country.code}-${country.name}`,
         name: country.name,
         code: country.code,
         position: {
@@ -441,7 +470,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
         tag: country.tag,
       }));
 
-      setLocations(places);
+      setLocations(reorderLocationsByColumnSort(places, columnSortRef.current));
       setShowAddModal(false);
       setNewCountry({
         name: '',
@@ -457,18 +486,21 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
     }
   };
 
-  const handleDeleteCountry = async (countryCode: string) => {
+  const handleDeleteCountry = async (locationId: string) => {
+    const location = locations.find(loc => loc.id === locationId);
+    if (!location) return;
     try {
       const response = await fetch('/api/delete-country', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ countryCode }),
+        body: JSON.stringify({ countryCode: location.code, countryName: location.name }),
       });
       if (!response.ok) throw new Error('Failed to delete country');
 
       const locationsResponse = await fetch('/locations/web_locations.json');
       const locationsData = await locationsResponse.json();
       const places: CountryLocation[] = locationsData.map((country: CountryData) => ({
+        id: `${country.code}-${country.name}`,
         name: country.name,
         code: country.code,
         position: { lat: country.latitude, lng: country.longitude },
@@ -479,7 +511,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
         visitedAt: country.visitedAt,
         tag: country.tag,
       }));
-      setLocations(places);
+      setLocations(reorderLocationsByColumnSort(places, columnSortRef.current));
     } catch (error) {
       console.error('Error deleting country:', error);
       alert('Failed to delete country. Please try again.');
@@ -509,6 +541,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           countryCode: locationForNotes.code,
+          countryName: locationForNotes.name,
           notes: notesForm.notes.trim() || undefined,
           visitedAt: notesForm.visitedAt.trim() || undefined,
           tag: notesForm.tag.trim() || undefined,
@@ -519,6 +552,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
       const locationsResponse = await fetch('/locations/web_locations.json');
       const locationsData = await locationsResponse.json();
       const places: CountryLocation[] = locationsData.map((country: CountryData) => ({
+        id: `${country.code}-${country.name}`,
         name: country.name,
         code: country.code,
         position: { lat: country.latitude, lng: country.longitude },
@@ -529,7 +563,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
         visitedAt: country.visitedAt,
         tag: country.tag,
       }));
-      setLocations(places);
+      setLocations(reorderLocationsByColumnSort(places, columnSortRef.current));
       setShowNotesModal(false);
       setLocationForNotes(null);
     } catch (error) {
@@ -538,9 +572,37 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
     }
   };
 
+  const sortByName = (list: CountryLocation[], order: 'a-z' | 'z-a') =>
+    [...list].sort((a, b) =>
+      order === 'a-z'
+        ? (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+        : (b.name || '').localeCompare(a.name || '', undefined, { sensitivity: 'base' })
+    );
+
+  const reorderLocationsByColumnSort = (
+    list: CountryLocation[],
+    sortState: Record<string, 'a-z' | 'z-a'>
+  ): CountryLocation[] => {
+    const done = list.filter(l => l.status === 'done');
+    const inReview = list.filter(l => l.status === 'in review');
+    const pending = list.filter(l => l.status === 'pending');
+    return [
+      ...sortByName(done, sortState.done ?? 'a-z'),
+      ...sortByName(inReview, sortState['in review'] ?? 'a-z'),
+      ...sortByName(pending, sortState.pending ?? 'a-z'),
+    ];
+  };
+
   const doneLocations = locations.filter(location => location.status === 'done');
   const pendingLocations = locations.filter(location => location.status === 'pending');
   const inReviewLocations = locations.filter(location => location.status === 'in review');
+
+  const handleColumnSort = (columnId: string) => {
+    const nextOrder: 'a-z' | 'z-a' = columnSort[columnId] === 'a-z' ? 'z-a' : 'a-z';
+    const nextSort: Record<string, 'a-z' | 'z-a'> = { ...columnSort, [columnId]: nextOrder };
+    setColumnSort(nextSort);
+    setLocations(prev => reorderLocationsByColumnSort(prev, nextSort));
+  };
   
   // Total countries in the world (UN recognized)
   const TOTAL_COUNTRIES = 195;
@@ -635,7 +697,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
               const countryLocation: CountryLocation = location;
               return (
                 <Marker 
-                  key={location.code} 
+                  key={location.id} 
                   position={location.position} 
                   title={location.name} 
                   onClick={() => handleMarkerClick(countryLocation)}
@@ -773,6 +835,8 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
               onDeleteCountry={handleDeleteCountry}
               onEditNotes={handleEditNotes}
               onViewNotes={handleViewNotes}
+              onSortClick={handleColumnSort}
+              sortOrder={columnSort.done}
             />
             <DroppableColumn
               id="in review"
@@ -783,6 +847,8 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
               emptyMessage="No countries in review"
               onDoubleClick={() => handleColumnDoubleClick('in review')}
               onDeleteCountry={handleDeleteCountry}
+              onSortClick={handleColumnSort}
+              sortOrder={columnSort['in review']}
             />
             <DroppableColumn
               id="pending"
@@ -793,6 +859,8 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
               emptyMessage="No pending countries"
               onDoubleClick={() => handleColumnDoubleClick('pending')}
               onDeleteCountry={handleDeleteCountry}
+              onSortClick={handleColumnSort}
+              sortOrder={columnSort.pending}
             />
           </div>
           <DragOverlay>
