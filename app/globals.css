@@ -505,6 +505,149 @@ body::after {
   margin-bottom: 2rem;
 }
 
+/* Saving status banner (drag status update) */
+.saving-status-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.saving-status-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--success);
+  border-radius: 50%;
+  animation: share-spin 0.8s linear infinite;
+}
+
+/* Loading skeleton (initial load) */
+.loading-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 0 0 2rem 0;
+}
+
+.skeleton-map {
+  width: 100%;
+  height: 500px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-card) 50%, var(--bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.skeleton-line {
+  height: 1.5rem;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-card) 50%, var(--bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-title {
+  width: 60%;
+  max-width: 280px;
+}
+
+.skeleton-stats {
+  width: 40%;
+  max-width: 160px;
+}
+
+.skeleton-bar {
+  width: 100%;
+  height: 50px;
+  border-radius: 25px;
+  background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-card) 50%, var(--bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2.5rem;
+}
+
+.skeleton-card {
+  height: 320px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-card) 50%, var(--bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Button spinner (modals) */
+.btn-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: share-spin 0.8s linear infinite;
+}
+
+.btn-submit:disabled .btn-spinner {
+  border-top-color: var(--text-secondary);
+}
+
+/* Country item deleting overlay */
+.country-item.item-deleting {
+  position: relative;
+  pointer-events: none;
+}
+
+.country-item-deleting-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  z-index: 5;
+}
+
+.country-item-deleting-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: var(--text-primary);
+  border-radius: 50%;
+  animation: share-spin 0.8s linear infinite;
+}
+
 .map-filters {
   display: flex;
   align-items: center;
@@ -1087,6 +1230,7 @@ body::after {
   flex-direction: column;
   cursor: pointer;
   position: relative;
+  overflow: visible;
 }
 
 .country-card::after {
@@ -1203,6 +1347,7 @@ body::after {
   gap: 0.75rem;
   min-height: 100px;
   transition: background-color 0.2s ease;
+  overflow: visible;
 }
 
 .country-list-content.drag-over {
@@ -1211,6 +1356,7 @@ body::after {
 }
 
 .country-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -1219,6 +1365,57 @@ body::after {
   transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   cursor: grab;
   touch-action: none;
+  z-index: 1;
+}
+
+.country-item:hover {
+  z-index: 101;
+}
+
+.country-item-tooltip {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 6px;
+  padding: 0.5rem 0.75rem;
+  max-width: min(280px, 100vw);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  white-space: normal;
+}
+
+.country-item:hover .country-item-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.country-item-tooltip-line {
+  display: block;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.country-item-tooltip-tag {
+  font-weight: 600;
+  color: var(--accent-primary-light);
+}
+
+.country-item-tooltip-notes {
+  color: var(--text-secondary);
+  font-style: italic;
 }
 
 .country-item-text {
@@ -1496,6 +1693,18 @@ body::after {
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
 }
 
+.form-group input[aria-invalid="true"],
+.form-group textarea[aria-invalid="true"] {
+  border-color: var(--pending);
+}
+
+.form-error {
+  margin: 0.375rem 0 0 0;
+  font-size: 0.8125rem;
+  color: var(--pending);
+  font-weight: 500;
+}
+
 .form-textarea {
   width: 100%;
   padding: 0.75rem 1rem;
@@ -1608,6 +1817,10 @@ body::after {
 
 .btn-cancel,
 .btn-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
   font-size: 1rem;

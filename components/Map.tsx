@@ -54,12 +54,14 @@ const DraggableCountryItem = ({
   onDelete,
   onEditNotes,
   onViewNotes,
+  isDeleting,
 }: {
   location: CountryLocation;
   status: string;
   onDelete: (id: string) => void;
   onEditNotes?: (loc: CountryLocation) => void;
   onViewNotes?: (loc: CountryLocation) => void;
+  isDeleting?: boolean;
 }) => {
   const {
     attributes,
@@ -97,14 +99,36 @@ const DraggableCountryItem = ({
     onViewNotes?.(location);
   };
 
+  const notesPreview = location.notes?.trim() ? (location.notes.trim().length > 80 ? `${location.notes.trim().slice(0, 80)}…` : location.notes.trim()) : null;
+  const tooltipLines: { text: string; className?: string }[] = [];
+  if (isDone) {
+    if (location.tag?.trim()) tooltipLines.push({ text: location.tag.trim(), className: 'country-item-tooltip-tag' });
+    if (location.visitedAt?.trim()) tooltipLines.push({ text: `Visited in ${location.visitedAt.trim()}` });
+    if (notesPreview) tooltipLines.push({ text: notesPreview, className: 'country-item-tooltip-notes' });
+    if (tooltipLines.length === 0) tooltipLines.push({ text: 'No notes yet' });
+  } else {
+    tooltipLines.push({ text: status === 'in review' ? 'In review' : 'Pending' });
+  }
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className={`country-item country-item-${statusClass} ${isDragging ? 'dragging' : ''}`}
+      className={`country-item country-item-${statusClass} ${isDragging ? 'dragging' : ''} ${isDeleting ? 'item-deleting' : ''}`}
     >
+      {isDeleting && (
+        <div className="country-item-deleting-overlay" aria-hidden>
+          <span className="country-item-deleting-spinner" />
+          <span>Deleting...</span>
+        </div>
+      )}
+      <div className="country-item-tooltip" role="tooltip">
+        {tooltipLines.map((line, i) => (
+          <span key={i} className={`country-item-tooltip-line ${line.className ?? ''}`.trim()}>{line.text}</span>
+        ))}
+      </div>
       <div className="country-item-text">
         {location.flag && (
           <img
@@ -153,6 +177,7 @@ const DraggableCountryItem = ({
           onPointerDown={(e) => e.stopPropagation()}
           aria-label={`Delete ${location.name}`}
           title="Delete country"
+          disabled={isDeleting}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <polyline points="3 6 5 6 21 6" />
@@ -180,6 +205,7 @@ const DroppableColumn = ({
   onViewNotes,
   onSortClick,
   sortOrder,
+  deletingId,
 }: { 
   id: string;
   title: string;
@@ -193,6 +219,7 @@ const DroppableColumn = ({
   onViewNotes?: (loc: CountryLocation) => void;
   onSortClick?: (columnId: string) => void;
   sortOrder?: 'a-z' | 'z-a';
+  deletingId?: string | null;
 }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
@@ -232,6 +259,7 @@ const DroppableColumn = ({
               onDelete={onDeleteCountry}
               onEditNotes={onEditNotes}
               onViewNotes={onViewNotes}
+              isDeleting={deletingId === location.id}
             />
           ))
         ) : (
@@ -276,6 +304,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
     flag: '',
     photos: [] as string[],
   });
+  const [addCountryErrors, setAddCountryErrors] = useState<Record<string, string>>({});
+  const [notesFormErrors, setNotesFormErrors] = useState<Record<string, string>>({});
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -294,8 +324,14 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
   const [shareLinkCopied, setShareLinkCopied] = useState(false);
   const [isSharingImage, setIsSharingImage] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
+  const [isLoadingLocations, setIsLoadingLocations] = useState(true);
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const [isAddingCountry, setIsAddingCountry] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isSavingStatus, setIsSavingStatus] = useState(false);
 
   useEffect(() => {
+    setIsLoadingLocations(true);
     fetch('/locations/web_locations.json')
       .then(response => response.json())
       .then((data: CountryData[]) => {
@@ -322,7 +358,10 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           setZoom(2);
         }
       })
-      .catch(error => console.error('Error loading countries:', error));
+      .catch(error => {
+        console.error('Error loading countries:', error);
+      })
+      .finally(() => setIsLoadingLocations(false));
   }, []);
 
   const filteredLocations = locations.filter(location => {
@@ -370,6 +409,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
     });
 
     // Update the JSON file via API
+    setIsSavingStatus(true);
     try {
       const response = await fetch('/api/update-country', {
         method: 'POST',
@@ -400,6 +440,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
         );
       });
       alert('Failed to update country status. Please try again.');
+    } finally {
+      setIsSavingStatus(false);
     }
   };
 
@@ -418,15 +460,40 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
       flag: '',
       photos: [],
     });
+    setAddCountryErrors({});
     setShowAddModal(true);
   };
 
+  const validateAddCountry = (): Record<string, string> => {
+    const err: Record<string, string> = {};
+    const name = newCountry.name.trim();
+    const code = newCountry.code.trim();
+    const latStr = newCountry.latitude.trim();
+    const lngStr = newCountry.longitude.trim();
+    if (!name) err.name = 'Country name is required';
+    if (!code) err.code = 'Country code is required';
+    else if (code.length !== 2) err.code = 'Code must be 2 letters (e.g. FR, US)';
+    if (!latStr) err.latitude = 'Latitude is required';
+    else {
+      const lat = parseFloat(latStr);
+      if (Number.isNaN(lat) || lat < -90 || lat > 90) err.latitude = 'Latitude must be between -90 and 90';
+    }
+    if (!lngStr) err.longitude = 'Longitude is required';
+    else {
+      const lng = parseFloat(lngStr);
+      if (Number.isNaN(lng) || lng < -180 || lng > 180) err.longitude = 'Longitude must be between -180 and 180';
+    }
+    return err;
+  };
+
   const handleAddCountry = async () => {
-    // Validate required fields
-    if (!newCountry.name || !newCountry.code || !newCountry.latitude || !newCountry.longitude) {
-      alert('Please complete all required fields (name, code, latitude, longitude)');
+    const errors = validateAddCountry();
+    if (Object.keys(errors).length > 0) {
+      setAddCountryErrors(errors);
       return;
     }
+    setAddCountryErrors({});
+    setIsAddingCountry(true);
 
     // Generate flag URL if code is provided
     const flagUrl = newCountry.flag || `https://flagcdn.com/w40/${newCountry.code.toLowerCase()}.png`;
@@ -489,12 +556,15 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
     } catch (error) {
       console.error('Error adding country:', error);
       alert('Failed to add country. Please try again.');
+    } finally {
+      setIsAddingCountry(false);
     }
   };
 
   const handleDeleteCountry = async (locationId: string) => {
     const location = locations.find(loc => loc.id === locationId);
     if (!location) return;
+    setDeletingId(locationId);
     try {
       const response = await fetch('/api/delete-country', {
         method: 'POST',
@@ -521,6 +591,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
     } catch (error) {
       console.error('Error deleting country:', error);
       alert('Failed to delete country. Please try again.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -531,7 +603,25 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
       visitedAt: location.visitedAt || '',
       tag: location.tag || '',
     });
+    setNotesFormErrors({});
     setShowNotesModal(true);
+  };
+
+  const validateNotesForm = (): Record<string, string> => {
+    const err: Record<string, string> = {};
+    const visitedAt = notesForm.visitedAt.trim();
+    if (visitedAt) {
+      const yearMatch = /^\d{4}$/.test(visitedAt);
+      const yearMonthMatch = /^\d{4}-\d{2}$/.test(visitedAt);
+      if (!yearMatch && !yearMonthMatch) {
+        if (visitedAt.length > 50) err.visitedAt = 'Keep "Visited in" under 50 characters';
+        else if (/^\d+$/.test(visitedAt)) err.visitedAt = 'Use a 4-digit year (e.g. 2024)';
+      } else if (yearMatch) {
+        const y = parseInt(visitedAt, 10);
+        if (y < 1900 || y > 2100) err.visitedAt = 'Enter a year between 1900 and 2100';
+      }
+    }
+    return err;
   };
 
   const handleViewNotes = (location: CountryLocation) => {
@@ -541,6 +631,13 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
 
   const handleSaveNotes = async () => {
     if (!locationForNotes) return;
+    const errors = validateNotesForm();
+    if (Object.keys(errors).length > 0) {
+      setNotesFormErrors(errors);
+      return;
+    }
+    setNotesFormErrors({});
+    setIsSavingNotes(true);
     try {
       const response = await fetch('/api/update-country-notes', {
         method: 'POST',
@@ -575,6 +672,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
     } catch (error) {
       console.error('Error updating notes:', error);
       alert('Failed to save notes. Please try again.');
+    } finally {
+      setIsSavingNotes(false);
     }
   };
 
@@ -690,10 +789,32 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
   return (
     <LoadScript googleMapsApiKey={API_KEY}>
       <div className="map-section">
+        {isSavingStatus && (
+          <div className="saving-status-banner" role="status" aria-live="polite">
+            <span className="saving-status-spinner" aria-hidden />
+            <span>Saving...</span>
+          </div>
+        )}
         <div className="map-header">
           <h2 className="section-title">Travel Map</h2>
         </div>
 
+        {isLoadingLocations ? (
+          <div className="loading-skeleton" aria-busy="true" aria-label="Loading locations">
+            <div className="skeleton-map" />
+            <div className="skeleton-progress">
+              <div className="skeleton-line skeleton-title" />
+              <div className="skeleton-line skeleton-stats" />
+              <div className="skeleton-bar" />
+            </div>
+            <div className="skeleton-cards">
+              <div className="skeleton-card" />
+              <div className="skeleton-card" />
+              <div className="skeleton-card" />
+            </div>
+          </div>
+        ) : (
+        <>
         <div className="map-filters">
           <div className="filter-label">Filter by status:</div>
           <div className="filter-buttons">
@@ -937,6 +1058,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
               onViewNotes={handleViewNotes}
               onSortClick={handleColumnSort}
               sortOrder={columnSort.done}
+              deletingId={deletingId}
             />
             <DroppableColumn
               id="in review"
@@ -949,6 +1071,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
               onDeleteCountry={handleDeleteCountry}
               onSortClick={handleColumnSort}
               sortOrder={columnSort['in review']}
+              deletingId={deletingId}
             />
             <DroppableColumn
               id="pending"
@@ -961,6 +1084,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
               onDeleteCountry={handleDeleteCountry}
               onSortClick={handleColumnSort}
               sortOrder={columnSort.pending}
+              deletingId={deletingId}
             />
           </div>
           <DragOverlay>
@@ -1047,14 +1171,22 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="notes-visited-at">Visited in (e.g. March 2024, 2023)</label>
+                  <label htmlFor="notes-visited-at">Visited in (e.g. 2024, 2024-06, or March 2024)</label>
                   <input
                     id="notes-visited-at"
                     type="text"
                     value={notesForm.visitedAt}
-                    onChange={(e) => setNotesForm({ ...notesForm, visitedAt: e.target.value })}
+                    onChange={(e) => {
+                      setNotesForm({ ...notesForm, visitedAt: e.target.value });
+                      if (notesFormErrors.visitedAt) setNotesFormErrors((prev) => ({ ...prev, visitedAt: '' }));
+                    }}
                     placeholder="e.g. March 2024"
+                    aria-invalid={!!notesFormErrors.visitedAt}
+                    aria-describedby={notesFormErrors.visitedAt ? 'notes-visited-at-error' : undefined}
                   />
+                  {notesFormErrors.visitedAt && (
+                    <p id="notes-visited-at-error" className="form-error" role="alert">{notesFormErrors.visitedAt}</p>
+                  )}
                 </div>
                 <div className="form-group">
                   <label htmlFor="notes-text">Notes</label>
@@ -1069,8 +1201,17 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                 </div>
               </div>
               <div className="modal-footer">
-                <button className="btn-cancel" onClick={() => setShowNotesModal(false)}>Cancel</button>
-                <button className="btn-submit" onClick={handleSaveNotes}>Save</button>
+                <button className="btn-cancel" onClick={() => setShowNotesModal(false)} disabled={isSavingNotes}>Cancel</button>
+                <button className="btn-submit" onClick={handleSaveNotes} disabled={isSavingNotes}>
+                  {isSavingNotes ? (
+                    <>
+                      <span className="btn-spinner" aria-hidden />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    'Save'
+                  )}
+                </button>
               </div>
             </div>
           </div>
@@ -1091,9 +1232,17 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                     id="country-name"
                     type="text"
                     value={newCountry.name}
-                    onChange={(e) => setNewCountry({ ...newCountry, name: e.target.value })}
+                    onChange={(e) => {
+                      setNewCountry({ ...newCountry, name: e.target.value });
+                      if (addCountryErrors.name) setAddCountryErrors((prev) => ({ ...prev, name: '' }));
+                    }}
                     placeholder="Ex: France"
+                    aria-invalid={!!addCountryErrors.name}
+                    aria-describedby={addCountryErrors.name ? 'country-name-error' : undefined}
                   />
+                  {addCountryErrors.name && (
+                    <p id="country-name-error" className="form-error" role="alert">{addCountryErrors.name}</p>
+                  )}
                 </div>
                 <div className="form-group">
                   <label htmlFor="country-code">Country code (ISO) *</label>
@@ -1101,10 +1250,18 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                     id="country-code"
                     type="text"
                     value={newCountry.code}
-                    onChange={(e) => setNewCountry({ ...newCountry, code: e.target.value.toUpperCase() })}
+                    onChange={(e) => {
+                      setNewCountry({ ...newCountry, code: e.target.value.toUpperCase() });
+                      if (addCountryErrors.code) setAddCountryErrors((prev) => ({ ...prev, code: '' }));
+                    }}
                     placeholder="Ex: FR"
                     maxLength={2}
+                    aria-invalid={!!addCountryErrors.code}
+                    aria-describedby={addCountryErrors.code ? 'country-code-error' : undefined}
                   />
+                  {addCountryErrors.code && (
+                    <p id="country-code-error" className="form-error" role="alert">{addCountryErrors.code}</p>
+                  )}
                 </div>
                 <div className="form-row">
                   <div className="form-group">
@@ -1114,9 +1271,17 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                       type="number"
                       step="any"
                       value={newCountry.latitude}
-                      onChange={(e) => setNewCountry({ ...newCountry, latitude: e.target.value })}
+                      onChange={(e) => {
+                        setNewCountry({ ...newCountry, latitude: e.target.value });
+                        if (addCountryErrors.latitude) setAddCountryErrors((prev) => ({ ...prev, latitude: '' }));
+                      }}
                       placeholder="Ex: 46.2276"
+                      aria-invalid={!!addCountryErrors.latitude}
+                      aria-describedby={addCountryErrors.latitude ? 'country-latitude-error' : undefined}
                     />
+                    {addCountryErrors.latitude && (
+                      <p id="country-latitude-error" className="form-error" role="alert">{addCountryErrors.latitude}</p>
+                    )}
                   </div>
                   <div className="form-group">
                     <label htmlFor="country-longitude">Longitude *</label>
@@ -1125,9 +1290,17 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                       type="number"
                       step="any"
                       value={newCountry.longitude}
-                      onChange={(e) => setNewCountry({ ...newCountry, longitude: e.target.value })}
+                      onChange={(e) => {
+                        setNewCountry({ ...newCountry, longitude: e.target.value });
+                        if (addCountryErrors.longitude) setAddCountryErrors((prev) => ({ ...prev, longitude: '' }));
+                      }}
                       placeholder="Ex: 2.2137"
+                      aria-invalid={!!addCountryErrors.longitude}
+                      aria-describedby={addCountryErrors.longitude ? 'country-longitude-error' : undefined}
                     />
+                    {addCountryErrors.longitude && (
+                      <p id="country-longitude-error" className="form-error" role="alert">{addCountryErrors.longitude}</p>
+                    )}
                   </div>
                 </div>
                 <div className="form-group">
@@ -1149,12 +1322,21 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                 <button className="btn-cancel" onClick={() => setShowAddModal(false)}>
                   Cancel
                 </button>
-                <button className="btn-submit" onClick={handleAddCountry}>
-                  Add country
+                <button className="btn-submit" onClick={handleAddCountry} disabled={isAddingCountry}>
+                  {isAddingCountry ? (
+                    <>
+                      <span className="btn-spinner" aria-hidden />
+                      <span>Adding...</span>
+                    </>
+                  ) : (
+                    'Add country'
+                  )}
                 </button>
               </div>
             </div>
           </div>
+        )}
+        </>
         )}
       </div>
     </LoadScript>
