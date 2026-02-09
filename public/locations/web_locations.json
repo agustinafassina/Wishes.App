@@ -201,7 +201,10 @@
             "https://example.com/singapore-photo1.jpg",
             "https://example.com/singapore-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "notes": "Ciudad pais, limpia y muchos edificios altos",
+        "visitedAt": "Noviembre 2025",
+        "tag": "Limpia"
     },
     {
         "name": "Tailandia",
@@ -213,7 +216,10 @@
             "https://example.com/thailand-photo1.jpg",
             "https://example.com/thailand-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "notes": "Hermoso pais, la gente muy simpatica y siempre agradecida, el primer viaje grupal un espectaculo",
+        "visitedAt": "Noviembre, Diciembre 2025",
+        "tag": "Sonrisas"
     },
     {
         "name": "Egipto",
@@ -226,8 +232,9 @@
             "https://example.com/egypt-photo2.jpg"
         ],
         "status": "done",
-        "notes": "Viaje en familia, placentero y cumplidor de sueños!!",
-        "visitedAt": "Enero 2026"
+        "notes": "Viaje en familia, placentero y cumplidor de sueños, es como se ve en las peliculas!!",
+        "visitedAt": "Enero 2026",
+        "tag": "Yellow"
     },
     {
         "name": "Polonia",

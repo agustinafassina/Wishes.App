@@ -24,10 +24,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var t=localStorage.getItem('wishes-theme');if(t=== 'light'||t==='dark')document.documentElement.setAttribute('data-theme',t);})();`,
+          }}
+        />
         <BackgroundMosaic />
         {children}
       </body>

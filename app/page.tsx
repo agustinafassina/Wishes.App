@@ -4,6 +4,7 @@
 import Image from "next/image";
 import { useRef, useState } from "react";
 import Map from "../components/Map";
+import ThemeToggle from "../components/ThemeToggle";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -68,22 +69,23 @@ export default function Home() {
     <div className="page-container">
       <main className="main-content" ref={contentRef}>
         <header className="page-header">
-          <div className="header-content">
-            <div className="logo-wrapper">
-              <Image
-                className="logo"
-                src="/agus_animada.PNG"
-                alt="Agus"
-                width={110}
-                height={110}
-                priority
-              />
-            </div>
+          <div className="logo-wrapper">
+            <Image
+              className="logo"
+              src="/agus_animada.PNG"
+              alt="Agus"
+              width={160}
+              height={160}
+              priority
+            />
+          </div>
+          <div className="header-right">
+            <ThemeToggle />
             <div className="header-text">
               <h1 className="page-title">Agustina Fassina</h1>
-              <p className="page-subtitle">
-                <img src="https://flagcdn.com/w40/ar.png" alt="Argentina" className="header-flag-icon" width={24} height={18} />
-                I´m Agustina Fassina and this is my travel bucket list
+              <p className="header-tagline">
+                <img src="https://flagcdn.com/w40/ar.png" alt="Argentina" className="header-flag" width={28} height={21} />
+                <span>This is my travel bucket list</span>
               </p>
             </div>
           </div>
