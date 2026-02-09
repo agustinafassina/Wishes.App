@@ -31,7 +31,9 @@ interface CountryLocation {
   flag?: string;
   notes?: string;
   visitedAt?: string;
+  /** @deprecated use tags */
   tag?: string;
+  tags?: string[];
 }
 
 interface CountryData {
@@ -45,6 +47,13 @@ interface CountryData {
   notes?: string;
   visitedAt?: string;
   tag?: string;
+  tags?: string[];
+}
+
+function normalizeTags(c: { tag?: string; tags?: string[] }): string[] {
+  if (Array.isArray(c.tags) && c.tags.length > 0) return c.tags.filter((t): t is string => typeof t === 'string' && t.trim() !== '');
+  if (typeof c.tag === 'string' && c.tag.trim() !== '') return [c.tag.trim()];
+  return [];
 }
 
 // Draggable Country Item Component
@@ -101,14 +110,14 @@ const DraggableCountryItem = ({
 
   const notesPreview = location.notes?.trim() ? (location.notes.trim().length > 80 ? `${location.notes.trim().slice(0, 80)}…` : location.notes.trim()) : null;
   const tooltipLines: { text: string; className?: string }[] = [];
+  const locationTags = normalizeTags(location);
   if (isDone) {
     if (location.visitedAt?.trim()) tooltipLines.push({ text: `Visited in ${location.visitedAt.trim()}` });
     if (notesPreview) tooltipLines.push({ text: notesPreview, className: 'country-item-tooltip-notes' });
-    if (tooltipLines.length === 0 && !location.tag?.trim()) tooltipLines.push({ text: 'No notes yet' });
+    if (tooltipLines.length === 0 && locationTags.length === 0) tooltipLines.push({ text: 'No notes yet' });
   } else {
     tooltipLines.push({ text: status === 'in review' ? 'In review' : 'Pending' });
   }
-  const tagTrimmed = location.tag?.trim();
 
   return (
     <div
@@ -125,14 +134,18 @@ const DraggableCountryItem = ({
         </div>
       )}
       <div className="country-item-tooltip" role="tooltip">
-        {tagTrimmed && (
-          <span className="country-item-tooltip-tag-pill">
-            <svg className="country-item-tooltip-tag-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-              <line x1="7" y1="7" x2="7.01" y2="7" />
-            </svg>
-            {tagTrimmed}
-          </span>
+        {locationTags.length > 0 && (
+          <div className="country-item-tooltip-tags">
+            {locationTags.map((t, i) => (
+              <span key={i} className="country-item-tooltip-tag-pill">
+                <svg className="country-item-tooltip-tag-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                  <line x1="7" y1="7" x2="7.01" y2="7" />
+                </svg>
+                {t}
+              </span>
+            ))}
+          </div>
         )}
         {tooltipLines.map((line, i) => (
           <span key={i} className={`country-item-tooltip-line ${line.className ?? ''}`.trim()}>{line.text}</span>
@@ -326,7 +339,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
 
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [locationForNotes, setLocationForNotes] = useState<CountryLocation | null>(null);
-  const [notesForm, setNotesForm] = useState({ notes: '', visitedAt: '', tag: '' });
+  const [notesForm, setNotesForm] = useState({ notes: '', visitedAt: '', tags: '' });
   const [showViewModal, setShowViewModal] = useState(false);
   const [locationForView, setLocationForView] = useState<CountryLocation | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -357,7 +370,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           flag: country.flag || "",
           notes: country.notes,
           visitedAt: country.visitedAt,
-          tag: country.tag,
+          tags: normalizeTags(country),
         }));
 
         const initialSort = { done: 'a-z' as const, 'in review': 'a-z' as const, pending: 'a-z' as const };
@@ -549,7 +562,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
         flag: country.flag || "",
         notes: country.notes,
         visitedAt: country.visitedAt,
-        tag: country.tag,
+        tags: normalizeTags(country),
       }));
 
       setLocations(reorderLocationsByColumnSort(places, columnSortRef.current));
@@ -594,7 +607,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
         flag: country.flag || '',
         notes: country.notes,
         visitedAt: country.visitedAt,
-        tag: country.tag,
+        tags: normalizeTags(country),
       }));
       setLocations(reorderLocationsByColumnSort(places, columnSortRef.current));
     } catch (error) {
@@ -607,10 +620,11 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
 
   const handleEditNotes = (location: CountryLocation) => {
     setLocationForNotes(location);
+    const tags = normalizeTags(location);
     setNotesForm({
       notes: location.notes || '',
       visitedAt: location.visitedAt || '',
-      tag: location.tag || '',
+      tags: tags.join(', '),
     });
     setNotesFormErrors({});
     setShowNotesModal(true);
@@ -656,7 +670,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           countryName: locationForNotes.name,
           notes: notesForm.notes.trim() || undefined,
           visitedAt: notesForm.visitedAt.trim() || undefined,
-          tag: notesForm.tag.trim() || undefined,
+          tags: notesForm.tags.split(',').map((s) => s.trim()).filter(Boolean),
         }),
       });
       if (!response.ok) throw new Error('Failed to update notes');
@@ -673,7 +687,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
         flag: country.flag || '',
         notes: country.notes,
         visitedAt: country.visitedAt,
-        tag: country.tag,
+        tags: normalizeTags(country),
       }));
       setLocations(reorderLocationsByColumnSort(places, columnSortRef.current));
       setShowNotesModal(false);
@@ -1120,14 +1134,18 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                 <div className="modal-header-view-top">
                   <div className="modal-title-wrap">
                     <h2 className="modal-title">{locationForView.name}</h2>
-                    {locationForView.tag && (
-                      <span className="view-modal-tag">
-                        <svg className="view-modal-tag-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                          <line x1="7" y1="7" x2="7.01" y2="7" />
-                        </svg>
-                        {locationForView.tag}
-                      </span>
+                    {normalizeTags(locationForView).length > 0 && (
+                      <div className="view-modal-tags">
+                        {normalizeTags(locationForView).map((t, i) => (
+                          <span key={i} className="view-modal-tag">
+                            <svg className="view-modal-tag-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                              <line x1="7" y1="7" x2="7.01" y2="7" />
+                            </svg>
+                            {t}
+                          </span>
+                        ))}
+                      </div>
                     )}
                   </div>
                   <button className="modal-close" onClick={() => setShowViewModal(false)}>×</button>
@@ -1170,13 +1188,13 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
               </div>
               <div className="modal-body">
                 <div className="form-group">
-                  <label htmlFor="notes-tag">Word that identifies this country</label>
+                  <label htmlFor="notes-tags">Tags (separate with commas)</label>
                   <input
-                    id="notes-tag"
+                    id="notes-tags"
                     type="text"
-                    value={notesForm.tag}
-                    onChange={(e) => setNotesForm({ ...notesForm, tag: e.target.value })}
-                    placeholder="e.g. color, cleanliness, madness"
+                    value={notesForm.tags}
+                    onChange={(e) => setNotesForm({ ...notesForm, tags: e.target.value })}
+                    placeholder="e.g. color, food, mountains"
                   />
                 </div>
                 <div className="form-group">

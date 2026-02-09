@@ -107,7 +107,10 @@
             "https://example.com/andorra-photo1.jpg",
             "https://example.com/andorra-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "tags": [
+            "Dalmatar"
+        ]
     },
     {
         "name": "Inglaterra",
@@ -131,7 +134,10 @@
             "https://example.com/scotland-photo1.jpg",
             "https://example.com/scotland-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "tags": [
+            "Castillos"
+        ]
     },
     {
         "name": "Países Bajos",
@@ -221,7 +227,11 @@
         "status": "done",
         "notes": "Hermoso pais, la gente muy simpatica y siempre agradecida, el primer viaje grupal un espectaculo",
         "visitedAt": "Noviembre, Diciembre 2025",
-        "tag": "Sonrisas"
+        "tag": "Sonrisas",
+        "tags": [
+            "Sonrisas",
+            "Economico"
+        ]
     },
     {
         "name": "Egipto",

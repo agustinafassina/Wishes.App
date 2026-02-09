@@ -1408,6 +1408,13 @@ body::after {
   word-break: break-word;
 }
 
+.country-item-tooltip-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .country-item-tooltip-tag-pill {
   display: inline-flex;
   align-items: center;
@@ -1763,6 +1770,13 @@ body::after {
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+}
+
+.modal-header-view .view-modal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .modal-header-view .view-modal-tag {
