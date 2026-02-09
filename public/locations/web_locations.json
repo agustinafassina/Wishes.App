@@ -237,7 +237,9 @@
             "https://example.com/poland-photo1.jpg",
             "https://example.com/poland-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "visitedAt": "Febrero 2026",
+        "notes": "Cracovia y Varsovia, muchoo frio y hermosas ciudades, el ultimo dia nevo :D"
     },
     {
         "name": "Alemania",

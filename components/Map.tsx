@@ -24,9 +24,11 @@ interface CountryLocation {
     lat: number;
     lng: number;
   };
-  photos: string[]; 
+  photos: string[];
   status: string;
   flag?: string;
+  notes?: string;
+  visitedAt?: string;
 }
 
 interface CountryData {
@@ -37,19 +39,31 @@ interface CountryData {
   photos: string[];
   status: string;
   flag?: string;
+  notes?: string;
+  visitedAt?: string;
 }
 
 // Draggable Country Item Component
-const DraggableCountryItem = ({ location, status, onDelete }: { location: CountryLocation; status: string; onDelete: (code: string) => void }) => {
+const DraggableCountryItem = ({
+  location,
+  status,
+  onDelete,
+  onEditNotes,
+  onViewNotes,
+}: {
+  location: CountryLocation;
+  status: string;
+  onDelete: (code: string) => void;
+  onEditNotes?: (loc: CountryLocation) => void;
+  onViewNotes?: (loc: CountryLocation) => void;
+}) => {
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
     isDragging,
-  } = useDraggable({
-    id: location.code,
-  });
+  } = useDraggable({ id: location.code });
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -57,13 +71,26 @@ const DraggableCountryItem = ({ location, status, onDelete }: { location: Countr
   };
 
   const statusClass = status.replace(/\s+/g, '-');
+  const isDone = status === 'done';
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    if (window.confirm(`¿Borrar "${location.name}" de la lista?`)) {
+    if (window.confirm(`Delete "${location.name}" from the list?`)) {
       onDelete(location.code);
     }
+  };
+
+  const handleEditNotesClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onEditNotes?.(location);
+  };
+
+  const handleViewNotesClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onViewNotes?.(location);
   };
 
   return (
@@ -74,29 +101,63 @@ const DraggableCountryItem = ({ location, status, onDelete }: { location: Countr
       {...listeners}
       className={`country-item country-item-${statusClass} ${isDragging ? 'dragging' : ''}`}
     >
-      {location.flag && (
-        <img 
-          src={location.flag} 
-          alt={`${location.name} flag`} 
-          className="country-flag"
-        />
-      )}
-      <span className="country-name">{location.name}</span>
-      <button
-        type="button"
-        className="country-item-delete-btn"
-        onClick={handleDeleteClick}
-        onPointerDown={(e) => e.stopPropagation()}
-        aria-label={`Borrar ${location.name}`}
-        title="Borrar país"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <polyline points="3 6 5 6 21 6" />
-          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-          <line x1="10" y1="11" x2="10" y2="17" />
-          <line x1="14" y1="11" x2="14" y2="17" />
-        </svg>
-      </button>
+      <div className="country-item-text">
+        {location.flag && (
+          <img
+            src={location.flag}
+            alt=""
+            className="country-flag"
+          />
+        )}
+        <span className="country-name">{location.name}</span>
+      </div>
+      <div className="country-item-actions">
+        {isDone && onViewNotes && (
+          <button
+            type="button"
+            className="country-item-view-btn"
+            onClick={handleViewNotesClick}
+            onPointerDown={(e) => e.stopPropagation()}
+            aria-label={`View notes: ${location.name}`}
+            title="View notes and visit date"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+        )}
+        {isDone && onEditNotes && (
+          <button
+            type="button"
+            className="country-item-notes-btn"
+            onClick={handleEditNotesClick}
+            onPointerDown={(e) => e.stopPropagation()}
+            aria-label={`Edit notes: ${location.name}`}
+            title="Edit notes and visit date"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+          </button>
+        )}
+        <button
+          type="button"
+          className="country-item-delete-btn"
+          onClick={handleDeleteClick}
+          onPointerDown={(e) => e.stopPropagation()}
+          aria-label={`Delete ${location.name}`}
+          title="Delete country"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            <line x1="10" y1="11" x2="10" y2="17" />
+            <line x1="14" y1="11" x2="14" y2="17" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 };
@@ -110,7 +171,9 @@ const DroppableColumn = ({
   status, 
   emptyMessage,
   onDoubleClick,
-  onDeleteCountry
+  onDeleteCountry,
+  onEditNotes,
+  onViewNotes,
 }: { 
   id: string;
   title: string;
@@ -120,6 +183,8 @@ const DroppableColumn = ({
   emptyMessage: string;
   onDoubleClick: () => void;
   onDeleteCountry: (code: string) => void;
+  onEditNotes?: (loc: CountryLocation) => void;
+  onViewNotes?: (loc: CountryLocation) => void;
 }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
@@ -139,7 +204,14 @@ const DroppableColumn = ({
       >
         {locations.length > 0 ? (
           locations.map((location) => (
-            <DraggableCountryItem key={location.code} location={location} status={status} onDelete={onDeleteCountry} />
+            <DraggableCountryItem
+              key={location.code}
+              location={location}
+              status={status}
+              onDelete={onDeleteCountry}
+              onEditNotes={onEditNotes}
+              onViewNotes={onViewNotes}
+            />
           ))
         ) : (
           <p className="empty-state">{emptyMessage}</p>
@@ -184,6 +256,12 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
     })
   );
 
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [locationForNotes, setLocationForNotes] = useState<CountryLocation | null>(null);
+  const [notesForm, setNotesForm] = useState({ notes: '', visitedAt: '' });
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [locationForView, setLocationForView] = useState<CountryLocation | null>(null);
+
   useEffect(() => {
     fetch('/locations/web_locations.json')
       .then(response => response.json())
@@ -197,7 +275,9 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
           },
           photos: country.photos || [],
           status: country.status || "pending",
-          flag: country.flag || ""
+          flag: country.flag || "",
+          notes: country.notes,
+          visitedAt: country.visitedAt,
         }));
 
         setLocations(places);
@@ -352,7 +432,9 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
         },
         photos: country.photos || [],
         status: country.status || "pending",
-        flag: country.flag || ""
+        flag: country.flag || "",
+        notes: country.notes,
+        visitedAt: country.visitedAt,
       }));
 
       setLocations(places);
@@ -389,11 +471,62 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
         photos: country.photos || [],
         status: country.status || 'pending',
         flag: country.flag || '',
+        notes: country.notes,
+        visitedAt: country.visitedAt,
       }));
       setLocations(places);
     } catch (error) {
       console.error('Error deleting country:', error);
-      alert('No se pudo borrar el país. Intentá de nuevo.');
+      alert('Failed to delete country. Please try again.');
+    }
+  };
+
+  const handleEditNotes = (location: CountryLocation) => {
+    setLocationForNotes(location);
+    setNotesForm({
+      notes: location.notes || '',
+      visitedAt: location.visitedAt || '',
+    });
+    setShowNotesModal(true);
+  };
+
+  const handleViewNotes = (location: CountryLocation) => {
+    setLocationForView(location);
+    setShowViewModal(true);
+  };
+
+  const handleSaveNotes = async () => {
+    if (!locationForNotes) return;
+    try {
+      const response = await fetch('/api/update-country-notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          countryCode: locationForNotes.code,
+          notes: notesForm.notes.trim() || undefined,
+          visitedAt: notesForm.visitedAt.trim() || undefined,
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to update notes');
+
+      const locationsResponse = await fetch('/locations/web_locations.json');
+      const locationsData = await locationsResponse.json();
+      const places: CountryLocation[] = locationsData.map((country: CountryData) => ({
+        name: country.name,
+        code: country.code,
+        position: { lat: country.latitude, lng: country.longitude },
+        photos: country.photos || [],
+        status: country.status || 'pending',
+        flag: country.flag || '',
+        notes: country.notes,
+        visitedAt: country.visitedAt,
+      }));
+      setLocations(places);
+      setShowNotesModal(false);
+      setLocationForNotes(null);
+    } catch (error) {
+      console.error('Error updating notes:', error);
+      alert('Failed to save notes. Please try again.');
     }
   };
 
@@ -511,19 +644,29 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
                     {selectedLocation.flag && (
                       <img 
                         src={selectedLocation.flag} 
-                        alt={`${selectedLocation.name} flag`} 
+                        alt="" 
                         className="info-window-flag"
                       />
                     )}
                     <h3 className="info-window-title">{selectedLocation.name}</h3>
                   </div>
+                  {selectedLocation.status === 'done' && (selectedLocation.visitedAt || selectedLocation.notes) && (
+                    <div className="info-window-visited">
+                      {selectedLocation.visitedAt && (
+                        <p className="info-window-visited-at">Visited in {selectedLocation.visitedAt}</p>
+                      )}
+                      {selectedLocation.notes && (
+                        <p className="info-window-notes">{selectedLocation.notes}</p>
+                      )}
+                    </div>
+                  )}
                   {selectedLocation.photos && selectedLocation.photos.length > 0 && (
                     <div className="info-window-photos">
                       {selectedLocation.photos.slice(0, 3).map((photo, photoIndex) => (
                         <img 
                           key={photoIndex} 
                           src={photo} 
-                          alt={`Photo from ${selectedLocation.name}`} 
+                          alt="" 
                           className="info-window-photo"
                         />
                       ))}
@@ -620,6 +763,8 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
               emptyMessage="No countries completed yet"
               onDoubleClick={() => handleColumnDoubleClick('done')}
               onDeleteCountry={handleDeleteCountry}
+              onEditNotes={handleEditNotes}
+              onViewNotes={handleViewNotes}
             />
             <DroppableColumn
               id="in review"
@@ -657,6 +802,82 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
             ) : null}
           </DragOverlay>
         </DndContext>
+
+        {/* View notes modal (read-only) */}
+        {showViewModal && locationForView && (
+          <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
+            <div className="modal-content modal-content-view" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header modal-header-view">
+                <div className="modal-header-view-top">
+                  <h2 className="modal-title">{locationForView.name}</h2>
+                  <button className="modal-close" onClick={() => setShowViewModal(false)}>×</button>
+                </div>
+                {locationForView.visitedAt && (
+                  <p className="view-modal-visited-at">
+                    <svg className="view-modal-date-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                    Visited in {locationForView.visitedAt}
+                  </p>
+                )}
+              </div>
+              <div className="modal-body">
+                {locationForView.notes ? (
+                  <p className="view-modal-notes">{locationForView.notes}</p>
+                ) : (
+                  !locationForView.visitedAt && (
+                    <p className="view-modal-empty">No notes or visit date.</p>
+                  )
+                )}
+              </div>
+              <div className="modal-footer">
+                <button className="btn-submit" onClick={() => setShowViewModal(false)}>Close</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Notes & visit date modal (Done countries) */}
+        {showNotesModal && locationForNotes && (
+          <div className="modal-overlay" onClick={() => setShowNotesModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2 className="modal-title">Notes and visit date — {locationForNotes.name}</h2>
+                <button className="modal-close" onClick={() => setShowNotesModal(false)}>×</button>
+              </div>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label htmlFor="notes-visited-at">Visited in (e.g. March 2024, 2023)</label>
+                  <input
+                    id="notes-visited-at"
+                    type="text"
+                    value={notesForm.visitedAt}
+                    onChange={(e) => setNotesForm({ ...notesForm, visitedAt: e.target.value })}
+                    placeholder="e.g. March 2024"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="notes-text">Notes</label>
+                  <textarea
+                    id="notes-text"
+                    rows={4}
+                    value={notesForm.notes}
+                    onChange={(e) => setNotesForm({ ...notesForm, notes: e.target.value })}
+                    placeholder="Memories, places you visited, etc."
+                    className="form-textarea"
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn-cancel" onClick={() => setShowNotesModal(false)}>Cancel</button>
+                <button className="btn-submit" onClick={handleSaveNotes}>Save</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Add Country Modal */}
         {showAddModal && (
