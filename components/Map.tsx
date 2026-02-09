@@ -102,13 +102,13 @@ const DraggableCountryItem = ({
   const notesPreview = location.notes?.trim() ? (location.notes.trim().length > 80 ? `${location.notes.trim().slice(0, 80)}…` : location.notes.trim()) : null;
   const tooltipLines: { text: string; className?: string }[] = [];
   if (isDone) {
-    if (location.tag?.trim()) tooltipLines.push({ text: location.tag.trim(), className: 'country-item-tooltip-tag' });
     if (location.visitedAt?.trim()) tooltipLines.push({ text: `Visited in ${location.visitedAt.trim()}` });
     if (notesPreview) tooltipLines.push({ text: notesPreview, className: 'country-item-tooltip-notes' });
-    if (tooltipLines.length === 0) tooltipLines.push({ text: 'No notes yet' });
+    if (tooltipLines.length === 0 && !location.tag?.trim()) tooltipLines.push({ text: 'No notes yet' });
   } else {
     tooltipLines.push({ text: status === 'in review' ? 'In review' : 'Pending' });
   }
+  const tagTrimmed = location.tag?.trim();
 
   return (
     <div
@@ -125,6 +125,15 @@ const DraggableCountryItem = ({
         </div>
       )}
       <div className="country-item-tooltip" role="tooltip">
+        {tagTrimmed && (
+          <span className="country-item-tooltip-tag-pill">
+            <svg className="country-item-tooltip-tag-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+              <line x1="7" y1="7" x2="7.01" y2="7" />
+            </svg>
+            {tagTrimmed}
+          </span>
+        )}
         {tooltipLines.map((line, i) => (
           <span key={i} className={`country-item-tooltip-line ${line.className ?? ''}`.trim()}>{line.text}</span>
         ))}

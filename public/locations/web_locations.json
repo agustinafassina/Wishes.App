@@ -81,7 +81,9 @@
             "https://example.com/italy-photo1.jpg",
             "https://example.com/italy-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "visitedAt": "Abril 2024",
+        "tag": "Rica"
     },
     {
         "name": "Malta",

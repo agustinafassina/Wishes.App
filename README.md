@@ -13,7 +13,9 @@ En public/locations hay un json que es la base de datos de este project, como es
 - [x] Filter by country status
 - [x] Order by a-z or z-a
 - [x] Light / dark theme
-- [x] Create, update and delete of countries.
+- [x] Create, update and delete of countries
+- [x]
+- [x]
 
 ### Web review💻
 <img src="first-part.png" alt="First part of the web" width="500" height="450">
