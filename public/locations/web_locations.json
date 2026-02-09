@@ -225,7 +225,9 @@
             "https://example.com/egypt-photo1.jpg",
             "https://example.com/egypt-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "notes": "Viaje en familia, placentero y cumplidor de sueños!!",
+        "visitedAt": "Enero 2026"
     },
     {
         "name": "Polonia",
@@ -239,7 +241,8 @@
         ],
         "status": "done",
         "visitedAt": "Febrero 2026",
-        "notes": "Cracovia y Varsovia, muchoo frio y hermosas ciudades, el ultimo dia nevo :D"
+        "notes": "Cracovia y Varsovia, muchoo frio y hermosas ciudades, el ultimo dia nevo :D, nos movimos en tren entre ciudades",
+        "tag": "Gris"
     },
     {
         "name": "Alemania",

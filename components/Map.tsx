@@ -29,6 +29,7 @@ interface CountryLocation {
   flag?: string;
   notes?: string;
   visitedAt?: string;
+  tag?: string;
 }
 
 interface CountryData {
@@ -41,6 +42,7 @@ interface CountryData {
   flag?: string;
   notes?: string;
   visitedAt?: string;
+  tag?: string;
 }
 
 // Draggable Country Item Component
@@ -258,7 +260,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
 
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [locationForNotes, setLocationForNotes] = useState<CountryLocation | null>(null);
-  const [notesForm, setNotesForm] = useState({ notes: '', visitedAt: '' });
+  const [notesForm, setNotesForm] = useState({ notes: '', visitedAt: '', tag: '' });
   const [showViewModal, setShowViewModal] = useState(false);
   const [locationForView, setLocationForView] = useState<CountryLocation | null>(null);
 
@@ -278,6 +280,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
           flag: country.flag || "",
           notes: country.notes,
           visitedAt: country.visitedAt,
+          tag: country.tag,
         }));
 
         setLocations(places);
@@ -435,6 +438,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
         flag: country.flag || "",
         notes: country.notes,
         visitedAt: country.visitedAt,
+        tag: country.tag,
       }));
 
       setLocations(places);
@@ -473,6 +477,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
         flag: country.flag || '',
         notes: country.notes,
         visitedAt: country.visitedAt,
+        tag: country.tag,
       }));
       setLocations(places);
     } catch (error) {
@@ -486,6 +491,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
     setNotesForm({
       notes: location.notes || '',
       visitedAt: location.visitedAt || '',
+      tag: location.tag || '',
     });
     setShowNotesModal(true);
   };
@@ -505,6 +511,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
           countryCode: locationForNotes.code,
           notes: notesForm.notes.trim() || undefined,
           visitedAt: notesForm.visitedAt.trim() || undefined,
+          tag: notesForm.tag.trim() || undefined,
         }),
       });
       if (!response.ok) throw new Error('Failed to update notes');
@@ -520,6 +527,7 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
         flag: country.flag || '',
         notes: country.notes,
         visitedAt: country.visitedAt,
+        tag: country.tag,
       }));
       setLocations(places);
       setShowNotesModal(false);
@@ -809,7 +817,18 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
             <div className="modal-content modal-content-view" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header modal-header-view">
                 <div className="modal-header-view-top">
-                  <h2 className="modal-title">{locationForView.name}</h2>
+                  <div className="modal-title-wrap">
+                    <h2 className="modal-title">{locationForView.name}</h2>
+                    {locationForView.tag && (
+                      <span className="view-modal-tag">
+                        <svg className="view-modal-tag-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                          <line x1="7" y1="7" x2="7.01" y2="7" />
+                        </svg>
+                        {locationForView.tag}
+                      </span>
+                    )}
+                  </div>
                   <button className="modal-close" onClick={() => setShowViewModal(false)}>×</button>
                 </div>
                 {locationForView.visitedAt && (
@@ -849,6 +868,16 @@ const Map = ({ onExportPDF, isExporting = false }: MapProps) => {
                 <button className="modal-close" onClick={() => setShowNotesModal(false)}>×</button>
               </div>
               <div className="modal-body">
+                <div className="form-group">
+                  <label htmlFor="notes-tag">Word that identifies this country</label>
+                  <input
+                    id="notes-tag"
+                    type="text"
+                    value={notesForm.tag}
+                    onChange={(e) => setNotesForm({ ...notesForm, tag: e.target.value })}
+                    placeholder="e.g. color, cleanliness, madness"
+                  />
+                </div>
                 <div className="form-group">
                   <label htmlFor="notes-visited-at">Visited in (e.g. March 2024, 2023)</label>
                   <input

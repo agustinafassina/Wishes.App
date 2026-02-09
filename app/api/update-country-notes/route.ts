@@ -5,7 +5,7 @@ import path from 'path';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { countryCode, notes, visitedAt } = body;
+    const { countryCode, notes, visitedAt, tag } = body;
 
     if (!countryCode) {
       return NextResponse.json(
@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
 
     if (notes !== undefined) countries[countryIndex].notes = notes;
     if (visitedAt !== undefined) countries[countryIndex].visitedAt = visitedAt;
+    if (tag !== undefined) countries[countryIndex].tag = tag;
 
     await fs.writeFile(filePath, JSON.stringify(countries, null, 4), 'utf8');
 

@@ -1101,6 +1101,32 @@ body::after {
   align-items: flex-start;
 }
 
+.modal-header-view .modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.modal-header-view .view-modal-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--accent-primary-light);
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: 999px;
+  text-transform: lowercase;
+}
+
+.modal-header-view .view-modal-tag-icon {
+  flex-shrink: 0;
+  color: var(--accent-primary-light);
+}
+
 .modal-header-view .view-modal-visited-at {
   display: flex;
   align-items: center;
