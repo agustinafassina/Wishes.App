@@ -69,18 +69,17 @@ export default function Home() {
     <div className="page-container">
       <main className="main-content" ref={contentRef}>
         <header className="page-header">
-          <div className="logo-wrapper">
-            <Image
-              className="logo"
-              src="/agus_animada.PNG"
-              alt="Agus"
-              width={160}
-              height={160}
-              priority
-            />
-          </div>
-          <div className="header-right">
-            <ThemeToggle />
+          <div className="header-identity">
+            <div className="logo-wrapper">
+              <Image
+                className="logo"
+                src="/agus_animada.PNG"
+                alt="Agus"
+                width={160}
+                height={160}
+                priority
+              />
+            </div>
             <div className="header-text">
               <h1 className="page-title">Agustina Fassina</h1>
               <p className="header-tagline">
@@ -89,6 +88,7 @@ export default function Home() {
               </p>
             </div>
           </div>
+          <ThemeToggle />
         </header>
 
         <div className="content-section">

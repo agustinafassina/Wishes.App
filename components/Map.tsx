@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import {
@@ -351,6 +351,19 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
   const [isAddingCountry, setIsAddingCountry] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isSavingStatus, setIsSavingStatus] = useState(false);
+  const [mapTheme, setMapTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof document === 'undefined') return 'dark';
+    return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  });
+
+  useEffect(() => {
+    const el = document.documentElement;
+    const observer = new MutationObserver(() => {
+      setMapTheme(el.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+    });
+    observer.observe(el, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     setIsLoadingLocations(true);
@@ -771,8 +784,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
     }
   };
 
-  const mapOptions = {
-    styles: [
+  const mapOptions = useMemo(() => {
+    const darkStyles = [
       { featureType: "all", elementType: "geometry", stylers: [{ color: "#1a1f35" }] },
       { featureType: "all", elementType: "labels.text.stroke", stylers: [{ color: "#0a0e1a" }] },
       { featureType: "all", elementType: "labels.text.fill", stylers: [{ color: "#94a3b8" }] },
@@ -791,16 +804,40 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
       { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#252b42" }] },
       { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "rgba(139, 92, 246, 0.3)" }] },
       { featureType: "administrative.province", elementType: "geometry.stroke", stylers: [{ color: "#252b42" }] }
-    ],
-    disableDefaultUI: false,
-    zoomControl: true,
-    zoomControlOptions: { position: 7 },
-    streetViewControl: false,
-    mapTypeControl: false,
-    fullscreenControl: true,
-    mapTypeId: "roadmap",
-    backgroundColor: "#0a0e1a"
-  };
+    ];
+    const lightStyles = [
+      { featureType: "all", elementType: "geometry", stylers: [{ color: "#f1f5f9" }] },
+      { featureType: "all", elementType: "labels.text.stroke", stylers: [{ color: "#ffffff" }] },
+      { featureType: "all", elementType: "labels.text.fill", stylers: [{ color: "#475569" }] },
+      { featureType: "water", elementType: "geometry", stylers: [{ color: "#e0f2fe" }] },
+      { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#64748b" }] },
+      { featureType: "road", elementType: "geometry", stylers: [{ color: "#e2e8f0" }] },
+      { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#cbd5e1" }] },
+      { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#f1f5f9" }] },
+      { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#e2e8f0" }] },
+      { featureType: "administrative.land_parcel", elementType: "labels.text.fill", stylers: [{ color: "#64748b" }] },
+      { featureType: "transit", elementType: "labels.text.fill", stylers: [{ color: "#475569" }] },
+      { featureType: "poi", elementType: "geometry", stylers: [{ color: "#e2e8f0" }] },
+      { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#475569" }] },
+      { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
+      { featureType: "landscape.natural", elementType: "geometry", stylers: [{ color: "#f8fafc" }] },
+      { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#cbd5e1" }] },
+      { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "rgba(99, 102, 241, 0.35)" }] },
+      { featureType: "administrative.province", elementType: "geometry.stroke", stylers: [{ color: "#e2e8f0" }] }
+    ];
+    const isLight = mapTheme === 'light';
+    return {
+      styles: isLight ? lightStyles : darkStyles,
+      disableDefaultUI: false,
+      zoomControl: true,
+      zoomControlOptions: { position: 7 },
+      streetViewControl: false,
+      mapTypeControl: false,
+      fullscreenControl: true,
+      mapTypeId: "roadmap",
+      backgroundColor: isLight ? "#f8fafc" : "#0a0e1a"
+    };
+  }, [mapTheme]);
 
   const handleFilterToggle = (status: 'done' | 'in review' | 'pending') => {
     setStatusFilters(prev => ({
@@ -820,6 +857,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
         )}
         <div className="map-header">
           <h2 className="section-title">Travel Map</h2>
+          <p className="section-subtitle">Filter, explore and track your countries</p>
         </div>
 
         {isLoadingLocations ? (
@@ -839,39 +877,58 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
         ) : (
         <>
         <div className="map-filters">
-          <div className="filter-label">Filter by status:</div>
-          <div className="filter-buttons">
+          <div className="filter-legend-wrap">
+            <span className="filter-label">Filter by status</span>
+            <span className="filter-legend">Select which to show on the map</span>
+          </div>
+          <div className="filter-buttons" role="group" aria-label="Filter map by status">
             <button
-              className={`filter-btn ${statusFilters.done ? 'active' : ''}`}
+              type="button"
+              className={`filter-btn filter-btn-done ${statusFilters.done ? 'active' : ''}`}
               onClick={() => handleFilterToggle('done')}
               aria-pressed={statusFilters.done}
+              title={statusFilters.done ? 'Show done on map' : 'Hide done on map'}
             >
-              <span className="filter-icon">✓</span>
-              <span>Done</span>
+              <span className="filter-btn-dot" aria-hidden />
+              <span className="filter-btn-label">Done</span>
+              {doneLocations.length > 0 && (
+                <span className="filter-btn-count">{doneLocations.length}</span>
+              )}
             </button>
             <button
-              className={`filter-btn ${statusFilters['in review'] ? 'active' : ''}`}
+              type="button"
+              className={`filter-btn filter-btn-in-review ${statusFilters['in review'] ? 'active' : ''}`}
               onClick={() => handleFilterToggle('in review')}
               aria-pressed={statusFilters['in review']}
+              title={statusFilters['in review'] ? 'Show in review on map' : 'Hide in review on map'}
             >
-              <span className="filter-icon">⏳</span>
-              <span>In Review</span>
+              <span className="filter-btn-dot" aria-hidden />
+              <span className="filter-btn-label">In Review</span>
+              {inReviewLocations.length > 0 && (
+                <span className="filter-btn-count">{inReviewLocations.length}</span>
+              )}
             </button>
             <button
-              className={`filter-btn ${statusFilters.pending ? 'active' : ''}`}
+              type="button"
+              className={`filter-btn filter-btn-pending ${statusFilters.pending ? 'active' : ''}`}
               onClick={() => handleFilterToggle('pending')}
               aria-pressed={statusFilters.pending}
+              title={statusFilters.pending ? 'Show pending on map' : 'Hide pending on map'}
             >
-              <span className="filter-icon">○</span>
-              <span>Pending</span>
+              <span className="filter-btn-dot" aria-hidden />
+              <span className="filter-btn-label">Pending</span>
+              {pendingLocations.length > 0 && (
+                <span className="filter-btn-count">{pendingLocations.length}</span>
+              )}
             </button>
           </div>
         </div>
         
         <div className="map-wrapper">
           <GoogleMap
+            key={mapTheme}
             mapContainerClassName="map-container"
-            mapContainerStyle={{ height: '500px', width: '100%', borderRadius: '16px' }}
+            mapContainerStyle={{ height: '500px', width: '100%', borderRadius: '20px' }}
             center={mapCenter}
             zoom={zoom}
             options={mapOptions}
@@ -892,7 +949,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                 position={selectedLocation.position} 
                 onCloseClick={() => setSelectedLocation(null)}
               >
-                <div className="info-window">
+                <div className={`info-window info-window--${selectedLocation.status.replace(/\s+/g, '-')}`}>
+                  <span className="info-window-status-pill">{selectedLocation.status === 'done' ? 'Done' : selectedLocation.status === 'in review' ? 'In Review' : 'Pending'}</span>
                   <div className="info-window-header">
                     {selectedLocation.flag && (
                       <img 
