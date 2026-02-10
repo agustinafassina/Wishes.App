@@ -291,44 +291,46 @@ const DroppableColumn = ({
           </button>
         )}
       </div>
-      <div 
-        ref={setNodeRef} 
+      <div
+        ref={setNodeRef}
         className={`country-list-content ${isOver ? 'drag-over' : ''}`}
       >
-        {locations.length > 0 ? (
-          locations.map((location) => (
-            <DraggableCountryItem
-              key={location.id}
-              location={location}
-              status={status}
-              onRequestDelete={onRequestDelete}
-              onEditNotes={onEditNotes}
-              onViewNotes={onViewNotes}
-              isDeleting={deletingId === location.id}
-            />
-          ))
-        ) : (
-          <div className="empty-state" data-status={statusClass}>
-            <div className="empty-state-icon">{icon}</div>
-            <p className="empty-state-message">{emptyMessage}</p>
-            {status === 'pending' && onEmptyCtaClick && (
-              <p className="empty-state-hint">Or double-tap this card to add one.</p>
-            )}
-            {(status === 'in review' || status === 'done') && onEmptyCtaClick && (
-              <p className="empty-state-hint">Drag one from another column or add below.</p>
-            )}
-            {onEmptyCtaClick && (
-              <button
-                type="button"
-                className="empty-state-cta"
-                onClick={(e) => { e.stopPropagation(); onEmptyCtaClick(); }}
-                onPointerDown={(e) => e.stopPropagation()}
-              >
-                Add country
-              </button>
-            )}
-          </div>
-        )}
+        <div className="country-list-scroll">
+          {locations.length > 0 ? (
+            locations.map((location) => (
+              <DraggableCountryItem
+                key={location.id}
+                location={location}
+                status={status}
+                onRequestDelete={onRequestDelete}
+                onEditNotes={onEditNotes}
+                onViewNotes={onViewNotes}
+                isDeleting={deletingId === location.id}
+              />
+            ))
+          ) : (
+            <div className="empty-state" data-status={statusClass}>
+              <div className="empty-state-icon">{icon}</div>
+              <p className="empty-state-message">{emptyMessage}</p>
+              {status === 'pending' && onEmptyCtaClick && (
+                <p className="empty-state-hint">Or double-tap this card to add one.</p>
+              )}
+              {(status === 'in review' || status === 'done') && onEmptyCtaClick && (
+                <p className="empty-state-hint">Drag one from another column or add below.</p>
+              )}
+              {onEmptyCtaClick && (
+                <button
+                  type="button"
+                  className="empty-state-cta"
+                  onClick={(e) => { e.stopPropagation(); onEmptyCtaClick(); }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  Add country
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -371,6 +373,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
   });
   const columnSortRef = useRef(columnSort);
   columnSortRef.current = columnSort;
+  type ListTabId = 'done' | 'in review' | 'pending';
+  const [mobileListTab, setMobileListTab] = useState<ListTabId>('done');
   const [newCountry, setNewCountry] = useState({
     name: '',
     code: '',
@@ -1442,51 +1446,124 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="country-lists-container">
-            <DroppableColumn
-              id="done"
-              title="Completed"
-              icon={<IconDone />}
-              locations={doneLocations}
-              status="done"
-              emptyMessage="No countries completed yet"
-              onDoubleClick={() => handleColumnDoubleClick('done')}
-              onEmptyCtaClick={() => handleColumnDoubleClick('done')}
-              onRequestDelete={(loc) => setConfirmDeleteLocation(loc)}
-              onEditNotes={handleEditNotes}
-              onViewNotes={handleViewNotes}
-              onSortClick={handleColumnSort}
-              sortOrder={columnSort.done}
-              deletingId={deletingId}
-            />
-            <DroppableColumn
-              id="in review"
-              title="In Review"
-              icon={<IconInReview />}
-              locations={inReviewLocations}
-              status="in review"
-              emptyMessage="No countries in review"
-              onDoubleClick={() => handleColumnDoubleClick('in review')}
-              onEmptyCtaClick={() => handleColumnDoubleClick('in review')}
-              onRequestDelete={(loc) => setConfirmDeleteLocation(loc)}
-              onSortClick={handleColumnSort}
-              sortOrder={columnSort['in review']}
-              deletingId={deletingId}
-            />
-            <DroppableColumn
-              id="pending"
-              title="Pending"
-              icon={<IconPending />}
-              locations={pendingLocations}
-              status="pending"
-              emptyMessage="No pending countries"
-              onDoubleClick={() => handleColumnDoubleClick('pending')}
-              onEmptyCtaClick={() => handleColumnDoubleClick('pending')}
-              onRequestDelete={(loc) => setConfirmDeleteLocation(loc)}
-              onSortClick={handleColumnSort}
-              sortOrder={columnSort.pending}
-              deletingId={deletingId}
-            />
+          <div className="country-lists-wrapper">
+            <div className="list-tabs" role="tablist" aria-label="Country lists by status">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mobileListTab === 'done'}
+                aria-controls="panel-done"
+                id="tab-done"
+                className={`list-tab ${mobileListTab === 'done' ? 'list-tab-active' : ''} list-tab-done`}
+                onClick={() => setMobileListTab('done')}
+              >
+                <span className="list-tab-dot" aria-hidden />
+                <span>Completed</span>
+                {doneLocations.length > 0 && (
+                  <span className="list-tab-count">{doneLocations.length}</span>
+                )}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mobileListTab === 'in review'}
+                aria-controls="panel-in-review"
+                id="tab-in-review"
+                className={`list-tab ${mobileListTab === 'in review' ? 'list-tab-active' : ''} list-tab-in-review`}
+                onClick={() => setMobileListTab('in review')}
+              >
+                <span className="list-tab-dot" aria-hidden />
+                <span>In Review</span>
+                {inReviewLocations.length > 0 && (
+                  <span className="list-tab-count">{inReviewLocations.length}</span>
+                )}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mobileListTab === 'pending'}
+                aria-controls="panel-pending"
+                id="tab-pending"
+                className={`list-tab ${mobileListTab === 'pending' ? 'list-tab-active' : ''} list-tab-pending`}
+                onClick={() => setMobileListTab('pending')}
+              >
+                <span className="list-tab-dot" aria-hidden />
+                <span>Pending</span>
+                {pendingLocations.length > 0 && (
+                  <span className="list-tab-count">{pendingLocations.length}</span>
+                )}
+              </button>
+            </div>
+            <div className="country-lists-container">
+              <div
+                className={`country-column ${mobileListTab === 'done' ? 'country-column-active' : ''}`}
+                id="panel-done"
+                role="tabpanel"
+                aria-labelledby="tab-done"
+                data-tab="done"
+              >
+                <DroppableColumn
+                  id="done"
+                  title="Completed"
+                  icon={<IconDone />}
+                  locations={doneLocations}
+                  status="done"
+                  emptyMessage="No countries completed yet"
+                  onDoubleClick={() => handleColumnDoubleClick('done')}
+                  onEmptyCtaClick={() => handleColumnDoubleClick('done')}
+                  onRequestDelete={(loc) => setConfirmDeleteLocation(loc)}
+                  onEditNotes={handleEditNotes}
+                  onViewNotes={handleViewNotes}
+                  onSortClick={handleColumnSort}
+                  sortOrder={columnSort.done}
+                  deletingId={deletingId}
+                />
+              </div>
+              <div
+                className={`country-column ${mobileListTab === 'in review' ? 'country-column-active' : ''}`}
+                id="panel-in-review"
+                role="tabpanel"
+                aria-labelledby="tab-in-review"
+                data-tab="in review"
+              >
+                <DroppableColumn
+                  id="in review"
+                  title="In Review"
+                  icon={<IconInReview />}
+                  locations={inReviewLocations}
+                  status="in review"
+                  emptyMessage="No countries in review"
+                  onDoubleClick={() => handleColumnDoubleClick('in review')}
+                  onEmptyCtaClick={() => handleColumnDoubleClick('in review')}
+                  onRequestDelete={(loc) => setConfirmDeleteLocation(loc)}
+                  onSortClick={handleColumnSort}
+                  sortOrder={columnSort['in review']}
+                  deletingId={deletingId}
+                />
+              </div>
+              <div
+                className={`country-column ${mobileListTab === 'pending' ? 'country-column-active' : ''}`}
+                id="panel-pending"
+                role="tabpanel"
+                aria-labelledby="tab-pending"
+                data-tab="pending"
+              >
+                <DroppableColumn
+                  id="pending"
+                  title="Pending"
+                  icon={<IconPending />}
+                  locations={pendingLocations}
+                  status="pending"
+                  emptyMessage="No pending countries"
+                  onDoubleClick={() => handleColumnDoubleClick('pending')}
+                  onEmptyCtaClick={() => handleColumnDoubleClick('pending')}
+                  onRequestDelete={(loc) => setConfirmDeleteLocation(loc)}
+                  onSortClick={handleColumnSort}
+                  sortOrder={columnSort.pending}
+                  deletingId={deletingId}
+                />
+              </div>
+            </div>
           </div>
           <DragOverlay>
             {activeId ? (

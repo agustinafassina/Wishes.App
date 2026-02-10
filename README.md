@@ -51,20 +51,51 @@ Ejemplo de objeto completo:
 - [x] Create, update and delete of countries
 - [x] Multitag by country
 - [x] Hide / show map (collapse map to save space)
+- [x] **Backup / export data** — Export full list as JSON or CSV (Import to restore: planned).
+- [x] **Auth0** — Login / logout; app requires an authenticated user to use the bucket list.
 
 ### Web review💻
 <img src="first-part.png" alt="First part of the web" width="500" height="450">
 <img src="second-part.png" alt="Second part of the web" width="500" height="450">
 
 ### Environment Setup⚙️
+
 1. Copy the `.env.example` file to `.env`:
 ```bash
 cp .env.example .env
 ```
 
-2. Open the `.env` file and replace `google_key_replace` with your actual Google Maps API key:
+2. Fill in the variables in `.env`:
+
+| Variable | Descripción |
+|----------|-------------|
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | API key de Google Maps (para el mapa). |
+| `AUTH0_DOMAIN` | Tu tenant de Auth0 (ej. `mi-app.us.auth0.com`). |
+| `AUTH0_CLIENT_ID` | Client ID de la aplicación en Auth0. |
+| `AUTH0_CLIENT_SECRET` | Client Secret de la aplicación en Auth0. |
+| `AUTH0_SECRET` | Una cadena aleatoria larga (≥ 32 caracteres) para firmar cookies de sesión. |
+| `APP_BASE_URL` | URL base de la app (desarrollo: `http://localhost:3000`). |
+
+**Google Maps:** reemplazá `google_key_replace` por tu API key real.
+
+**Auth0:** para obtener las variables de Auth0:
+
+1. Creá una cuenta en [auth0.com](https://auth0.com) y creá un **Application** tipo **Regular Web Application**.
+2. En **Settings** de la aplicación copiá **Domain**, **Client ID** y **Client Secret** a `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID` y `AUTH0_CLIENT_SECRET`.
+3. En **Application URIs** configurá:
+   - **Allowed Callback URLs:** `http://localhost:3000/auth/callback` (y la URL de producción cuando la tengas).
+   - **Allowed Logout URLs:** `http://localhost:3000` (y la de producción).
+4. Para `AUTH0_SECRET` generá una cadena aleatoria segura (por ejemplo con `openssl rand -hex 32`).
+5. Dejá `APP_BASE_URL` en `http://localhost:3000` para desarrollo.
+
+Ejemplo de `.env` (con valores de ejemplo):
 ```
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="your_actual_google_maps_api_key_here"
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="tu_google_maps_key"
+AUTH0_DOMAIN="tu-tenant.us.auth0.com"
+AUTH0_CLIENT_ID="tu_client_id"
+AUTH0_CLIENT_SECRET="tu_client_secret"
+AUTH0_SECRET="una_cadena_aleatoria_larga_de_al_menos_32_caracteres"
+APP_BASE_URL="http://localhost:3000"
 ```
 
 ### Install dependencies📝

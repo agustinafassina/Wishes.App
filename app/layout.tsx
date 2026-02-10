@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BackgroundMosaic from "../components/BackgroundMosaic";
 import { ToastProvider } from "../components/ToastContext";
+import Auth0ProviderWrapper from "../components/Auth0ProviderWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,6 +19,11 @@ export const metadata: Metadata = {
   title: "Wishes – Travel bucket list",
   description: "Track and explore your travel bucket list. Mark countries as done, in review or pending.",
   applicationName: "Wishes",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Wishes",
+  },
 };
 
 export const viewport: Viewport = {
@@ -28,6 +34,7 @@ export const viewport: Viewport = {
     { media: "(prefers-color-scheme: light)", color: "#f5f3ff" },
     { media: "(prefers-color-scheme: dark)", color: "#0a0e1a" },
   ],
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -46,9 +53,11 @@ export default function RootLayout({
           }}
         />
         <BackgroundMosaic />
-        <ToastProvider>
-          {children}
-        </ToastProvider>
+        <Auth0ProviderWrapper>
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+        </Auth0ProviderWrapper>
       </body>
     </html>
   );
