@@ -399,6 +399,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
   const [shareLinkCopied, setShareLinkCopied] = useState(false);
   const [isSharingImage, setIsSharingImage] = useState(false);
   const [mapCollapsed, setMapCollapsed] = useState(false);
+  const [isExportingBackup, setIsExportingBackup] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
   const [isLoadingLocations, setIsLoadingLocations] = useState(true);
   const [isSavingNotes, setIsSavingNotes] = useState(false);
@@ -954,6 +955,49 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
     }
   };
 
+  const handleBackup = async (format: 'json' | 'csv') => {
+    setIsExportingBackup(true);
+    try {
+      const res = await fetch('/locations/web_locations.json');
+      if (!res.ok) throw new Error('Failed to load data');
+      const data = await res.json();
+      const date = new Date().toISOString().slice(0, 10);
+      if (format === 'json') {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `wishes-backup-${date}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success('Backup downloaded as JSON.');
+      } else {
+        const headers = ['name', 'code', 'latitude', 'longitude', 'status', 'notes', 'visitedAt', 'tags', 'flag'];
+        const escapeCsv = (v: unknown) => {
+          const s = v == null ? '' : Array.isArray(v) ? v.join('; ') : String(v);
+          return /[,"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+        };
+        const rows = data.map((row: Record<string, unknown>) =>
+          headers.map((h) => escapeCsv(row[h])).join(',')
+        );
+        const csv = [headers.join(','), ...rows].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `wishes-backup-${date}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success('Backup downloaded as CSV.');
+      }
+    } catch (error) {
+      console.error('Backup error:', error);
+      toast.error(getApiErrorDisplay(error, 'Could not create backup.'));
+    } finally {
+      setIsExportingBackup(false);
+    }
+  };
+
   const mapOptions = useMemo(() => {
     const darkStyles = [
       { featureType: "all", elementType: "geometry", stylers: [{ color: "#1a1f35" }] },
@@ -1307,9 +1351,9 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           </div>
         </div>
 
-        {onExportPDF && (
-          <div className="export-pdf-container">
-            <button 
+        <div className="export-actions">
+          {onExportPDF && (
+            <button
               className="btn-export-pdf"
               onClick={onExportPDF}
               disabled={isExporting}
@@ -1336,8 +1380,47 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                 </>
               )}
             </button>
-          </div>
-        )}
+          )}
+          <button
+            type="button"
+            className="btn-backup"
+            onClick={() => handleBackup('json')}
+            disabled={isExportingBackup}
+            aria-label="Backup data as JSON"
+            title="Download full list as JSON"
+          >
+            {isExportingBackup ? (
+              <>
+                <span className="btn-backup-spinner" aria-hidden />
+                <span>Backing up...</span>
+              </>
+            ) : (
+              <>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span>Backup</span>
+              </>
+            )}
+          </button>
+          <button
+            type="button"
+            className="btn-backup btn-backup-csv"
+            onClick={() => handleBackup('csv')}
+            disabled={isExportingBackup}
+            aria-label="Backup data as CSV"
+            title="Download full list as CSV"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <span>CSV</span>
+          </button>
+        </div>
 
         <div className="stats-container">
           <div className="stat-card stat-done">

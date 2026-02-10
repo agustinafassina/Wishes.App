@@ -1540,10 +1540,171 @@ html:not([data-theme="light"]) .btn-export-pdf:disabled {
   z-index: 1;
 }
 
-.export-pdf-container {
+.export-actions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
+  gap: 0.75rem;
   margin-bottom: 2rem;
+}
+
+.btn-backup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+  /* Base design (dark theme) – theme overrides below */
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm), 0 0 0 1px rgba(139, 92, 246, 0.1);
+}
+
+.btn-backup:hover:not(:disabled) {
+  background: var(--bg-card-hover);
+  border-color: rgba(139, 92, 246, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(139, 92, 246, 0.2);
+}
+
+.btn-backup:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm), 0 0 0 1px rgba(139, 92, 246, 0.15);
+}
+
+.btn-backup:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.35);
+}
+
+.btn-backup:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+  transform: none;
+}
+
+.btn-backup svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.btn-backup-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.btn-backup-csv {
+  padding: 1rem 1.25rem;
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 768px) {
+  .export-actions {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .btn-export-pdf,
+  .btn-backup {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-export-pdf svg,
+  .btn-backup svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .btn-backup-csv {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .export-actions {
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .btn-export-pdf,
+  .btn-backup {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .btn-export-pdf span:not(.spinner),
+  .btn-backup span {
+    white-space: nowrap;
+  }
+
+  .btn-backup-csv {
+    padding: 0.6rem 0.65rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Backup button: same visual language as Export PDF */
+html[data-theme="dark"] .btn-backup,
+html:not([data-theme="light"]) .btn-backup {
+  background: var(--bg-tertiary);
+  border-color: var(--border);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm), 0 0 0 1px rgba(139, 92, 246, 0.1);
+}
+
+html[data-theme="dark"] .btn-backup:hover:not(:disabled),
+html:not([data-theme="light"]) .btn-backup:hover:not(:disabled) {
+  background: var(--bg-card-hover);
+  border-color: rgba(139, 92, 246, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(139, 92, 246, 0.2);
+}
+
+html[data-theme="light"] .btn-backup {
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  border-color: rgba(139, 92, 246, 0.35);
+  color: #5b21b6;
+  box-shadow: 0 1px 2px rgba(99, 102, 241, 0.06), 0 0 0 1px rgba(139, 92, 246, 0.1);
+}
+
+html[data-theme="light"] .btn-backup:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ede9fe 0%, #e2e8f0 100%);
+  border-color: rgba(139, 92, 246, 0.5);
+  color: #4c1d95;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.12), 0 0 0 1px rgba(139, 92, 246, 0.2);
+  transform: translateY(-1px);
+}
+
+html[data-theme="light"] .btn-backup:active:not(:disabled) {
+  background: linear-gradient(135deg, #e2e8f0 0%, #ede9fe 100%);
+  transform: translateY(0);
+}
+
+html[data-theme="light"] .btn-backup:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+}
+
+html[data-theme="light"] .btn-backup:disabled {
+  background: #ede9fe;
+  color: #7c3aed;
+  opacity: 0.65;
 }
 
 /* Info Window – mismo lenguaje que las cards por estado */
