@@ -78,6 +78,12 @@ const IconPending = () => (
   </svg>
 );
 
+const STATUS_OPTIONS: { id: string; label: string }[] = [
+  { id: 'done', label: 'Completed' },
+  { id: 'in review', label: 'In Review' },
+  { id: 'pending', label: 'Pending' },
+];
+
 // Draggable Country Item Component
 const DraggableCountryItem = ({
   location,
@@ -85,6 +91,7 @@ const DraggableCountryItem = ({
   onRequestDelete,
   onEditNotes,
   onViewNotes,
+  onMoveToStatus,
   isDeleting,
 }: {
   location: CountryLocation;
@@ -92,8 +99,11 @@ const DraggableCountryItem = ({
   onRequestDelete: (loc: CountryLocation) => void;
   onEditNotes?: (loc: CountryLocation) => void;
   onViewNotes?: (loc: CountryLocation) => void;
+  onMoveToStatus?: (loc: CountryLocation, newStatus: string) => void;
   isDeleting?: boolean;
 }) => {
+  const [moveMenuOpen, setMoveMenuOpen] = useState(false);
+  const moveMenuRef = useRef<HTMLDivElement>(null);
   const {
     attributes,
     listeners,
@@ -101,6 +111,20 @@ const DraggableCountryItem = ({
     transform,
     isDragging,
   } = useDraggable({ id: location.id });
+
+  useEffect(() => {
+    if (!moveMenuOpen) return;
+    const close = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (moveMenuRef.current && !moveMenuRef.current.contains(target)) setMoveMenuOpen(false);
+    };
+    document.addEventListener('click', close, true);
+    document.addEventListener('touchstart', close, true);
+    return () => {
+      document.removeEventListener('click', close, true);
+      document.removeEventListener('touchstart', close, true);
+    };
+  }, [moveMenuOpen]);
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -213,6 +237,48 @@ const DraggableCountryItem = ({
             </svg>
           </button>
         )}
+        {onMoveToStatus && (
+          <div className="country-item-move-wrap" ref={moveMenuRef}>
+            <button
+              type="button"
+              className={`country-item-move-btn ${moveMenuOpen ? 'country-item-move-btn-open' : ''}`}
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); setMoveMenuOpen((o) => !o); }}
+              onPointerDown={(e) => e.stopPropagation()}
+              aria-label={`Move ${location.name} to another list`}
+              aria-expanded={moveMenuOpen}
+              aria-haspopup="true"
+              title="Move to another list"
+            >
+              <svg className="country-item-move-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M7 17L17 7" />
+                <path d="M17 7H7V17" />
+              </svg>
+            </button>
+            {moveMenuOpen && (
+              <div className="country-item-move-menu" role="menu">
+                <p className="country-item-move-menu-title">Move to</p>
+                {STATUS_OPTIONS.filter((opt) => opt.id !== status).map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    role="menuitem"
+                    className={`country-item-move-menu-item country-item-move-menu-item--${opt.id.replace(/\s+/g, '-')}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      onMoveToStatus(location, opt.id);
+                      setMoveMenuOpen(false);
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                  >
+                    <span className="country-item-move-menu-dot" aria-hidden />
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <button
           type="button"
           className="country-item-delete-btn"
@@ -246,6 +312,7 @@ const DroppableColumn = ({
   onRequestDelete,
   onEditNotes,
   onViewNotes,
+  onMoveToStatus,
   onSortClick,
   sortOrder,
   deletingId,
@@ -261,6 +328,7 @@ const DroppableColumn = ({
   onRequestDelete: (loc: CountryLocation) => void;
   onEditNotes?: (loc: CountryLocation) => void;
   onViewNotes?: (loc: CountryLocation) => void;
+  onMoveToStatus?: (loc: CountryLocation, newStatus: string) => void;
   onSortClick?: (columnId: string) => void;
   sortOrder?: 'a-z' | 'z-a';
   deletingId?: string | null;
@@ -305,6 +373,7 @@ const DroppableColumn = ({
                 onRequestDelete={onRequestDelete}
                 onEditNotes={onEditNotes}
                 onViewNotes={onViewNotes}
+                onMoveToStatus={onMoveToStatus}
                 isDeleting={deletingId === location.id}
               />
             ))
@@ -430,10 +499,14 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
 
   useEffect(() => {
     setIsLoadingLocations(true);
-    fetch('/locations/web_locations.json')
-      .then(response => response.json())
+    fetch('/api/locations', { credentials: 'include' })
+      .then((response) => {
+        if (!response.ok) return response.json().then(() => []);
+        return response.json();
+      })
       .then((data: CountryData[]) => {
-        const places: CountryLocation[] = data.map((country) => ({
+        const list = Array.isArray(data) ? data : [];
+        const places: CountryLocation[] = list.map((country) => ({
           id: `${country.code}-${country.name}`,
           name: country.name,
           code: country.code,
@@ -456,8 +529,9 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           setZoom(2);
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('Error loading countries:', error);
+        setLocations([]);
       })
       .finally(() => setIsLoadingLocations(false));
   }, []);
@@ -548,6 +622,40 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
     return locations.find(loc => loc.id === activeId) || null;
   };
 
+  const handleMoveToStatus = async (location: CountryLocation, newStatus: string) => {
+    const validStatuses = ['done', 'in review', 'pending'];
+    if (!validStatuses.includes(newStatus) || location.status === newStatus) return;
+    const countryId = location.id;
+    const originalStatus = location.status;
+    setLocations((prev) =>
+      prev.map((loc) => (loc.id === countryId ? { ...loc, status: newStatus } : loc))
+    );
+    setIsSavingStatus(true);
+    try {
+      const response = await fetch('/api/update-country', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          countryCode: location.code,
+          countryName: location.name,
+          newStatus,
+        }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(typeof data?.error === 'string' ? data.error : `Error (${response.status})`);
+      }
+    } catch (error) {
+      console.error('Error updating country status:', error);
+      setLocations((prev) =>
+        prev.map((loc) => (loc.id === countryId ? { ...loc, status: originalStatus } : loc))
+      );
+      toast.error(getApiErrorDisplay(error, 'Failed to update status. Please try again.'));
+    } finally {
+      setIsSavingStatus(false);
+    }
+  };
+
   const handleColumnDoubleClick = (status: string) => {
     setTargetStatus(status);
     setNewCountry({
@@ -623,10 +731,11 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
       const result = await response.json();
       console.log('Country added:', result);
 
-      // Reload locations from JSON
-      const locationsResponse = await fetch('/locations/web_locations.json');
-      const locationsData = await locationsResponse.json();
-      const places: CountryLocation[] = locationsData.map((country: CountryData) => ({
+      // Reload locations from user's JSON
+      const locationsResponse = await fetch('/api/locations', { credentials: 'include' });
+      const locationsData = await (locationsResponse.ok ? locationsResponse.json() : Promise.resolve([]));
+      const list = Array.isArray(locationsData) ? locationsData : [];
+      const places: CountryLocation[] = list.map((country: CountryData) => ({
         id: `${country.code}-${country.name}`,
         name: country.name,
         code: country.code,
@@ -675,9 +784,10 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
         throw new Error(typeof data?.error === 'string' ? data.error : `Error (${response.status})`);
       }
 
-      const locationsResponse = await fetch('/locations/web_locations.json');
-      const locationsData = await locationsResponse.json();
-      const places: CountryLocation[] = locationsData.map((country: CountryData) => ({
+      const locationsResponse = await fetch('/api/locations', { credentials: 'include' });
+      const locationsData = await (locationsResponse.ok ? locationsResponse.json() : Promise.resolve([]));
+      const list = Array.isArray(locationsData) ? locationsData : [];
+      const places: CountryLocation[] = list.map((country: CountryData) => ({
         id: `${country.code}-${country.name}`,
         name: country.name,
         code: country.code,
@@ -886,9 +996,10 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
         throw new Error(typeof data?.error === 'string' ? data.error : `Error (${response.status})`);
       }
 
-      const locationsResponse = await fetch('/locations/web_locations.json');
-      const locationsData = await locationsResponse.json();
-      const places: CountryLocation[] = locationsData.map((country: CountryData) => ({
+      const locationsResponse = await fetch('/api/locations', { credentials: 'include' });
+      const locationsData = await (locationsResponse.ok ? locationsResponse.json() : Promise.resolve([]));
+      const list = Array.isArray(locationsData) ? locationsData : [];
+      const places: CountryLocation[] = list.map((country: CountryData) => ({
         id: `${country.code}-${country.name}`,
         name: country.name,
         code: country.code,
@@ -1031,12 +1142,13 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
   const handleBackup = async (format: 'json' | 'csv') => {
     setIsExportingBackup(true);
     try {
-      const res = await fetch('/locations/web_locations.json');
+      const res = await fetch('/api/locations', { credentials: 'include' });
       if (!res.ok) throw new Error('Failed to load data');
-      const data = await res.json();
+      const raw = await res.json();
+      const list = Array.isArray(raw) ? raw : [];
       const date = new Date().toISOString().slice(0, 10);
       if (format === 'json') {
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify(list, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -1050,7 +1162,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           const s = v == null ? '' : Array.isArray(v) ? v.join('; ') : String(v);
           return /[,"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
         };
-        const rows = data.map((row: Record<string, unknown>) =>
+        const rows = list.map((row: Record<string, unknown>) =>
           headers.map((h) => escapeCsv(row[h])).join(',')
         );
         const csv = [headers.join(','), ...rows].join('\n');
@@ -1202,6 +1314,51 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
             onConfirm={confirmLeaveAndClose}
             onCancel={() => setConfirmLeaveModal(null)}
           />
+          {locations.length === 0 ? (
+            pickingLocationFromMap ? (
+              <div className="map-section-map-wrap">
+                <div
+                  id="map-wrapper-id"
+                  className="map-wrapper map-wrapper--picking"
+                >
+                  <div className="map-pick-banner" role="status" aria-live="polite">
+                    <span className="map-pick-banner-text">Click on the map to set coordinates</span>
+                    <button type="button" className="map-pick-banner-cancel" onClick={cancelPickingFromMap}>
+                      Cancel
+                    </button>
+                  </div>
+                  <GoogleMap
+                    key={mapTheme}
+                    mapContainerClassName="map-container"
+                    mapContainerStyle={{ height: '100%', width: '100%', borderRadius: '20px' }}
+                    center={mapCenter}
+                    zoom={zoom}
+                    options={mapOptions}
+                    onLoad={handleMapLoad}
+                    onClick={handleMapClick}
+                  />
+                </div>
+              </div>
+            ) : (
+            <div className="map-empty-state" role="status" aria-live="polite">
+              <p className="map-empty-state-title">No results</p>
+              <p className="map-empty-state-hint">You don&apos;t have any countries in your list yet.</p>
+              <button
+                type="button"
+                className="btn-add-country-header map-empty-state-cta"
+                onClick={() => handleColumnDoubleClick('pending')}
+                aria-label="Add new country"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Add country</span>
+              </button>
+            </div>
+            )
+          ) : (
+          <>
           <div className="map-filters">
           <div className="filter-legend-wrap">
             <span className="filter-label">Filter by status</span>
@@ -1609,6 +1766,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                   onRequestDelete={(loc) => setConfirmDeleteLocation(loc)}
                   onEditNotes={handleEditNotes}
                   onViewNotes={handleViewNotes}
+                  onMoveToStatus={handleMoveToStatus}
                   onSortClick={handleColumnSort}
                   sortOrder={columnSort.done}
                   deletingId={deletingId}
@@ -1631,6 +1789,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                   onDoubleClick={() => handleColumnDoubleClick('in review')}
                   onEmptyCtaClick={() => handleColumnDoubleClick('in review')}
                   onRequestDelete={(loc) => setConfirmDeleteLocation(loc)}
+                  onMoveToStatus={handleMoveToStatus}
                   onSortClick={handleColumnSort}
                   sortOrder={columnSort['in review']}
                   deletingId={deletingId}
@@ -1653,6 +1812,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                   onDoubleClick={() => handleColumnDoubleClick('pending')}
                   onEmptyCtaClick={() => handleColumnDoubleClick('pending')}
                   onRequestDelete={(loc) => setConfirmDeleteLocation(loc)}
+                  onMoveToStatus={handleMoveToStatus}
                   onSortClick={handleColumnSort}
                   sortOrder={columnSort.pending}
                   deletingId={deletingId}
@@ -1728,6 +1888,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           </div>
         )}
 
+          </>
+          )}
         {/* Notes & visit date modal (Done countries) */}
         {showNotesModal && locationForNotes && (
           <div className="modal-overlay" onClick={requestCloseNotesModal}>

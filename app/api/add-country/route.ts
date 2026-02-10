@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { auth0 } from '@/lib/auth0';
+import { getUserLocationsFilename } from '@/lib/user-locations';
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth0.getSession();
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { name, code, latitude, longitude, flag, photos, status } = body;
 
@@ -24,12 +31,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Path to the JSON file
-    const filePath = path.join(process.cwd(), 'public', 'locations', 'web_locations.json');
+    const filename = getUserLocationsFilename(session.user);
+    const filePath = path.join(process.cwd(), 'public', 'locations', 'users', `${filename}.json`);
 
-    // Read the current JSON file
-    const fileContents = await fs.readFile(filePath, 'utf8');
-    const countries = JSON.parse(fileContents);
+    let countries: any[];
+    try {
+      const fileContents = await fs.readFile(filePath, 'utf8');
+      countries = JSON.parse(fileContents);
+      if (!Array.isArray(countries)) countries = [];
+    } catch {
+      countries = [];
+    }
 
     // Check if country code already exists
     const existingCountry = countries.find((country: any) => country.code === code.toUpperCase());

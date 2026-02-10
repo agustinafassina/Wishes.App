@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { auth0 } from '@/lib/auth0';
+import { getUserLocationsFilename } from '@/lib/user-locations';
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth0.getSession();
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { countryCode, countryName, newStatus } = body;
 
@@ -23,11 +30,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Path to the JSON file
-    const filePath = path.join(process.cwd(), 'public', 'locations', 'web_locations.json');
+    const filename = getUserLocationsFilename(session.user);
+    const filePath = path.join(process.cwd(), 'public', 'locations', 'users', `${filename}.json`);
 
-    // Read the current JSON file
-    const fileContents = await fs.readFile(filePath, 'utf8');
+    let fileContents: string;
+    try {
+      fileContents = await fs.readFile(filePath, 'utf8');
+    } catch {
+      return NextResponse.json({ error: 'User locations file not found' }, { status: 404 });
+    }
     const countries = JSON.parse(fileContents);
 
     // Find and update the country (code + name to support e.g. England vs Scotland both GB)

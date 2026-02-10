@@ -1280,6 +1280,38 @@ html[data-theme="light"] .btn-add-country-header:active {
   padding: 0 0 2rem 0;
 }
 
+/* Empty state when user has no countries */
+.map-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+.map-empty-state-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0;
+}
+.map-empty-state-hint {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 32ch;
+}
+.map-empty-state-cta {
+  margin-top: 0.5rem;
+}
+
 .skeleton-map {
   width: 100%;
   height: 500px;
@@ -2931,6 +2963,125 @@ html[data-theme="light"] .btn-backup:disabled {
   color: var(--text-primary);
 }
 
+.country-item-move-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.country-item-move-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.country-item-move-btn:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.country-item-move-btn-open,
+.country-item-move-btn:focus-visible {
+  background: var(--bg-card);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15);
+  outline: none;
+  color: var(--text-primary);
+}
+
+.country-item-move-btn-icon {
+  flex-shrink: 0;
+}
+
+.country-item-move-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  min-width: 180px;
+  padding: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  z-index: 20;
+}
+
+.country-item-move-menu-title {
+  margin: 0 0 6px 0;
+  padding: 4px 10px 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.country-item-move-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.country-item-move-menu-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.country-item-move-menu-dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px currentColor;
+}
+
+.country-item-move-menu-item--done .country-item-move-menu-dot {
+  background: var(--success);
+  color: rgba(16, 185, 129, 0.35);
+}
+
+.country-item-move-menu-item--done:hover {
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.country-item-move-menu-item--in-review .country-item-move-menu-dot {
+  background: var(--warning);
+  color: rgba(245, 158, 11, 0.35);
+}
+
+.country-item-move-menu-item--in-review:hover {
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.country-item-move-menu-item--pending .country-item-move-menu-dot {
+  background: var(--pending);
+  color: rgba(239, 68, 68, 0.35);
+}
+
+.country-item-move-menu-item--pending:hover {
+  background: rgba(239, 68, 68, 0.08);
+}
+
 .country-item:active {
   cursor: grabbing;
 }
@@ -3661,7 +3812,7 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
 
   .map-header {
     margin-bottom: 1.35rem;
-    padding: 0.6rem 1rem 0.85rem 0.7rem;
+    padding: 0.6rem 0 0.85rem 0.7rem;
   }
 
   .map-header .section-title {
@@ -3748,7 +3899,7 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
   /* Travel Map section – tablet */
   .map-header {
     margin-bottom: 1.25rem;
-    padding: 0.6rem 1rem 0.85rem 0.65rem;
+    padding: 0.6rem 0 0.85rem 0.65rem;
   }
 
   .map-header .section-title {
@@ -4036,7 +4187,8 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
   /* Travel Map section – mobile */
   .map-header {
     margin-bottom: 1rem;
-    padding: 0.5rem 0.85rem 0.75rem 0.6rem;
+    padding: 0.5rem 0 0.75rem 0.5rem;
+    padding-left: 0.6rem;
     border-left-width: 3px;
   }
 
@@ -4347,7 +4499,8 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
   /* Travel Map – extra small */
   .map-header {
     margin-bottom: 0.75rem;
-    padding: 0.4rem 0.65rem 0.5rem 0.5rem;
+    padding: 0.4rem 0 0.5rem 0.5rem;
+    padding-left: 0.5rem;
     border-left-width: 3px;
   }
 

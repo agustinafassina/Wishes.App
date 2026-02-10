@@ -1,0 +1,11 @@
+[
+    {
+        "name": "Rusia",
+        "code": "RU",
+        "latitude": 62.204901,
+        "longitude": 99.003128,
+        "flag": "https://flagcdn.com/w40/ru.png",
+        "photos": [],
+        "status": "in review"
+    }
+]
