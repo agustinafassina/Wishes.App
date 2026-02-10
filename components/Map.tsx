@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
+import { useToast } from './ToastContext';
+import ConfirmModal from './ConfirmModal';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import {
   DndContext,
@@ -56,18 +58,38 @@ function normalizeTags(c: { tag?: string; tags?: string[] }): string[] {
   return [];
 }
 
+const iconProps = { width: 24, height: 24, viewBox: '0 0 24 24' as const, fill: 'none' as const, stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+
+const IconDone = () => (
+  <svg {...iconProps} aria-hidden>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M9 12l2 2 4-4" />
+  </svg>
+);
+const IconInReview = () => (
+  <svg {...iconProps} aria-hidden>
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+);
+const IconPending = () => (
+  <svg {...iconProps} aria-hidden>
+    <circle cx="12" cy="12" r="10" />
+  </svg>
+);
+
 // Draggable Country Item Component
 const DraggableCountryItem = ({
   location,
   status,
-  onDelete,
+  onRequestDelete,
   onEditNotes,
   onViewNotes,
   isDeleting,
 }: {
   location: CountryLocation;
   status: string;
-  onDelete: (id: string) => void;
+  onRequestDelete: (loc: CountryLocation) => void;
   onEditNotes?: (loc: CountryLocation) => void;
   onViewNotes?: (loc: CountryLocation) => void;
   isDeleting?: boolean;
@@ -91,9 +113,8 @@ const DraggableCountryItem = ({
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    if (window.confirm(`Delete "${location.name}" from the list?`)) {
-      onDelete(location.id);
-    }
+    e.nativeEvent.stopImmediatePropagation();
+    onRequestDelete(location);
   };
 
   const handleEditNotesClick = (e: React.MouseEvent) => {
@@ -222,26 +243,28 @@ const DroppableColumn = ({
   status, 
   emptyMessage,
   onDoubleClick,
-  onDeleteCountry,
+  onRequestDelete,
   onEditNotes,
   onViewNotes,
   onSortClick,
   sortOrder,
   deletingId,
+  onEmptyCtaClick,
 }: { 
   id: string;
   title: string;
-  icon: string;
+  icon: React.ReactNode;
   locations: CountryLocation[];
   status: string;
   emptyMessage: string;
   onDoubleClick: () => void;
-  onDeleteCountry: (id: string) => void;
+  onRequestDelete: (loc: CountryLocation) => void;
   onEditNotes?: (loc: CountryLocation) => void;
   onViewNotes?: (loc: CountryLocation) => void;
   onSortClick?: (columnId: string) => void;
   sortOrder?: 'a-z' | 'z-a';
   deletingId?: string | null;
+  onEmptyCtaClick?: () => void;
 }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
@@ -278,14 +301,33 @@ const DroppableColumn = ({
               key={location.id}
               location={location}
               status={status}
-              onDelete={onDeleteCountry}
+              onRequestDelete={onRequestDelete}
               onEditNotes={onEditNotes}
               onViewNotes={onViewNotes}
               isDeleting={deletingId === location.id}
             />
           ))
         ) : (
-          <p className="empty-state">{emptyMessage}</p>
+          <div className="empty-state" data-status={statusClass}>
+            <div className="empty-state-icon">{icon}</div>
+            <p className="empty-state-message">{emptyMessage}</p>
+            {status === 'pending' && onEmptyCtaClick && (
+              <p className="empty-state-hint">Or double-tap this card to add one.</p>
+            )}
+            {(status === 'in review' || status === 'done') && onEmptyCtaClick && (
+              <p className="empty-state-hint">Drag one from another column or add below.</p>
+            )}
+            {onEmptyCtaClick && (
+              <button
+                type="button"
+                className="empty-state-cta"
+                onClick={(e) => { e.stopPropagation(); onEmptyCtaClick(); }}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                Add country
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -298,7 +340,16 @@ interface MapProps {
   shareUserName?: string;
 }
 
+function getApiErrorDisplay(error: unknown, fallback: string): string {
+  if (error instanceof Error) {
+    if (error.message === 'Failed to fetch' || error.name === 'TypeError') return 'Network error. Please check your connection.';
+    return error.message;
+  }
+  return fallback;
+}
+
 const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }: MapProps) => {
+  const toast = useToast();
   const [locations, setLocations] = useState<CountryLocation[]>([]);
   const [mapCenter, setMapCenter] = useState({ lat: 20.0, lng: 0.0 });
   const [zoom, setZoom] = useState(2);
@@ -306,6 +357,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [targetStatus, setTargetStatus] = useState<string>('pending');
+  const [confirmDeleteLocation, setConfirmDeleteLocation] = useState<CountryLocation | null>(null);
+  const [confirmLeaveModal, setConfirmLeaveModal] = useState<'add' | 'notes' | null>(null);
   const [statusFilters, setStatusFilters] = useState({
     done: true,
     'in review': false,
@@ -345,6 +398,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareLinkCopied, setShareLinkCopied] = useState(false);
   const [isSharingImage, setIsSharingImage] = useState(false);
+  const [mapCollapsed, setMapCollapsed] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
   const [isLoadingLocations, setIsLoadingLocations] = useState(true);
   const [isSavingNotes, setIsSavingNotes] = useState(false);
@@ -459,14 +513,14 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update country status');
+        const data = await response.json().catch(() => ({}));
+        throw new Error(typeof data?.error === 'string' ? data.error : `Error (${response.status})`);
       }
 
       const result = await response.json();
       console.log('Country status updated in JSON:', result);
     } catch (error) {
       console.error('Error updating country status:', error);
-      // Revert the optimistic update on error
       setLocations((prevLocations) => {
         return prevLocations.map((location) =>
           location.id === countryId
@@ -474,7 +528,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
             : location
         );
       });
-      alert('Failed to update country status. Please try again.');
+      toast.error(getApiErrorDisplay(error, 'Failed to update country status. Please try again.'));
     } finally {
       setIsSavingStatus(false);
     }
@@ -553,7 +607,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add country');
+        const data = await response.json().catch(() => ({}));
+        throw new Error(typeof data?.error === 'string' ? data.error : `Error (${response.status})`);
       }
 
       const result = await response.json();
@@ -590,7 +645,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
       });
     } catch (error) {
       console.error('Error adding country:', error);
-      alert('Failed to add country. Please try again.');
+      toast.error(getApiErrorDisplay(error, 'Failed to add country. Please try again.'));
     } finally {
       setIsAddingCountry(false);
     }
@@ -606,7 +661,10 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ countryCode: location.code, countryName: location.name }),
       });
-      if (!response.ok) throw new Error('Failed to delete country');
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(typeof data?.error === 'string' ? data.error : `Error (${response.status})`);
+      }
 
       const locationsResponse = await fetch('/locations/web_locations.json');
       const locationsData = await locationsResponse.json();
@@ -625,7 +683,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
       setLocations(reorderLocationsByColumnSort(places, columnSortRef.current));
     } catch (error) {
       console.error('Error deleting country:', error);
-      alert('Failed to delete country. Please try again.');
+      toast.error(getApiErrorDisplay(error, 'Failed to delete country. Please try again.'));
     } finally {
       setDeletingId(null);
     }
@@ -642,6 +700,69 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
     setNotesFormErrors({});
     setShowNotesModal(true);
   };
+
+  const normalizedTagsStr = (s: string) =>
+    s.split(',').map((t) => t.trim()).filter(Boolean).join(', ');
+
+  const isAddFormDirty = () =>
+    Boolean(
+      newCountry.name.trim() ||
+      newCountry.code.trim() ||
+      newCountry.latitude.trim() ||
+      newCountry.longitude.trim() ||
+      newCountry.flag.trim() ||
+      newCountry.photos.length > 0
+    );
+
+  const isNotesFormDirty = () => {
+    if (!locationForNotes) return false;
+    const origTags = normalizedTagsStr(normalizeTags(locationForNotes).join(', '));
+    const currTags = normalizedTagsStr(notesForm.tags);
+    return (
+      notesForm.notes !== (locationForNotes.notes || '') ||
+      notesForm.visitedAt !== (locationForNotes.visitedAt || '') ||
+      currTags !== origTags
+    );
+  };
+
+  const requestCloseAddModal = () => {
+    if (isAddFormDirty()) {
+      setConfirmLeaveModal('add');
+    } else {
+      setShowAddModal(false);
+      setNewCountry({ name: '', code: '', latitude: '', longitude: '', flag: '', photos: [] });
+    }
+  };
+
+  const requestCloseNotesModal = () => {
+    if (isNotesFormDirty()) {
+      setConfirmLeaveModal('notes');
+    } else {
+      setShowNotesModal(false);
+      setLocationForNotes(null);
+    }
+  };
+
+  const confirmLeaveAndClose = () => {
+    if (confirmLeaveModal === 'add') {
+      setShowAddModal(false);
+      setNewCountry({ name: '', code: '', latitude: '', longitude: '', flag: '', photos: [] });
+    } else if (confirmLeaveModal === 'notes') {
+      setShowNotesModal(false);
+      setLocationForNotes(null);
+    }
+    setConfirmLeaveModal(null);
+  };
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if ((showAddModal && isAddFormDirty()) || (showNotesModal && isNotesFormDirty())) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [showAddModal, showNotesModal, newCountry, notesForm, locationForNotes]);
 
   const validateNotesForm = (): Record<string, string> => {
     const err: Record<string, string> = {};
@@ -686,7 +807,10 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           tags: notesForm.tags.split(',').map((s) => s.trim()).filter(Boolean),
         }),
       });
-      if (!response.ok) throw new Error('Failed to update notes');
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(typeof data?.error === 'string' ? data.error : `Error (${response.status})`);
+      }
 
       const locationsResponse = await fetch('/locations/web_locations.json');
       const locationsData = await locationsResponse.json();
@@ -707,7 +831,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
       setLocationForNotes(null);
     } catch (error) {
       console.error('Error updating notes:', error);
-      alert('Failed to save notes. Please try again.');
+      toast.error(getApiErrorDisplay(error, 'Failed to save notes. Please try again.'));
     } finally {
       setIsSavingNotes(false);
     }
@@ -751,13 +875,59 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
   const remainingCount = TOTAL_COUNTRIES - visitedCount;
   const progressPercentage = (visitedCount / TOTAL_COUNTRIES) * 100;
 
+  // Animated progress: on first load bar fills from 0 to current % over ~800ms
+  const [progressDisplay, setProgressDisplay] = useState(0);
+  const hasAnimatedProgressRef = useRef(false);
+  useEffect(() => {
+    if (isLoadingLocations) return;
+    const pct = (locations.filter(l => l.status === 'done').length / TOTAL_COUNTRIES) * 100;
+    if (!hasAnimatedProgressRef.current) {
+      hasAnimatedProgressRef.current = true;
+      const duration = 820;
+      const start = performance.now();
+      const step = (now: number) => {
+        const elapsed = now - start;
+        const t = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - t, 3);
+        setProgressDisplay(easeOut * pct);
+        if (t < 1) requestAnimationFrame(step);
+        else setProgressDisplay(pct);
+      };
+      const id = requestAnimationFrame(step);
+      return () => cancelAnimationFrame(id);
+    }
+    setProgressDisplay(pct);
+  }, [isLoadingLocations, locations, TOTAL_COUNTRIES]);
+
+  // Milestone badge: muestra el número real; emoji según hito (10, 50, 100)
+  const milestone = visitedCount >= 10
+    ? { label: `${visitedCount} countries!`, emoji: visitedCount >= 100 ? '🎉' : visitedCount >= 50 ? '🌟' : '🌍' }
+    : null;
+
+  // Mini celebration when crossing 10, 20 or 30 countries (trigger class for CSS animation)
+  const [celebratingMilestone, setCelebratingMilestone] = useState<number | null>(null);
+  const prevVisitedRef = useRef(visitedCount);
+  useEffect(() => {
+    if (isLoadingLocations) return;
+    const prev = prevVisitedRef.current;
+    prevVisitedRef.current = visitedCount;
+    const justHit10 = visitedCount === 10 && prev < 10;
+    const justHit20 = visitedCount === 20 && prev < 20;
+    const justHit30 = visitedCount === 30 && prev < 30;
+    if (justHit10 || justHit20 || justHit30) {
+      setCelebratingMilestone(visitedCount);
+      const t = setTimeout(() => setCelebratingMilestone(null), 2600);
+      return () => clearTimeout(t);
+    }
+  }, [isLoadingLocations, visitedCount]);
+
   const handleCopyShareLink = async () => {
     try {
       await navigator.clipboard.writeText(typeof window !== 'undefined' ? window.location.href : '');
       setShareLinkCopied(true);
       setTimeout(() => setShareLinkCopied(false), 2000);
     } catch {
-      alert('Could not copy link.');
+      toast.error('Could not copy link.');
     }
   };
 
@@ -778,7 +948,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
       a.click();
     } catch (error) {
       console.error('Share image error:', error);
-      alert('Could not generate image.');
+      toast.error('Could not generate image.');
     } finally {
       setIsSharingImage(false);
     }
@@ -876,7 +1046,32 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           </div>
         ) : (
         <>
-        <div className="map-filters">
+          <ConfirmModal
+            open={confirmDeleteLocation !== null}
+            title="Delete country"
+            message={confirmDeleteLocation ? `Delete "${confirmDeleteLocation.name}" from the list?` : ''}
+            confirmLabel="Delete"
+            cancelLabel="Cancel"
+            variant="danger"
+            onConfirm={() => {
+              if (confirmDeleteLocation) {
+                handleDeleteCountry(confirmDeleteLocation.id);
+                setConfirmDeleteLocation(null);
+              }
+            }}
+            onCancel={() => setConfirmDeleteLocation(null)}
+          />
+          <ConfirmModal
+            open={confirmLeaveModal !== null}
+            title="Leave without saving?"
+            message="You have unsaved changes. Leave anyway?"
+            confirmLabel="Leave"
+            cancelLabel="Stay"
+            variant="default"
+            onConfirm={confirmLeaveAndClose}
+            onCancel={() => setConfirmLeaveModal(null)}
+          />
+          <div className="map-filters">
           <div className="filter-legend-wrap">
             <span className="filter-label">Filter by status</span>
             <span className="filter-legend">Select which to show on the map</span>
@@ -923,16 +1118,34 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
             </button>
           </div>
         </div>
-        
-        <div className="map-wrapper">
-          <GoogleMap
-            key={mapTheme}
-            mapContainerClassName="map-container"
-            mapContainerStyle={{ height: '500px', width: '100%', borderRadius: '20px' }}
-            center={mapCenter}
-            zoom={zoom}
-            options={mapOptions}
+
+        <div className="map-section-map-wrap">
+          <button
+            type="button"
+            className="map-toggle-btn"
+            onClick={() => setMapCollapsed((c) => !c)}
+            aria-expanded={!mapCollapsed}
+            aria-controls="map-wrapper-id"
           >
+            {mapCollapsed ? (
+              <>Show map</>
+            ) : (
+              <>Hide map</>
+            )}
+          </button>
+          <div
+            id="map-wrapper-id"
+            className={`map-wrapper ${mapCollapsed ? 'map-wrapper--collapsed' : ''}`}
+          >
+            {!mapCollapsed && (
+            <GoogleMap
+              key={mapTheme}
+              mapContainerClassName="map-container"
+              mapContainerStyle={{ height: '100%', width: '100%', borderRadius: '20px' }}
+              center={mapCenter}
+              zoom={zoom}
+              options={mapOptions}
+            >
             {filteredLocations.map((location) => {
               const countryLocation: CountryLocation = location;
               return (
@@ -987,9 +1200,17 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
               </InfoWindow>
             )}
           </GoogleMap>
+            )}
+          </div>
         </div>
 
         <div className="progress-timeline">
+          {celebratingMilestone !== null && (
+            <div className="progress-celebration-banner" role="alert" aria-live="assertive">
+              <span className="progress-celebration-emoji">🎉</span>
+              <span className="progress-celebration-text">You reached {celebratingMilestone} countries!</span>
+            </div>
+          )}
           <div className="progress-header">
             <h3 className="progress-title">World Travel Progress</h3>
             <div className="progress-header-right">
@@ -1047,7 +1268,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           <div className="progress-bar-container">
             <div 
               className="progress-bar-fill" 
-              style={{ width: `${progressPercentage}%` }}
+              style={{ width: `${progressDisplay}%` }}
             >
               <span className="progress-percentage">{progressPercentage.toFixed(1)}%</span>
             </div>
@@ -1055,6 +1276,19 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
               <span className="progress-remaining-text">{remainingCount} remaining</span>
             </div>
           </div>
+          {milestone && (
+            <p
+              className={`progress-milestone${celebratingMilestone === visitedCount ? ' progress-milestone-celebrate' : ''}`}
+              role="status"
+              aria-live="polite"
+            >
+              <span className="progress-milestone-emoji">{milestone.emoji}</span>
+              <span>{milestone.label}</span>
+              {celebratingMilestone === visitedCount && (
+                <span className="progress-milestone-toast"> — You hit {visitedCount} countries!</span>
+              )}
+            </p>
+          )}
         </div>
 
         {/* Off-screen card for share image capture */}
@@ -1129,12 +1363,13 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
             <DroppableColumn
               id="done"
               title="Completed"
-              icon="✓"
+              icon={<IconDone />}
               locations={doneLocations}
               status="done"
               emptyMessage="No countries completed yet"
               onDoubleClick={() => handleColumnDoubleClick('done')}
-              onDeleteCountry={handleDeleteCountry}
+              onEmptyCtaClick={() => handleColumnDoubleClick('done')}
+              onRequestDelete={(loc) => setConfirmDeleteLocation(loc)}
               onEditNotes={handleEditNotes}
               onViewNotes={handleViewNotes}
               onSortClick={handleColumnSort}
@@ -1144,12 +1379,13 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
             <DroppableColumn
               id="in review"
               title="In Review"
-              icon="⏳"
+              icon={<IconInReview />}
               locations={inReviewLocations}
               status="in review"
               emptyMessage="No countries in review"
               onDoubleClick={() => handleColumnDoubleClick('in review')}
-              onDeleteCountry={handleDeleteCountry}
+              onEmptyCtaClick={() => handleColumnDoubleClick('in review')}
+              onRequestDelete={(loc) => setConfirmDeleteLocation(loc)}
               onSortClick={handleColumnSort}
               sortOrder={columnSort['in review']}
               deletingId={deletingId}
@@ -1157,12 +1393,13 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
             <DroppableColumn
               id="pending"
               title="Pending"
-              icon="○"
+              icon={<IconPending />}
               locations={pendingLocations}
               status="pending"
               emptyMessage="No pending countries"
               onDoubleClick={() => handleColumnDoubleClick('pending')}
-              onDeleteCountry={handleDeleteCountry}
+              onEmptyCtaClick={() => handleColumnDoubleClick('pending')}
+              onRequestDelete={(loc) => setConfirmDeleteLocation(loc)}
               onSortClick={handleColumnSort}
               sortOrder={columnSort.pending}
               deletingId={deletingId}
@@ -1238,11 +1475,11 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
 
         {/* Notes & visit date modal (Done countries) */}
         {showNotesModal && locationForNotes && (
-          <div className="modal-overlay" onClick={() => setShowNotesModal(false)}>
+          <div className="modal-overlay" onClick={requestCloseNotesModal}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
                 <h2 className="modal-title">Notes and visit date — {locationForNotes.name}</h2>
-                <button className="modal-close" onClick={() => setShowNotesModal(false)}>×</button>
+                <button type="button" className="modal-close" onClick={requestCloseNotesModal} aria-label="Close">×</button>
               </div>
               <div className="modal-body">
                 <div className="form-group">
@@ -1286,7 +1523,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                 </div>
               </div>
               <div className="modal-footer">
-                <button className="btn-cancel" onClick={() => setShowNotesModal(false)} disabled={isSavingNotes}>Cancel</button>
+                <button type="button" className="btn-cancel" onClick={requestCloseNotesModal} disabled={isSavingNotes}>Cancel</button>
                 <button className="btn-submit" onClick={handleSaveNotes} disabled={isSavingNotes}>
                   {isSavingNotes ? (
                     <>
@@ -1304,11 +1541,11 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
 
         {/* Add Country Modal */}
         {showAddModal && (
-          <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-overlay" onClick={requestCloseAddModal}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
                 <h2 className="modal-title">Add new country</h2>
-                <button className="modal-close" onClick={() => setShowAddModal(false)}>×</button>
+                <button type="button" className="modal-close" onClick={requestCloseAddModal} aria-label="Close">×</button>
               </div>
               <div className="modal-body">
                 <div className="form-group">
@@ -1404,7 +1641,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                 </div>
               </div>
               <div className="modal-footer">
-                <button className="btn-cancel" onClick={() => setShowAddModal(false)}>
+                <button type="button" className="btn-cancel" onClick={requestCloseAddModal}>
                   Cancel
                 </button>
                 <button className="btn-submit" onClick={handleAddCountry} disabled={isAddingCountry}>

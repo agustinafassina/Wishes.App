@@ -7,10 +7,16 @@ import Map from "../components/Map";
 import ThemeToggle from "../components/ThemeToggle";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { useToast } from "../components/ToastContext";
 
 export default function Home() {
+  const toast = useToast();
   const contentRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
+
+  const handleLogoutClick = () => {
+    toast.success("Log out will be available when you add sign-in.");
+  };
 
   const handleExportPDF = async () => {
     if (!contentRef.current || isExporting) return;
@@ -59,7 +65,8 @@ export default function Home() {
       pdf.save(fileName);
     } catch (error) {
       console.error('Error exporting PDF:', error);
-      alert('An error occurred while exporting the PDF. Please try again.');
+      const message = error instanceof Error ? error.message : 'An error occurred while exporting the PDF. Please try again.';
+      toast.error(message);
     } finally {
       setIsExporting(false);
     }
@@ -84,11 +91,27 @@ export default function Home() {
               <h1 className="page-title">Agustina Fassina</h1>
               <p className="header-tagline">
                 <img src="https://flagcdn.com/w40/ar.png" alt="Argentina" className="header-flag" width={28} height={21} />
-                <span>This is my travel bucket list</span>
+                <span>My travel bucket list</span>
               </p>
             </div>
           </div>
-          <ThemeToggle />
+          <div className="header-actions">
+            <ThemeToggle />
+            <button
+              type="button"
+              className="header-btn header-btn-logout"
+              onClick={handleLogoutClick}
+              title="Log out (coming soon)"
+              aria-label="Log out"
+            >
+              <svg className="header-btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              <span className="header-btn-label">Log out</span>
+            </button>
+          </div>
         </header>
 
         <div className="content-section">

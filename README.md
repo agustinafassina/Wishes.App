@@ -50,7 +50,7 @@ Ejemplo de objeto completo:
 - [x] Light / dark theme
 - [x] Create, update and delete of countries
 - [x] Multitag by country
-- [x]
+- [x] Hide / show map (collapse map to save space)
 
 ### Web review💻
 <img src="first-part.png" alt="First part of the web" width="500" height="450">

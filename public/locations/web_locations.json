@@ -273,7 +273,7 @@
             "https://example.com/germany-photo1.jpg",
             "https://example.com/germany-photo2.jpg"
         ],
-        "status": "in review"
+        "status": "pending"
     },
     {
         "name": "Croacia",
@@ -386,15 +386,6 @@
         "latitude": 43.9159,
         "longitude": 17.6791,
         "flag": "https://flagcdn.com/w40/ba.png",
-        "photos": [],
-        "status": "pending"
-    },
-    {
-        "name": "Portugal",
-        "code": "PT",
-        "latitude": 39.3999,
-        "longitude": -8.2245,
-        "flag": "https://flagcdn.com/w40/pt.png",
         "photos": [],
         "status": "pending"
     },
