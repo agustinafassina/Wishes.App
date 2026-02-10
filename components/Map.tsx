@@ -5,18 +5,6 @@ import html2canvas from 'html2canvas';
 import { useToast } from './ToastContext';
 import ConfirmModal from './ConfirmModal';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  useDroppable,
-  useDraggable,
-} from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
@@ -85,7 +73,7 @@ const STATUS_OPTIONS: { id: string; label: string }[] = [
 ];
 
 // Draggable Country Item Component
-const DraggableCountryItem = ({
+function CountryItem({
   location,
   status,
   onRequestDelete,
@@ -101,16 +89,9 @@ const DraggableCountryItem = ({
   onViewNotes?: (loc: CountryLocation) => void;
   onMoveToStatus?: (loc: CountryLocation, newStatus: string) => void;
   isDeleting?: boolean;
-}) => {
+}) {
   const [moveMenuOpen, setMoveMenuOpen] = useState(false);
   const moveMenuRef = useRef<HTMLDivElement>(null);
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    isDragging,
-  } = useDraggable({ id: location.id });
 
   useEffect(() => {
     if (!moveMenuOpen) return;
@@ -125,11 +106,6 @@ const DraggableCountryItem = ({
       document.removeEventListener('touchstart', close, true);
     };
   }, [moveMenuOpen]);
-
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.5 : 1,
-  };
 
   const statusClass = status.replace(/\s+/g, '-');
   const isDone = status === 'done';
@@ -166,11 +142,7 @@ const DraggableCountryItem = ({
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className={`country-item country-item-${statusClass} ${isDragging ? 'dragging' : ''} ${isDeleting ? 'item-deleting' : ''}`}
+      className={`country-item country-item-${statusClass} ${isDeleting ? 'item-deleting' : ''}`}
     >
       {isDeleting && (
         <div className="country-item-deleting-overlay" aria-hidden>
@@ -298,10 +270,10 @@ const DraggableCountryItem = ({
       </div>
     </div>
   );
-};
+}
 
-// Droppable Column Component
-const DroppableColumn = ({ 
+// Country column (list card)
+function CountryColumn({ 
   id, 
   title, 
   icon, 
@@ -333,11 +305,7 @@ const DroppableColumn = ({
   sortOrder?: 'a-z' | 'z-a';
   deletingId?: string | null;
   onEmptyCtaClick?: () => void;
-}) => {
-  const { setNodeRef, isOver } = useDroppable({
-    id: id,
-  });
-
+}) {
   const statusClass = status.replace(/\s+/g, '-');
 
   return (
@@ -359,14 +327,11 @@ const DroppableColumn = ({
           </button>
         )}
       </div>
-      <div
-        ref={setNodeRef}
-        className={`country-list-content ${isOver ? 'drag-over' : ''}`}
-      >
+      <div className="country-list-content">
         <div className="country-list-scroll">
           {locations.length > 0 ? (
             locations.map((location) => (
-              <DraggableCountryItem
+              <CountryItem
                 key={location.id}
                 location={location}
                 status={status}
@@ -385,7 +350,7 @@ const DroppableColumn = ({
                 <p className="empty-state-hint">Or double-tap this card to add one.</p>
               )}
               {(status === 'in review' || status === 'done') && onEmptyCtaClick && (
-                <p className="empty-state-hint">Drag one from another column or add below.</p>
+                <p className="empty-state-hint">Use the move icon to move items between columns or add below.</p>
               )}
               {onEmptyCtaClick && (
                 <button
@@ -403,7 +368,7 @@ const DroppableColumn = ({
       </div>
     </div>
   );
-};
+}
 
 interface MapProps {
   onExportPDF?: () => void;
@@ -425,7 +390,6 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
   const [mapCenter, setMapCenter] = useState({ lat: 20.0, lng: 0.0 });
   const [zoom, setZoom] = useState(2);
   const [selectedLocation, setSelectedLocation] = useState<CountryLocation | null>(null);
-  const [activeId, setActiveId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [pickingLocationFromMap, setPickingLocationFromMap] = useState(false);
   const pickingLocationFromMapRef = useRef(false);
@@ -458,14 +422,6 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
   });
   const [addCountryErrors, setAddCountryErrors] = useState<Record<string, string>>({});
   const [notesFormErrors, setNotesFormErrors] = useState<Record<string, string>>({});
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
 
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [locationForNotes, setLocationForNotes] = useState<CountryLocation | null>(null);
@@ -542,84 +498,6 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
 
   const handleMarkerClick = (countryLocation: CountryLocation): void => {
     setSelectedLocation(countryLocation);
-  };
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveId(null);
-
-    if (!over) return;
-
-    const countryId = active.id as string;
-    const newStatus = over.id as string;
-
-    // Valid status values
-    const validStatuses = ['done', 'in review', 'pending'];
-    if (!validStatuses.includes(newStatus)) return;
-
-    // Find the original location
-    const originalLocation = locations.find(loc => loc.id === countryId);
-    if (!originalLocation) return;
-
-    // If the status hasn't changed, don't do anything
-    if (originalLocation.status === newStatus) return;
-
-    // Save the original status for potential rollback
-    const originalStatus = originalLocation.status;
-
-    // Optimistically update the UI
-    setLocations((prevLocations) => {
-      return prevLocations.map((location) =>
-        location.id === countryId
-          ? { ...location, status: newStatus }
-          : location
-      );
-    });
-
-    // Update the JSON file via API
-    setIsSavingStatus(true);
-    try {
-      const response = await fetch('/api/update-country', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          countryCode: originalLocation.code,
-          countryName: originalLocation.name,
-          newStatus,
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(typeof data?.error === 'string' ? data.error : `Error (${response.status})`);
-      }
-
-      const result = await response.json();
-      console.log('Country status updated in JSON:', result);
-    } catch (error) {
-      console.error('Error updating country status:', error);
-      setLocations((prevLocations) => {
-        return prevLocations.map((location) =>
-          location.id === countryId
-            ? { ...location, status: originalStatus }
-            : location
-        );
-      });
-      toast.error(getApiErrorDisplay(error, 'Failed to update country status. Please try again.'));
-    } finally {
-      setIsSavingStatus(false);
-    }
-  };
-
-  const getActiveCountry = () => {
-    if (!activeId) return null;
-    return locations.find(loc => loc.id === activeId) || null;
   };
 
   const handleMoveToStatus = async (location: CountryLocation, newStatus: string) => {
@@ -1702,11 +1580,6 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           </div>
         </div>
 
-        <DndContext
-          sensors={sensors}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
           <div className="country-lists-wrapper">
             <div className="list-tabs" role="tablist" aria-label="Country lists by status">
               <button
@@ -1763,7 +1636,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                 aria-labelledby="tab-done"
                 data-tab="done"
               >
-                <DroppableColumn
+                <CountryColumn
                   id="done"
                   title="Completed"
                   icon={<IconDone />}
@@ -1788,7 +1661,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                 aria-labelledby="tab-in-review"
                 data-tab="in review"
               >
-                <DroppableColumn
+                <CountryColumn
                   id="in review"
                   title="In Review"
                   icon={<IconInReview />}
@@ -1811,7 +1684,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                 aria-labelledby="tab-pending"
                 data-tab="pending"
               >
-                <DroppableColumn
+                <CountryColumn
                   id="pending"
                   title="Pending"
                   icon={<IconPending />}
@@ -1829,21 +1702,6 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
               </div>
             </div>
           </div>
-          <DragOverlay>
-            {activeId ? (
-              <div className="country-item country-item-dragging">
-                {getActiveCountry()?.flag && (
-                  <img 
-                    src={getActiveCountry()?.flag} 
-                    alt={`${getActiveCountry()?.name} flag`} 
-                    className="country-flag"
-                  />
-                )}
-                <span className="country-name">{getActiveCountry()?.name}</span>
-              </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
 
         {/* View notes modal (read-only) */}
         {showViewModal && locationForView && (

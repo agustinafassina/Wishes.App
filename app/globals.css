@@ -2896,13 +2896,8 @@ html[data-theme="light"] .btn-backup:disabled {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 100px;
+  min-height: 0; /* allow flex child to shrink so overflow scroll works on mobile */
   transition: background-color 0.2s ease;
-}
-
-.country-list-content.drag-over {
-  background-color: rgba(74, 222, 128, 0.1);
-  border-radius: 8px;
 }
 
 .country-list-scroll {
@@ -2911,9 +2906,11 @@ html[data-theme="light"] .btn-backup:disabled {
   flex-direction: column;
   gap: 0.75rem;
   max-height: 420px;
+  min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y; /* allow vertical scroll on touch devices */
   scrollbar-width: thin;
   scrollbar-color: rgba(139, 92, 246, 0.4) var(--bg-tertiary);
 }
@@ -2944,13 +2941,14 @@ html[data-theme="light"] .btn-backup:disabled {
   padding: var(--space-md) var(--space-lg);
   border-radius: var(--radius-md);
   transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  cursor: grab;
-  touch-action: none;
+  touch-action: pan-y;
   z-index: 1;
 }
 
 .country-item:hover {
   z-index: 101;
+  background-color: var(--bg-tertiary);
+  transform: translateX(4px);
 }
 
 .country-item-tooltip {
@@ -3214,27 +3212,6 @@ html[data-theme="light"] .btn-backup:disabled {
   background: rgba(239, 68, 68, 0.08);
 }
 
-.country-item:active {
-  cursor: grabbing;
-}
-
-.country-item.dragging {
-  opacity: 0.5;
-  transform: scale(0.95);
-}
-
-.country-item-dragging {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.875rem 1rem;
-  border-radius: 8px;
-  background: var(--bg-card);
-  box-shadow: var(--shadow-lg);
-  transform: rotate(5deg);
-  opacity: 0.9;
-}
-
 .country-flag {
   width: 28px;
   height: 21px;
@@ -3243,11 +3220,6 @@ html[data-theme="light"] .btn-backup:disabled {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
-}
-
-.country-item:hover:not(.dragging) {
-  background-color: var(--bg-tertiary);
-  transform: translateX(4px);
 }
 
 .country-badge {
