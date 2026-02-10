@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import { useToast } from './ToastContext';
 import ConfirmModal from './ConfirmModal';
@@ -358,6 +358,10 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
   const [selectedLocation, setSelectedLocation] = useState<CountryLocation | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [pickingLocationFromMap, setPickingLocationFromMap] = useState(false);
+  const pickingLocationFromMapRef = useRef(false);
+  pickingLocationFromMapRef.current = pickingLocationFromMap;
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const [targetStatus, setTargetStatus] = useState<string>('pending');
   const [confirmDeleteLocation, setConfirmDeleteLocation] = useState<CountryLocation | null>(null);
   const [confirmLeaveModal, setConfirmLeaveModal] = useState<'add' | 'notes' | null>(null);
@@ -735,9 +739,73 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
       setConfirmLeaveModal('add');
     } else {
       setShowAddModal(false);
+      setPickingLocationFromMap(false);
       setNewCountry({ name: '', code: '', latitude: '', longitude: '', flag: '', photos: [] });
     }
   };
+
+  const startPickingFromMap = () => {
+    setShowAddModal(false);
+    setPickingLocationFromMap(true);
+    setMapCollapsed(false);
+  };
+
+  const cancelPickingFromMap = () => {
+    setPickingLocationFromMap(false);
+  };
+
+  const applyPickedLocation = (lat: number, lng: number) => {
+    setNewCountry((prev) => ({
+      ...prev,
+      latitude: String(Number(lat.toFixed(6))),
+      longitude: String(Number(lng.toFixed(6))),
+    }));
+    setMapCenter({ lat, lng });
+    setZoom(10);
+    setPickingLocationFromMap(false);
+    setShowAddModal(true);
+  };
+
+  const handleMapLoad = (map: google.maps.Map) => {
+    mapInstanceRef.current = map;
+  };
+
+  const handleMapClick = useCallback((e: google.maps.MapMouseEvent) => {
+    if (!pickingLocationFromMapRef.current || !e.latLng) return;
+    const lat = e.latLng.lat();
+    const lng = e.latLng.lng();
+    const latStr = String(Number(lat.toFixed(6)));
+    const lngStr = String(Number(lng.toFixed(6)));
+
+    const applyWithCountry = (countryName: string, countryCode: string) => {
+      setNewCountry((prev) => ({
+        ...prev,
+        name: countryName,
+        code: countryCode.toUpperCase(),
+        latitude: latStr,
+        longitude: lngStr,
+      }));
+      setMapCenter({ lat, lng });
+      setZoom(10);
+      setPickingLocationFromMap(false);
+      setShowAddModal(true);
+    };
+
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+      let name = '';
+      let code = '';
+      if (status === google.maps.GeocoderStatus.OK && results && results.length > 0) {
+        const comp = results[0].address_components;
+        const country = comp?.find((c) => c.types.includes('country'));
+        if (country) {
+          name = country.long_name;
+          code = country.short_name ?? '';
+        }
+      }
+      applyWithCountry(name, code);
+    });
+  }, []);
 
   const requestCloseNotesModal = () => {
     if (isNotesFormDirty()) {
@@ -751,6 +819,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
   const confirmLeaveAndClose = () => {
     if (confirmLeaveModal === 'add') {
       setShowAddModal(false);
+      setPickingLocationFromMap(false);
       setNewCountry({ name: '', code: '', latitude: '', longitude: '', flag: '', photos: [] });
     } else if (confirmLeaveModal === 'notes') {
       setShowNotesModal(false);
@@ -1074,8 +1143,22 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           </div>
         )}
         <div className="map-header">
-          <h2 className="section-title">Travel Map</h2>
-          <p className="section-subtitle">Filter, explore and track your countries</p>
+          <div className="map-header-text">
+            <h2 className="section-title">Travel Map</h2>
+            <p className="section-subtitle">Filter, explore and track your countries</p>
+          </div>
+          <button
+            type="button"
+            className="btn-add-country-header"
+            onClick={() => handleColumnDoubleClick('pending')}
+            aria-label="Add new country"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            <span>Add country</span>
+          </button>
         </div>
 
         {isLoadingLocations ? (
@@ -1183,9 +1266,18 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           </button>
           <div
             id="map-wrapper-id"
-            className={`map-wrapper ${mapCollapsed ? 'map-wrapper--collapsed' : ''}`}
+            className={`map-wrapper ${mapCollapsed ? 'map-wrapper--collapsed' : ''} ${pickingLocationFromMap ? 'map-wrapper--picking' : ''}`}
           >
             {!mapCollapsed && (
+            <>
+            {pickingLocationFromMap && (
+              <div className="map-pick-banner" role="status" aria-live="polite">
+                <span className="map-pick-banner-text">Click on an empty area of the map (not on a marker) to set coordinates</span>
+                <button type="button" className="map-pick-banner-cancel" onClick={cancelPickingFromMap}>
+                  Cancel
+                </button>
+              </div>
+            )}
             <GoogleMap
               key={mapTheme}
               mapContainerClassName="map-container"
@@ -1193,6 +1285,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
               center={mapCenter}
               zoom={zoom}
               options={mapOptions}
+              onLoad={handleMapLoad}
+              onClick={handleMapClick}
             >
             {filteredLocations.map((location) => {
               const countryLocation: CountryLocation = location;
@@ -1248,6 +1342,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
               </InfoWindow>
             )}
           </GoogleMap>
+            </>
             )}
           </div>
         </div>
@@ -1784,6 +1879,16 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                       <p id="country-longitude-error" className="form-error" role="alert">{addCountryErrors.longitude}</p>
                     )}
                   </div>
+                </div>
+                <div className="form-group form-group-pick-map">
+                  <button type="button" className="btn-pick-from-map" onClick={startPickingFromMap} aria-label="Pick location from map">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <span>Pick from map</span>
+                  </button>
+                  <p className="form-help">Click to close this form and select a point on the map; latitude and longitude will be filled automatically.</p>
                 </div>
                 <div className="form-group">
                   <label htmlFor="country-flag">Flag URL (optional)</label>
