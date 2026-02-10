@@ -24,6 +24,9 @@ export default function ConfirmModal({
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
+  const cancelRef = React.useRef<HTMLButtonElement>(null);
+  const overlayRef = React.useRef<HTMLDivElement>(null);
+
   const handleConfirm = () => {
     onConfirm();
   };
@@ -32,8 +35,23 @@ export default function ConfirmModal({
     onCancel();
   };
 
+  React.useEffect(() => {
+    if (!open) return;
+    cancelRef.current?.focus();
+  }, [open]);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open, onCancel]);
+
   const content = open ? (
     <div
+      ref={overlayRef}
       className="confirm-modal-overlay"
       onClick={handleCancel}
       role="dialog"
@@ -45,7 +63,7 @@ export default function ConfirmModal({
         <h3 id="confirm-modal-title" className="confirm-modal-title">{title}</h3>
         <p id="confirm-modal-desc" className="confirm-modal-message">{message}</p>
         <div className="confirm-modal-actions">
-          <button type="button" className="confirm-modal-cancel" onClick={handleCancel}>
+          <button ref={cancelRef} type="button" className="confirm-modal-cancel" onClick={handleCancel}>
             {cancelLabel}
           </button>
           <button type="button" className="confirm-modal-confirm" onClick={handleConfirm}>

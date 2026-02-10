@@ -35,8 +35,7 @@ Cada país está en una de estas columnas:
 | **In Review** | Países que estás considerando o planificando.                               |
 | **Pending**   | Países que querés visitar en el futuro.                                     |
 
-- **En computadora:** podés **arrastrar** un país de una columna a otra para cambiar su estado.
-- **En celular o tablet:** en cada país hay un botón con icono de flechas (↔). Tocándolo se abre un menú **"Move to"** con las otras dos listas; elegí a cuál moverlo.
+- En **cualquier dispositivo**, para cambiar un país de lista usá el botón con icono de flechas (↔) en cada país. Al tocarlo se abre el menú **"Move to"** con las otras dos listas; elegí a cuál moverlo.
 
 También podés **ordenar** cada columna por nombre (A–Z o Z–A) con el botón que aparece en el título de la columna.
 

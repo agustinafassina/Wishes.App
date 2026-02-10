@@ -1219,8 +1219,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
               </div>
             ) : (
             <div className="map-empty-state" role="status" aria-live="polite">
-              <p className="map-empty-state-title">No results</p>
-              <p className="map-empty-state-hint">You don&apos;t have any countries in your list yet.</p>
+              <p className="map-empty-state-title">Your list is empty</p>
+              <p className="map-empty-state-hint">Add your first country to start your travel bucket list.</p>
               <button
                 type="button"
                 className="btn-add-country-header map-empty-state-cta"

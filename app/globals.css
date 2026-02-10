@@ -4229,6 +4229,11 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
     display: block;
   }
 
+  /* No double-click on touch devices; use Add country button instead */
+  .country-card::after {
+    display: none;
+  }
+
   .country-list-scroll {
     max-height: min(400px, 55vh);
     height: 50vh;
