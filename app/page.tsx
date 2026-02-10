@@ -163,7 +163,10 @@ export default function Home() {
 
   return (
     <div className="page-container">
-      <main className="main-content" ref={contentRef}>
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      <main id="main-content" className="main-content" ref={contentRef} tabIndex={-1}>
         <header className="page-header">
           <div className="header-identity">
             <div className="logo-wrapper">

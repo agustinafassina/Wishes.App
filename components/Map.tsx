@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useToast } from './ToastContext';
 import ConfirmModal from './ConfirmModal';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
@@ -434,6 +435,9 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
   const [mapCollapsed, setMapCollapsed] = useState(false);
   const [isExportingBackup, setIsExportingBackup] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
+  const viewModalRef = useRef<HTMLDivElement>(null);
+  const notesModalRef = useRef<HTMLDivElement>(null);
+  const addModalRef = useRef<HTMLDivElement>(null);
   const [isLoadingLocations, setIsLoadingLocations] = useState(true);
   const [isSavingNotes, setIsSavingNotes] = useState(false);
   const [isAddingCountry, setIsAddingCountry] = useState(false);
@@ -815,6 +819,16 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
     }
     setConfirmLeaveModal(null);
   };
+
+  useFocusTrap(viewModalRef, !!(showViewModal && locationForView), {
+    onEscape: () => setShowViewModal(false),
+  });
+  useFocusTrap(notesModalRef, !!(showNotesModal && locationForNotes), {
+    onEscape: requestCloseNotesModal,
+  });
+  useFocusTrap(addModalRef, showAddModal, {
+    onEscape: requestCloseAddModal,
+  });
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -1292,9 +1306,19 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
             onClick={() => setMapCollapsed((c) => !c)}
             aria-expanded={!mapCollapsed}
             aria-controls="map-wrapper-id"
+            aria-label={mapCollapsed
+              ? (filteredLocations.length > 0 ? `Show map (${filteredLocations.length} ${filteredLocations.length === 1 ? 'country' : 'countries'} on map)` : 'Show map')
+              : 'Hide map'}
           >
             {mapCollapsed ? (
-              <>Show map</>
+              <>
+                Show map
+                {filteredLocations.length > 0 && (
+                  <span className="map-toggle-count" aria-hidden>
+                    {' · '}{filteredLocations.length} {filteredLocations.length === 1 ? 'country' : 'countries'} on map
+                  </span>
+                )}
+              </>
             ) : (
               <>Hide map</>
             )}
@@ -1705,12 +1729,12 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
 
         {/* View notes modal (read-only) */}
         {showViewModal && locationForView && (
-          <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
-            <div className="modal-content modal-content-view" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-overlay" onClick={() => setShowViewModal(false)} role="dialog" aria-modal="true" aria-labelledby="view-modal-title">
+            <div ref={viewModalRef} className="modal-content modal-content-view" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header modal-header-view">
                 <div className="modal-header-view-top">
                   <div className="modal-title-wrap">
-                    <h2 className="modal-title">{locationForView.name}</h2>
+                    <h2 id="view-modal-title" className="modal-title">{locationForView.name}</h2>
                     {normalizeTags(locationForView).length > 0 && (
                       <div className="view-modal-tags">
                         {normalizeTags(locationForView).map((t, i) => (
@@ -1759,10 +1783,10 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           )}
         {/* Notes & visit date modal (Done countries) */}
         {showNotesModal && locationForNotes && (
-          <div className="modal-overlay" onClick={requestCloseNotesModal}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-overlay" onClick={requestCloseNotesModal} role="dialog" aria-modal="true" aria-labelledby="notes-modal-title">
+            <div ref={notesModalRef} className="modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
-                <h2 className="modal-title">Notes and visit date — {locationForNotes.name}</h2>
+                <h2 id="notes-modal-title" className="modal-title">Notes and visit date — {locationForNotes.name}</h2>
                 <button type="button" className="modal-close" onClick={requestCloseNotesModal} aria-label="Close">×</button>
               </div>
               <div className="modal-body">
@@ -1825,10 +1849,10 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
 
         {/* Add Country Modal */}
         {showAddModal && (
-          <div className="modal-overlay" onClick={requestCloseAddModal}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-overlay" onClick={requestCloseAddModal} role="dialog" aria-modal="true" aria-labelledby="add-modal-title">
+            <div ref={addModalRef} className="modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
-                <h2 className="modal-title">Add new country</h2>
+                <h2 id="add-modal-title" className="modal-title">Add new country</h2>
                 <button type="button" className="modal-close" onClick={requestCloseAddModal} aria-label="Close">×</button>
               </div>
               <div className="modal-body">

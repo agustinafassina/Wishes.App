@@ -692,6 +692,32 @@ body::after {
   overflow-x: hidden;
 }
 
+/* Skip link – visible only on focus for keyboard and screen reader users */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 9999;
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 2px solid var(--accent-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  text-decoration: none;
+  transition: left 0.15s ease, top 0.15s ease;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  left: calc(1rem + var(--safe-area-inset-left));
+  top: calc(1rem + var(--safe-area-inset-top));
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.4);
+}
+
 .main-content {
   max-width: 1200px;
   margin: 0 auto;
@@ -1308,6 +1334,7 @@ html:not([data-theme="light"]) .btn-export-pdf:disabled {
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
+  min-height: 44px;
   padding: 0.6rem 1.15rem;
   margin-right: var(--space-xs);
   font-size: 0.9375rem;
@@ -1589,6 +1616,7 @@ html[data-theme="light"] .btn-add-country-header:active {
   display: inline-flex;
   align-items: center;
   gap: var(--space-sm);
+  min-height: 44px;
   padding: 0.55rem 1.1rem;
   background: var(--bg-tertiary);
   border: 1px solid transparent;
@@ -1725,7 +1753,7 @@ html[data-theme="light"] .btn-add-country-header:active {
 
 .map-section-map-wrap {
   position: relative;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .map-toggle-btn {
@@ -1751,6 +1779,16 @@ html[data-theme="light"] .btn-add-country-header:active {
 .map-toggle-btn:hover {
   background: var(--bg-card-hover);
   color: var(--text-primary);
+}
+
+.map-toggle-count {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+
+.map-toggle-btn:hover .map-toggle-count {
+  color: var(--text-secondary);
 }
 
 .map-wrapper {
@@ -2524,6 +2562,8 @@ html[data-theme="light"] .btn-backup:disabled {
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0.25rem;
   color: var(--text-secondary);
   background: none;
@@ -2531,6 +2571,9 @@ html[data-theme="light"] .btn-backup:disabled {
   cursor: pointer;
   border-radius: 6px;
   transition: color 0.2s, background 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .share-modal-close:hover {
@@ -2555,6 +2598,7 @@ html[data-theme="light"] .btn-backup:disabled {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-height: 44px;
   padding: 0.75rem 1rem;
   font-size: 1rem;
   font-weight: 500;
@@ -2760,7 +2804,7 @@ html[data-theme="light"] .btn-backup:disabled {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--space-xl);
-  margin-top: var(--space-2xl);
+  margin-top: var(--space-3xl);
 }
 
 .country-column {
@@ -2815,6 +2859,7 @@ html[data-theme="light"] .btn-backup:disabled {
 
 .column-sort-btn {
   margin-left: auto;
+  min-height: 44px;
   padding: 0.35rem 0.6rem;
   font-size: 0.75rem;
   font-weight: 600;
@@ -3056,8 +3101,8 @@ html[data-theme="light"] .btn-backup:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0;
   color: var(--accent-primary-light);
   background: rgba(139, 92, 246, 0.15);
@@ -3077,8 +3122,8 @@ html[data-theme="light"] .btn-backup:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0;
   color: var(--accent-blue-light);
   background: rgba(59, 130, 246, 0.15);
@@ -3103,8 +3148,8 @@ html[data-theme="light"] .btn-backup:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0;
   color: var(--text-secondary);
   background: var(--bg-tertiary);
@@ -3161,6 +3206,7 @@ html[data-theme="light"] .btn-backup:disabled {
   align-items: center;
   gap: var(--space-lg);
   width: 100%;
+  min-height: 44px;
   padding: var(--space-sm) var(--space-md);
   text-align: left;
   font-size: 0.9375rem;
@@ -3267,8 +3313,8 @@ html[data-theme="light"] .btn-backup:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0;
   color: var(--pending-light);
   background: rgba(239, 68, 68, 0.15);
@@ -3345,6 +3391,7 @@ html[data-theme="light"] .btn-backup:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 44px;
   padding: 0.5rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -3659,8 +3706,8 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
   font-size: 2rem;
   cursor: pointer;
   padding: 0;
-  width: 32px;
-  height: 32px;
+  min-width: 44px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3842,6 +3889,7 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  min-height: 44px;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
   font-size: 1rem;
@@ -4662,8 +4710,8 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
 
   .filter-btn {
     padding: 0.45rem 0.6rem;
-    min-height: 40px;
-    min-width: 40px;
+    min-height: 44px;
+    min-width: 44px;
   }
 
   .filter-btn-dot {

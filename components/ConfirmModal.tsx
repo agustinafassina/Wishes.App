@@ -26,6 +26,7 @@ export default function ConfirmModal({
 }: ConfirmModalProps) {
   const cancelRef = React.useRef<HTMLButtonElement>(null);
   const overlayRef = React.useRef<HTMLDivElement>(null);
+  const previousActiveRef = React.useRef<HTMLElement | null>(null);
 
   const handleConfirm = () => {
     onConfirm();
@@ -37,7 +38,14 @@ export default function ConfirmModal({
 
   React.useEffect(() => {
     if (!open) return;
+    previousActiveRef.current = document.activeElement as HTMLElement | null;
     cancelRef.current?.focus();
+    return () => {
+      if (previousActiveRef.current && document.body.contains(previousActiveRef.current)) {
+        previousActiveRef.current.focus();
+      }
+      previousActiveRef.current = null;
+    };
   }, [open]);
 
   React.useEffect(() => {
