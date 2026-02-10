@@ -8,6 +8,7 @@ import Map from "../components/Map";
 import ThemeToggle from "../components/ThemeToggle";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { marked } from "marked";
 import { useToast } from "../components/ToastContext";
 
 /** Si el valor parece un email, devolvemos solo la parte antes del @ */
@@ -29,8 +30,82 @@ export default function Home() {
   const toast = useToast();
   const { user, isLoading } = useUser();
   const contentRef = useRef<HTMLDivElement>(null);
+  const manualPdfRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingManual, setIsExportingManual] = useState(false);
   const displayName = user ? getDisplayName(user) : null;
+
+  const handleExportManualPDF = async () => {
+    if (isExportingManual) return;
+    const container = manualPdfRef.current;
+    if (!container) {
+      toast.error("Error al preparar el manual.");
+      return;
+    }
+    setIsExportingManual(true);
+    try {
+      const res = await fetch("/api/manual");
+      if (!res.ok) throw new Error(`Manual no disponible (${res.status}).`);
+      const markdown = await res.text();
+      const html = await marked.parse(markdown);
+      container.innerHTML = typeof html === "string" ? html : "";
+      if (!container.innerHTML.trim()) throw new Error("El manual está vacío.");
+
+      await new Promise((r) => setTimeout(r, 500));
+
+      const scrollHeight = container.scrollHeight;
+      const scrollWidth = container.scrollWidth;
+      if (scrollHeight < 10 || scrollWidth < 10) {
+        throw new Error("No se pudo renderizar el contenido del manual.");
+      }
+
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        width: scrollWidth,
+        height: scrollHeight,
+        windowWidth: scrollWidth,
+        windowHeight: scrollHeight,
+      });
+
+      container.innerHTML = "";
+
+      if (canvas.width < 10 || canvas.height < 10) {
+        throw new Error("La imagen del manual no se generó correctamente.");
+      }
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      const fileName = `Manual-de-uso-Wishes-${new Date().toISOString().slice(0, 10)}.pdf`;
+      pdf.save(fileName);
+      toast.success("Manual descargado como PDF.");
+    } catch (error) {
+      console.error("Error exporting manual PDF:", error);
+      if (manualPdfRef.current) manualPdfRef.current.innerHTML = "";
+      const message = error instanceof Error ? error.message : "No se pudo generar el PDF.";
+      toast.error(message);
+    } finally {
+      setIsExportingManual(false);
+    }
+  };
 
   const handleExportPDF = async () => {
     if (!contentRef.current || isExporting) return;
@@ -121,6 +196,25 @@ export default function Home() {
             </div>
           </div>
           <div className="header-actions">
+            <button
+              type="button"
+              className="header-btn header-btn-manual"
+              title="Download user manual (PDF)"
+              aria-label="Download user manual as PDF"
+              onClick={handleExportManualPDF}
+              disabled={isExportingManual}
+            >
+              {isExportingManual ? (
+                <span className="header-btn-spinner" aria-hidden />
+              ) : (
+                <svg className="header-btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              )}
+              <span className="header-btn-label">{isExportingManual ? "…" : "Manual"}</span>
+            </button>
             <ThemeToggle />
             {!isLoading &&
               (user ? (
@@ -158,6 +252,8 @@ export default function Home() {
         <div className="content-section">
           <Map onExportPDF={handleExportPDF} isExporting={isExporting} shareUserName={displayName ?? "User"} />
         </div>
+
+        <div ref={manualPdfRef} className="manual-pdf-source" aria-hidden />
       </main>
     </div>
   );
