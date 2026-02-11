@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useToast } from './ToastContext';
+import { getApiErrorDisplay } from '../lib/api-error-display';
 import ConfirmModal from './ConfirmModal';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 
@@ -520,13 +521,6 @@ interface MapProps {
   shareUserName?: string;
 }
 
-function getApiErrorDisplay(error: unknown, fallback: string): string {
-  if (error instanceof Error) {
-    if (error.message === 'Failed to fetch' || error.name === 'TypeError') return 'Network error. Please check your connection.';
-    return error.message;
-  }
-  return fallback;
-}
 
 const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }: MapProps) => {
   const toast = useToast();
@@ -1294,29 +1288,31 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
             <h2 className="section-title">Travel Map</h2>
             <p className="section-subtitle">Filter, explore and track your countries</p>
           </div>
-          <button
-            type="button"
-            className="btn-add-country-header"
-            onClick={() => handleColumnDoubleClick('pending')}
-            disabled={isAddingCountry}
-            aria-label={isAddingCountry ? 'Adding country…' : 'Add new country'}
-            aria-busy={isAddingCountry}
-          >
-            {isAddingCountry ? (
-              <>
-                <span className="btn-spinner" aria-hidden />
-                <span>Adding…</span>
-              </>
-            ) : (
-              <>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                <span>Add country</span>
-              </>
-            )}
-          </button>
+          <div className="map-header-actions">
+            <button
+              type="button"
+              className="btn-add-country-header"
+              onClick={() => handleColumnDoubleClick('pending')}
+              disabled={isAddingCountry}
+              aria-label={isAddingCountry ? 'Adding country…' : 'Add new country'}
+              aria-busy={isAddingCountry}
+            >
+              {isAddingCountry ? (
+                <>
+                  <span className="btn-spinner" aria-hidden />
+                  <span>Adding…</span>
+                </>
+              ) : (
+                <>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  <span>Add country</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {isLoadingLocations ? (
@@ -1587,7 +1583,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                   <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
                 </svg>
               </span>
-              <h3 className="progress-title">World Travel Progress</h3>
+              <h2 className="progress-title">World Travel Progress</h2>
             </div>
             <div className="progress-header-right">
               <div className="progress-stats">
@@ -1620,7 +1616,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                       <button type="button" className="share-modal-close" onClick={() => setShowShareModal(false)} aria-label="Close">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                       </button>
-                      <h4 className="share-modal-title">Share your progress</h4>
+                      <h2 className="share-modal-title">Share your progress</h2>
                       <div className="share-modal-actions">
                         <button type="button" className="share-action-btn" onClick={handleCopyShareLink}>
                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 export type ToastType = "success" | "error";
 
@@ -21,6 +21,8 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const timeoutRefs = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const lastToastRef = useRef<HTMLDivElement | null>(null);
+  const prevCountRef = useRef(0);
 
   const dismiss = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -45,15 +47,33 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const success = useCallback((message: string) => showToast("success", message), [showToast]);
   const error = useCallback((message: string) => showToast("error", message), [showToast]);
 
+  useEffect(() => {
+    if (toasts.length > prevCountRef.current) {
+      prevCountRef.current = toasts.length;
+      const el = lastToastRef.current;
+      if (el) {
+        const t = requestAnimationFrame(() => {
+          el.focus({ preventScroll: true });
+        });
+        return () => cancelAnimationFrame(t);
+      }
+    }
+    prevCountRef.current = toasts.length;
+  }, [toasts.length]);
+
   return (
     <ToastContext.Provider value={{ showToast, success, error }}>
       {children}
-      <div className="toast-container" aria-live="polite" aria-label="Notifications">
-        {toasts.map((toast) => (
+      <div className="toast-container" aria-label="Notifications">
+        {toasts.map((toast, index) => (
           <div
             key={toast.id}
+            ref={index === toasts.length - 1 ? lastToastRef : undefined}
             className={`toast toast-${toast.type}`}
             role="status"
+            aria-live={toast.type === "error" ? "assertive" : "polite"}
+            aria-atomic="true"
+            tabIndex={-1}
             data-toast-id={toast.id}
             onClick={() => dismiss(toast.id)}
             style={{ cursor: 'pointer' }}

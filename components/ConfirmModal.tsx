@@ -68,7 +68,7 @@ export default function ConfirmModal({
       aria-describedby="confirm-modal-desc"
     >
       <div className={`confirm-modal confirm-modal-${variant}`} onClick={(e) => e.stopPropagation()}>
-        <h3 id="confirm-modal-title" className="confirm-modal-title">{title}</h3>
+        <h2 id="confirm-modal-title" className="confirm-modal-title">{title}</h2>
         <p id="confirm-modal-desc" className="confirm-modal-message">{message}</p>
         <div className="confirm-modal-actions">
           <button ref={cancelRef} type="button" className="confirm-modal-cancel" onClick={handleCancel}>

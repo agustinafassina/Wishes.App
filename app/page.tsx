@@ -10,6 +10,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { marked } from "marked";
 import { useToast } from "../components/ToastContext";
+import { getApiErrorDisplay } from "../lib/api-error-display";
 
 /** Si el valor parece un email, devolvemos solo la parte antes del @ */
 function beforeAt(value: string): string {
@@ -100,8 +101,7 @@ export default function Home() {
     } catch (error) {
       console.error("Error exporting manual PDF:", error);
       if (manualPdfRef.current) manualPdfRef.current.innerHTML = "";
-      const message = error instanceof Error ? error.message : "No se pudo generar el PDF.";
-      toast.error(message);
+      toast.error(getApiErrorDisplay(error, "No se pudo generar el PDF."));
     } finally {
       setIsExportingManual(false);
     }
@@ -219,36 +219,43 @@ export default function Home() {
               <span className="header-btn-label">{isExportingManual ? "…" : "Manual"}</span>
             </button>
             <ThemeToggle />
-            {!isLoading &&
-              (user ? (
-                <a
-                  href="/auth/logout"
-                  className="header-btn header-btn-logout"
-                  title="Log out"
-                  aria-label="Log out"
-                >
-                  <svg className="header-btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                  </svg>
-                  <span className="header-btn-label">Log out</span>
-                </a>
-              ) : (
-                <a
-                  href="/auth/login"
-                  className="header-btn header-btn-login"
-                  title="Log in"
-                  aria-label="Log in"
-                >
-                  <svg className="header-btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                    <polyline points="10 17 15 12 10 7" />
-                    <line x1="15" y1="12" x2="3" y2="12" />
-                  </svg>
-                  <span className="header-btn-label">Log in</span>
-                </a>
-              ))}
+            {isLoading ? (
+              <span
+                className="header-btn header-btn-auth-placeholder"
+                aria-hidden
+              >
+                <span className="header-btn-spinner" />
+                <span className="header-btn-label">…</span>
+              </span>
+            ) : user ? (
+              <a
+                href="/auth/logout"
+                className="header-btn header-btn-logout"
+                title="Log out"
+                aria-label="Log out"
+              >
+                <svg className="header-btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span className="header-btn-label">Log out</span>
+              </a>
+            ) : (
+              <a
+                href="/auth/login"
+                className="header-btn header-btn-login"
+                title="Log in"
+                aria-label="Log in"
+              >
+                <svg className="header-btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                  <polyline points="10 17 15 12 10 7" />
+                  <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+                <span className="header-btn-label">Log in</span>
+              </a>
+            )}
           </div>
         </header>
 
