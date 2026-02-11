@@ -5,6 +5,7 @@ import html2canvas from 'html2canvas';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useToast } from './ToastContext';
 import { getApiErrorDisplay } from '../lib/api-error-display';
+import { hapticLight, hapticSuccess } from '../lib/haptic';
 import ConfirmModal from './ConfirmModal';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 
@@ -676,6 +677,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
   };
 
   const handleColumnDoubleClick = (status: string) => {
+    hapticLight();
     setTargetStatus(status);
     setNewCountry({
       name: '',
@@ -772,6 +774,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
 
       setLocations(reorderLocationsByColumnSort(places, columnSortRef.current));
       setShowAddModal(false);
+      hapticSuccess();
       setNewCountry({
         name: '',
         code: '',
@@ -819,6 +822,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
         tags: normalizeTags(country),
       }));
       setLocations(reorderLocationsByColumnSort(places, columnSortRef.current));
+      hapticSuccess();
     } catch (error) {
       console.error('Error deleting country:', error);
       toast.error(getApiErrorDisplay(error, 'Failed to delete country. Please try again.'));
@@ -1340,6 +1344,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
             variant="danger"
             onConfirm={() => {
               if (confirmDeleteLocation) {
+                hapticLight();
                 handleDeleteCountry(confirmDeleteLocation.id);
                 setConfirmDeleteLocation(null);
               }
@@ -1463,8 +1468,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
         <div className="map-section-map-wrap">
           <button
             type="button"
-            className="map-toggle-btn"
-            onClick={() => setMapCollapsed((c) => !c)}
+            className={`map-toggle-btn ${mapCollapsed ? 'map-toggle-btn--collapsed' : ''}`}
+            onClick={() => { hapticLight(); setMapCollapsed((c) => !c); }}
             aria-expanded={!mapCollapsed}
             aria-controls="map-wrapper-id"
             aria-label={mapCollapsed
@@ -1473,15 +1478,24 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           >
             {mapCollapsed ? (
               <>
-                Show map
+                <svg className="map-toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                <span className="map-toggle-text">Show map</span>
                 {filteredLocations.length > 0 && (
                   <span className="map-toggle-count" aria-hidden>
-                    {' · '}{filteredLocations.length} {filteredLocations.length === 1 ? 'country' : 'countries'} on map
+                    {filteredLocations.length} {filteredLocations.length === 1 ? 'country' : 'countries'}
                   </span>
                 )}
               </>
             ) : (
-              <>Hide map</>
+              <>
+                <svg className="map-toggle-icon map-toggle-icon--up" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <polyline points="18 15 12 9 6 15" />
+                </svg>
+                <span className="map-toggle-text">Hide map</span>
+              </>
             )}
           </button>
           <div
@@ -1774,7 +1788,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                 aria-controls="panel-done"
                 id="tab-done"
                 className={`list-tab ${mobileListTab === 'done' ? 'list-tab-active' : ''} list-tab-done`}
-                onClick={() => setMobileListTab('done')}
+                onClick={() => { hapticLight(); setMobileListTab('done'); }}
               >
                 <span className="list-tab-dot" aria-hidden />
                 <span>Completed</span>
@@ -1789,7 +1803,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                 aria-controls="panel-in-review"
                 id="tab-in-review"
                 className={`list-tab ${mobileListTab === 'in review' ? 'list-tab-active' : ''} list-tab-in-review`}
-                onClick={() => setMobileListTab('in review')}
+                onClick={() => { hapticLight(); setMobileListTab('in review'); }}
               >
                 <span className="list-tab-dot" aria-hidden />
                 <span>In Review</span>
@@ -1804,7 +1818,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                 aria-controls="panel-pending"
                 id="tab-pending"
                 className={`list-tab ${mobileListTab === 'pending' ? 'list-tab-active' : ''} list-tab-pending`}
-                onClick={() => setMobileListTab('pending')}
+                onClick={() => { hapticLight(); setMobileListTab('pending'); }}
               >
                 <span className="list-tab-dot" aria-hidden />
                 <span>Pending</span>

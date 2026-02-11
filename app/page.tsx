@@ -11,6 +11,7 @@ import html2canvas from "html2canvas";
 import { marked } from "marked";
 import { useToast } from "../components/ToastContext";
 import { getApiErrorDisplay } from "../lib/api-error-display";
+import { hapticLight } from "../lib/haptic";
 
 /** Si el valor parece un email, devolvemos solo la parte antes del @ */
 function beforeAt(value: string): string {
@@ -37,6 +38,7 @@ export default function Home() {
   const displayName = user ? getDisplayName(user) : null;
 
   const scrollToSection = (id: string) => {
+    hapticLight();
     const el = document.getElementById(id);
     el?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
