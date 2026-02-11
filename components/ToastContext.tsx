@@ -55,6 +55,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             className={`toast toast-${toast.type}`}
             role="status"
             data-toast-id={toast.id}
+            onClick={() => dismiss(toast.id)}
+            style={{ cursor: 'pointer' }}
           >
             <span className="toast-icon">
               {toast.type === "success" ? (
@@ -74,7 +76,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               className="toast-dismiss"
-              onClick={() => dismiss(toast.id)}
+              onClick={(e) => { e.stopPropagation(); dismiss(toast.id); }}
               aria-label="Dismiss"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
