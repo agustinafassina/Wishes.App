@@ -1283,7 +1283,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
             <span>Saving...</span>
           </div>
         )}
-        <div className="map-header">
+        <div id="travel-map" className="map-header">
           <div className="map-header-text">
             <h2 className="section-title">Travel Map</h2>
             <p className="section-subtitle">Filter, explore and track your countries</p>
@@ -1765,7 +1765,7 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           </div>
         </div>
 
-          <div className="country-lists-wrapper">
+          <div id="country-list" className="country-lists-wrapper">
             <div className="list-tabs" role="tablist" aria-label="Country lists by status">
               <button
                 type="button"

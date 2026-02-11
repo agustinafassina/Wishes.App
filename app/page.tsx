@@ -36,6 +36,16 @@ export default function Home() {
   const [isExportingManual, setIsExportingManual] = useState(false);
   const displayName = user ? getDisplayName(user) : null;
 
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  /** Placeholder for future profile/settings screen or modal */
+  const handleProfileClick = () => {
+    // TODO: open profile or settings
+  };
+
   const handleExportManualPDF = async () => {
     if (isExportingManual) return;
     const container = manualPdfRef.current;
@@ -166,10 +176,9 @@ export default function Home() {
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
-      <main id="main-content" className="main-content" ref={contentRef} tabIndex={-1}>
-        <header className="page-header">
-          <div className="header-identity">
-            <div className="logo-wrapper">
+      <header className="page-header">
+        <div className="header-identity">
+          <div className="logo-wrapper">
               {user?.picture ? (
                 <img
                   className="logo"
@@ -189,82 +198,133 @@ export default function Home() {
                   priority
                 />
               )}
-            </div>
-            <div className="header-text">
-              <h1 className="page-title">{displayName ?? "My travel bucket list"}</h1>
-              <p className="header-tagline">
-                <img src="https://flagcdn.com/w40/ar.png" alt="Argentina" className="header-flag" width={28} height={21} />
-                <span>My travel bucket list</span>
-              </p>
-            </div>
           </div>
-          <div className="header-actions">
-            <button
-              type="button"
-              className="header-btn header-btn-manual"
-              title="Download user manual (PDF)"
-              aria-label="Download user manual as PDF"
-              onClick={handleExportManualPDF}
-              disabled={isExportingManual}
-            >
-              {isExportingManual ? (
-                <span className="header-btn-spinner" aria-hidden />
-              ) : (
-                <svg className="header-btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-              )}
-              <span className="header-btn-label">{isExportingManual ? "…" : "Manual"}</span>
-            </button>
-            <ThemeToggle />
-            {isLoading ? (
-              <span
-                className="header-btn header-btn-auth-placeholder"
-                aria-hidden
-              >
-                <span className="header-btn-spinner" />
-                <span className="header-btn-label">…</span>
-              </span>
-            ) : user ? (
-              <a
-                href="/auth/logout"
-                className="header-btn header-btn-logout"
-                title="Log out"
-                aria-label="Log out"
-              >
-                <svg className="header-btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                  <polyline points="16 17 21 12 16 7" />
-                  <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-                <span className="header-btn-label">Log out</span>
-              </a>
-            ) : (
-              <a
-                href="/auth/login"
-                className="header-btn header-btn-login"
-                title="Log in"
-                aria-label="Log in"
-              >
-                <svg className="header-btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                  <polyline points="10 17 15 12 10 7" />
-                  <line x1="15" y1="12" x2="3" y2="12" />
-                </svg>
-                <span className="header-btn-label">Log in</span>
-              </a>
-            )}
+          <div className="header-text">
+            <h1 className="page-title">{displayName ?? "My travel bucket list"}</h1>
+            <p className="header-tagline">
+              <img src="https://flagcdn.com/w40/ar.png" alt="Argentina" className="header-flag" width={28} height={21} />
+              <span>My travel bucket list</span>
+            </p>
           </div>
-        </header>
+        </div>
+        <div className="header-travel-badge" aria-hidden>
+          <svg className="header-travel-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+          <span className="header-travel-label">Travels</span>
+        </div>
+      </header>
 
+      <main id="main-content" className="main-content" ref={contentRef} tabIndex={-1}>
         <div className="content-section">
           <Map onExportPDF={handleExportPDF} isExporting={isExporting} shareUserName={displayName ?? "User"} />
         </div>
 
         <div ref={manualPdfRef} className="manual-pdf-source" aria-hidden />
       </main>
+
+      <footer className="bottom-bar" role="navigation" aria-label="App actions">
+        <div className="bottom-bar-inner">
+          <button
+            type="button"
+            className="bottom-bar-btn bottom-bar-btn-nav"
+            onClick={() => scrollToSection("travel-map")}
+            title="Go to map"
+            aria-label="Go to travel map"
+          >
+            <svg className="bottom-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            <span className="bottom-bar-label">Map</span>
+          </button>
+          <button
+            type="button"
+            className="bottom-bar-btn bottom-bar-btn-nav"
+            onClick={() => scrollToSection("country-list")}
+            title="Go to list"
+            aria-label="Go to country list"
+          >
+            <svg className="bottom-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
+            <span className="bottom-bar-label">List</span>
+          </button>
+          <button
+            type="button"
+            className="bottom-bar-btn"
+            title="Download user manual (PDF)"
+            aria-label="Download user manual as PDF"
+            onClick={handleExportManualPDF}
+            disabled={isExportingManual}
+          >
+            {isExportingManual ? (
+              <span className="bottom-bar-spinner" aria-hidden />
+            ) : (
+              <svg className="bottom-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+            )}
+            <span className="bottom-bar-label">{isExportingManual ? "…" : "Manual"}</span>
+          </button>
+          <ThemeToggle />
+          <button
+            type="button"
+            className="bottom-bar-btn bottom-bar-btn-profile"
+            title="Profile and settings"
+            aria-label="Profile and settings"
+            onClick={handleProfileClick}
+          >
+            <svg className="bottom-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span className="bottom-bar-label">Profile</span>
+          </button>
+          {isLoading ? (
+            <span className="bottom-bar-btn bottom-bar-btn-placeholder" aria-hidden>
+              <span className="bottom-bar-spinner" />
+              <span className="bottom-bar-label">…</span>
+            </span>
+          ) : user ? (
+            <a
+              href="/auth/logout"
+              className="bottom-bar-btn bottom-bar-btn-logout"
+              title="Log out"
+              aria-label="Log out"
+            >
+              <svg className="bottom-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              <span className="bottom-bar-label">Log out</span>
+            </a>
+          ) : (
+            <a
+              href="/auth/login"
+              className="bottom-bar-btn bottom-bar-btn-login"
+              title="Log in"
+              aria-label="Log in"
+            >
+              <svg className="bottom-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                <polyline points="10 17 15 12 10 7" />
+                <line x1="15" y1="12" x2="3" y2="12" />
+              </svg>
+              <span className="bottom-bar-label">Log in</span>
+            </a>
+          )}
+        </div>
+      </footer>
     </div>
   );
 }
