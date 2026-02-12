@@ -292,21 +292,45 @@ html[data-theme="light"] .country-lists-container {
 
 html[data-theme="light"] .map-header {
   background: #fafafa;
-  border-color: rgba(0, 0, 0, 0.1);
-  border-left-color: rgba(0, 0, 0, 0.2);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.04);
 }
 
-html[data-theme="light"] .map-header-actions {
-  border-left-color: rgba(0, 0, 0, 0.08);
-}
-
-html[data-theme="light"] .map-header .section-title::after {
-  background: linear-gradient(90deg, var(--text-tertiary) 0%, transparent 100%);
+html[data-theme="light"] .map-header-icon {
+  background: rgba(124, 58, 237, 0.1);
+  color: var(--primary-purple-dark);
 }
 
 html[data-theme="light"] .map-header .section-subtitle {
   color: var(--text-tertiary);
+}
+
+html[data-theme="light"] .map-header-toolbar {
+  background: rgba(0, 0, 0, 0.02);
+  border-top-color: rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="light"] .list-pills-row--inside-map,
+html[data-theme="light"] .view-map-row {
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="light"] .list-section-inside-map-inner {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="light"] .map-header-toolbar-sep {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+html[data-theme="light"] .map-header-toolbar-pills .filter-btn {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+html[data-theme="light"] .map-header-toolbar-pills .filter-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
 }
 
 html[data-theme="light"] .country-card {
@@ -334,23 +358,30 @@ html[data-theme="light"] .country-card.pending {
 }
 
 html[data-theme="light"] .progress-timeline {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.03) 100%);
-  border-left-color: rgba(5, 150, 105, 0.65);
+  background: #fafafa;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.04);
 }
 
 html[data-theme="light"] .progress-title-icon {
-  background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(5, 150, 105, 0.35);
+  background: rgba(5, 150, 105, 0.1);
   color: var(--success-dark);
 }
 
-html[data-theme="light"] .progress-title::after {
-  background: linear-gradient(90deg, #059669 0%, transparent 100%);
+html[data-theme="light"] .progress-stats {
+  background: rgba(5, 150, 105, 0.08);
+  border-color: rgba(5, 150, 105, 0.2);
 }
 
-html[data-theme="light"] .progress-stats {
-  background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(5, 150, 105, 0.3);
+html[data-theme="light"] .btn-share-progress {
+  color: var(--success-dark);
+  background: rgba(5, 150, 105, 0.08);
+  border-color: rgba(5, 150, 105, 0.2);
+}
+
+html[data-theme="light"] .btn-share-progress:hover {
+  background: rgba(5, 150, 105, 0.14);
+  border-color: rgba(5, 150, 105, 0.35);
 }
 
 html[data-theme="light"] .progress-visited {
@@ -827,12 +858,8 @@ html[data-theme="light"] .skeleton-card {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 0 0 1px var(--border);
   }
 
-  html[data-theme="light"] .progress-timeline {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.03) 100%);
-    border-left-color: rgba(5, 150, 105, 0.45);
-  }
-
 }
+
 
 * {
   box-sizing: border-box;
@@ -1827,22 +1854,28 @@ html:not([data-theme="light"]) .btn-export-pdf:disabled {
   width: 100%;
 }
 
-/* Travel Map header – same card style as map-filters for consistency */
+/* Travel Map header – refined two-row layout */
 .map-header {
   margin-bottom: var(--space-2xl);
-  padding: var(--space-xl) var(--space-2xl);
-  padding-left: var(--space-lg);
+  padding: 0;
   border: 1px solid var(--border);
-  border-left: 4px solid var(--accent-primary);
-  border-radius: var(--radius-xl);
+  border-radius: 16px;
   background: var(--bg-card);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.map-header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-lg);
   flex-wrap: wrap;
-  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  padding: var(--space-xl) var(--space-xl) var(--space-lg);
 }
 
 .map-header-text {
@@ -1850,107 +1883,233 @@ html:not([data-theme="light"]) .btn-export-pdf:disabled {
   flex: 1;
 }
 
+.map-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.map-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(139, 92, 246, 0.12);
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.map-header .section-title {
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  letter-spacing: -0.03em;
+  padding-bottom: 0;
+  line-height: 1.2;
+}
+
+.map-header .section-title::after {
+  display: none;
+}
+
+.map-header .section-subtitle {
+  margin: 0.35rem 0 0 2.75rem;
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  font-weight: var(--font-normal);
+  letter-spacing: 0.01em;
+  line-height: 1.45;
+}
+
 .map-header-actions {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
   flex-shrink: 0;
-  padding: var(--space-xs) 0 var(--space-xs) var(--space-lg);
-  margin-left: var(--space-md);
-  border-left: 1px solid var(--border-light);
 }
 
-.map-header .section-title {
-  margin: 0 0 0.2rem 0;
-  font-size: var(--text-2xl);
-  font-weight: var(--font-bold);
-  letter-spacing: -0.02em;
-  padding-bottom: 0.35rem;
+/* Second row: toolbar strip */
+.map-header-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-xl) var(--space-md);
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid var(--border-light);
 }
 
-.map-header .section-title::after {
-  width: 2.5rem;
-  height: 3px;
-}
-
-.map-header .section-subtitle {
-  margin: 0;
-  font-size: var(--text-sm);
+.map-header-toolbar-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
   color: var(--text-tertiary);
-  font-weight: var(--font-medium);
-  letter-spacing: 0.02em;
-  line-height: 1.4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  opacity: 0.9;
 }
 
-/* Add country button in map header – aligned with header-btn / filter style */
+.map-header-toolbar-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.map-header-toolbar-pills .filter-btn {
+  min-height: 32px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  border-radius: 10px;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.map-header-toolbar-pills .filter-btn:hover {
+  transform: translateY(-0.5px);
+}
+
+.map-header-toolbar-pills .filter-btn.active {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.map-header-toolbar-sep {
+  width: 1px;
+  align-self: stretch;
+  min-height: 1.25rem;
+  background: var(--border-light);
+  border-radius: 1px;
+  flex-shrink: 0;
+  margin: 0 0.2rem;
+  opacity: 0.8;
+}
+
+.map-header-toolbar .map-toggle-btn--in-bar {
+  min-height: 32px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8125rem;
+  border-radius: 10px;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.map-header-toolbar .map-toggle-btn--in-bar:hover {
+  transform: translateY(-0.5px);
+}
+
+/* Add country – primary CTA pill */
 .btn-add-country-header {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-sm);
+  gap: 0.5rem;
   min-height: 44px;
-  min-width: 44px;
-  padding: 0.6rem 1.25rem;
+  padding: 0.6rem 1.35rem;
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--accent-primary-light);
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent-primary);
-  border-radius: var(--radius-md);
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--primary-purple-dark) 100%);
+  border: none;
+  border-radius: 12px;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.25s ease, opacity 0.2s ease;
   flex-shrink: 0;
-  box-shadow: var(--shadow-sm);
-  letter-spacing: 0.01em;
+  box-shadow: 0 2px 12px rgba(139, 92, 246, 0.35);
+  letter-spacing: 0.02em;
 }
 
 .btn-add-country-header:hover {
-  background: var(--bg-card-hover);
-  color: var(--text-primary);
-  border-color: rgba(139, 92, 246, 0.45);
-  border-left-color: var(--accent-primary);
-  box-shadow: 0 2px 12px rgba(139, 92, 246, 0.15);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.45);
 }
 
 .btn-add-country-header:active {
-  background: var(--bg-tertiary);
-  box-shadow: none;
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(139, 92, 246, 0.3);
 }
 
 .btn-add-country-header:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.35);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.4);
 }
 
 .btn-add-country-header:disabled {
-  opacity: 0.7;
+  opacity: 0.65;
   cursor: not-allowed;
+  transform: none;
 }
 
 .btn-add-country-header svg {
   flex-shrink: 0;
   color: inherit;
+  opacity: 0.95;
 }
 
 html[data-theme="light"] .btn-add-country-header {
-  color: #5b21b6;
-  background: #f5f1ff;
-  border-color: rgba(124, 58, 237, 0.25);
-  border-left-color: var(--primary-purple-dark);
-  box-shadow: 0 1px 3px rgba(99, 102, 241, 0.06);
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-purple-dark) 100%);
+  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.35);
 }
 
 html[data-theme="light"] .btn-add-country-header:hover {
-  background: #ede7fd;
-  color: #4c1d95;
-  border-color: rgba(124, 58, 237, 0.4);
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.12);
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(124, 58, 237, 0.4);
 }
 
 html[data-theme="light"] .btn-add-country-header:active {
-  background: #e4dffc;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+/* Compact / secondary variant – toolbar or empty-state header */
+.btn-add-country-header--compact {
+  min-height: 32px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-primary);
+  background: transparent;
+  border: 1px solid rgba(139, 92, 246, 0.45);
+  border-radius: 6px;
   box-shadow: none;
+  gap: 0.35rem;
+}
+
+.btn-add-country-header--compact:hover {
+  color: #fff;
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.6);
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-add-country-header--compact:active {
+  background: rgba(139, 92, 246, 0.3);
+  transform: none;
+}
+
+.btn-add-country-header--compact:focus-visible {
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.35);
+}
+
+.btn-add-country-header--in-toolbar {
+  margin-left: auto;
+}
+
+html[data-theme="light"] .btn-add-country-header--compact {
+  color: var(--primary-purple);
+  border-color: rgba(124, 58, 237, 0.4);
+}
+
+html[data-theme="light"] .btn-add-country-header--compact:hover {
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-purple-dark) 100%);
+  border-color: transparent;
+}
+
+html[data-theme="light"] .btn-add-country-header--compact:active {
+  background: linear-gradient(135deg, var(--primary-purple-dark) 0%, var(--primary-purple) 100%);
 }
 
 /* Saving status banner (drag status update) */
@@ -2400,6 +2559,229 @@ html[data-theme="light"] .map-empty-state-icon-wrap {
 .map-section-map-wrap {
   position: relative;
   margin-bottom: 2.5rem;
+}
+
+/* Map inside the same card as header + toolbar */
+.map-section-map-wrap--inside-header {
+  margin-bottom: 0;
+  margin-left: calc(-1 * var(--space-xl));
+  margin-right: calc(-1 * var(--space-xl));
+  margin-top: 0;
+  padding: 0 var(--space-xl) var(--space-xl);
+  width: calc(100% + 2 * var(--space-xl));
+}
+
+/* When map is collapsed, section takes no vertical space so list sits right under toolbar */
+.map-section-map-wrap--map-collapsed {
+  padding: 0 !important;
+  margin-top: 0;
+  margin-bottom: 0;
+  min-height: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.map-section-map-wrap--inside-header .map-wrapper {
+  border-radius: 12px;
+  overflow: hidden;
+  border-top: none;
+}
+
+/* Same top edge as list section: no extra thick bar, just the 1px from box-shadow */
+.map-section-map-wrap--inside-header .map-wrapper::before {
+  display: none;
+}
+
+.map-section-map-wrap--inside-header .map-container {
+  border-radius: 12px;
+}
+
+/* View map label – same style as View list */
+.view-map-row {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: var(--space-sm) var(--space-xl) var(--space-md);
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border-light);
+  border-radius: 12px 12px 0 0;
+}
+
+/* Progress bar – standalone strip between map card and list */
+.progress-bar-standalone {
+  margin: var(--space-xl) 0;
+  padding: var(--space-md) var(--space-xl);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Progress bar between View list pills and country columns */
+.progress-bar-standalone--inside-list {
+  margin: var(--space-md) var(--space-xl) var(--space-lg);
+  padding: var(--space-sm) var(--space-lg) var(--space-md);
+}
+
+.progress-bar-standalone-celebration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: var(--space-sm);
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--success) 0%, var(--success-light) 100%);
+  border-radius: 999px;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4);
+  animation: progress-celebration-in 0.5s ease-out;
+}
+
+.progress-bar-standalone-celebration-emoji {
+  font-size: 1rem;
+}
+
+.progress-bar-standalone-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.progress-bar-standalone-count {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--success);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.progress-bar-standalone-bar {
+  position: relative;
+  flex: 1;
+  min-width: 140px;
+  height: 36px;
+  background: var(--bg-tertiary);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.progress-bar-standalone-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--success-dark) 0%, var(--success) 50%, var(--success-light) 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 0.5rem;
+  padding-left: 0.4rem;
+  min-width: 4em;
+  transition: width 0.8s cubic-bezier(0.34, 1.2, 0.64, 1);
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.25);
+  z-index: 2;
+}
+
+.progress-bar-standalone-pct {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+}
+
+.progress-bar-standalone-remaining {
+  position: absolute;
+  right: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.progress-bar-standalone-actions {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.btn-share-progress--strip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--success);
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s ease;
+  min-height: 36px;
+}
+
+.btn-share-progress--strip:hover {
+  color: var(--success-light);
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.4);
+  transform: translateY(-0.5px);
+}
+
+.btn-share-progress--strip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.4);
+}
+
+.progress-bar-standalone-milestone {
+  margin: var(--space-sm) 0 0;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--success);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 999px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.progress-bar-standalone-milestone-emoji {
+  font-size: 0.875rem;
+}
+
+html[data-theme="light"] .progress-bar-standalone {
+  background: #fafafa;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+html[data-theme="light"] .progress-bar-standalone-count {
+  color: var(--success-dark);
+}
+
+html[data-theme="light"] .progress-bar-standalone-bar {
+  background: #e8ecee;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+html[data-theme="light"] .btn-share-progress--strip {
+  color: var(--success-dark);
+  background: rgba(5, 150, 105, 0.08);
+  border-color: rgba(5, 150, 105, 0.2);
+}
+
+html[data-theme="light"] .btn-share-progress--strip:hover {
+  background: rgba(5, 150, 105, 0.14);
+  border-color: rgba(5, 150, 105, 0.35);
 }
 
 .map-toggle-btn {
@@ -2954,16 +3336,18 @@ html[data-theme="light"] .btn-backup:disabled {
   box-shadow: var(--shadow-sm);
 }
 
-/* Progress Timeline – app-style block (left accent like map-header) */
+/* Progress – same card width and style as map-header */
 .progress-timeline {
   position: relative;
   overflow: visible;
   margin-bottom: var(--space-3xl);
-  padding: var(--space-xl) var(--space-xl) var(--space-xl) var(--space-lg);
-  border-left: 4px solid var(--success);
-  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.02) 100%);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-card);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
   animation: progress-timeline-in 0.5s ease-out;
+  width: 100%;
 }
 
 /* Banner de celebración al llegar a 10, 20 o 30 países */
@@ -3022,58 +3406,48 @@ html[data-theme="light"] .btn-backup:disabled {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-lg);
   flex-wrap: wrap;
   gap: var(--space-md);
+  padding: var(--space-xl) var(--space-xl) var(--space-md);
 }
 
 .progress-title-wrap {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-sm);
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .progress-title-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  background: rgba(16, 185, 129, 0.15);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.12);
   color: var(--success);
-  border: 1px solid rgba(16, 185, 129, 0.35);
   flex-shrink: 0;
 }
 
 .progress-title-block {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.15rem;
   min-width: 0;
 }
 
 .progress-title {
   font-family: 'Poppins', sans-serif;
-  font-size: var(--text-xl);
+  font-size: var(--text-2xl);
   font-weight: var(--font-bold);
   margin: 0;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
-  position: relative;
-  padding-bottom: 0.2rem;
+  letter-spacing: -0.03em;
   line-height: 1.2;
 }
 
 .progress-title::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 2.5rem;
-  height: 3px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, var(--success) 0%, transparent 100%);
+  display: none;
 }
 
 .progress-tagline {
@@ -3089,10 +3463,10 @@ html[data-theme="light"] .btn-backup:disabled {
   align-items: baseline;
   gap: var(--space-xs);
   font-size: 1rem;
-  padding: var(--space-xs) var(--space-md);
-  background: rgba(16, 185, 129, 0.12);
-  border-radius: 999px;
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 0.35rem 0.85rem;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(16, 185, 129, 0.22);
 }
 
 .progress-visited {
@@ -3126,8 +3500,8 @@ html[data-theme="light"] .btn-backup:disabled {
 }
 
 .progress-milestone {
-  margin: var(--space-md) 0 0;
-  padding: var(--space-xs) var(--space-md);
+  margin: 0 var(--space-xl) var(--space-xl);
+  padding: 0.4rem 0.85rem;
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
   color: var(--success);
@@ -3135,8 +3509,8 @@ html[data-theme="light"] .btn-backup:disabled {
   align-items: center;
   gap: var(--space-xs);
   background: rgba(16, 185, 129, 0.1);
-  border-radius: 999px;
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 10px;
+  border: 1px solid rgba(16, 185, 129, 0.22);
   animation: progress-milestone-in 0.5s ease-out;
 }
 
@@ -3188,12 +3562,13 @@ html[data-theme="light"] .btn-backup:disabled {
 .progress-bar-container {
   position: relative;
   width: 100%;
-  height: 52px;
+  height: 48px;
+  margin: 0 var(--space-xl) var(--space-md);
   background: var(--bg-tertiary);
-  border-radius: var(--radius-xl);
+  border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--border);
-  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .progress-bar-fill {
@@ -3202,15 +3577,15 @@ html[data-theme="light"] .btn-backup:disabled {
   top: 0;
   height: 100%;
   background: linear-gradient(90deg, var(--success-dark) 0%, var(--success) 50%, var(--success-light) 100%);
-  border-radius: var(--radius-xl);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   padding-right: var(--space-md);
   padding-left: var(--space-sm);
-  min-width: 4.8em;
+  min-width: 4.5em;
   transition: width 0.8s cubic-bezier(0.34, 1.2, 0.64, 1);
-  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   z-index: 2;
   overflow: visible;
 }
@@ -3249,36 +3624,36 @@ html[data-theme="light"] .btn-backup:disabled {
 .progress-header-right {
   display: flex;
   align-items: center;
-  gap: var(--space-lg);
+  gap: var(--space-md);
   flex-wrap: wrap;
   margin-left: auto;
 }
 
 .progress-share-wrap {
   position: relative;
-  margin-left: auto;
 }
 
 .btn-share-progress {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-sm) var(--space-md);
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--text-secondary);
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  color: var(--success);
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 10px;
   cursor: pointer;
-  transition: color 0.2s, background 0.2s, border-color 0.2s;
+  transition: color 0.2s, background 0.2s, border-color 0.2s, transform 0.15s ease;
   min-height: 36px;
 }
 
 .btn-share-progress:hover {
-  color: var(--text-primary);
-  background: var(--bg-card-hover);
-  border-color: var(--border);
+  color: var(--success-light);
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.4);
+  transform: translateY(-0.5px);
 }
 
 .btn-share-progress:focus-visible {
@@ -3461,8 +3836,99 @@ html[data-theme="light"] .btn-backup:disabled {
   min-width: 0;
 }
 
+.country-lists-wrapper--inside-map {
+  padding: 0 var(--space-xl) var(--space-xl);
+}
+
+.country-lists-wrapper--inside-map .country-lists-container {
+  margin-top: 0;
+  padding-top: var(--space-lg);
+  padding-left: 0;
+  padding-right: 0;
+  border-top: none;
+}
+
+/* Collapsible list section – same layout and look as map (same slide transition + same box design) */
+.list-section-inside-map {
+  overflow: hidden;
+  max-height: 4000px;
+  transition: max-height 0.35s ease, opacity 0.25s ease;
+  margin-bottom: 0;
+  margin-left: calc(-1 * var(--space-xl));
+  margin-right: calc(-1 * var(--space-xl));
+  margin-top: 0;
+  padding: 0 var(--space-xl) var(--space-xl);
+  width: calc(100% + 2 * var(--space-xl));
+}
+
+.list-section-inside-map-inner {
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  border-top: none;
+  box-shadow: var(--shadow-md), 0 0 0 1px var(--border);
+  background: var(--bg-tertiary);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.list-section-inside-map--collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding: 0 var(--space-xl) !important;
+  margin-top: 0;
+  margin-bottom: 0;
+  border: none;
+  transition: max-height 0.35s ease, opacity 0.2s ease;
+}
+
+.list-section-inside-map--collapsed .list-section-inside-map-inner {
+  overflow: hidden;
+  border: none;
+  box-shadow: none;
+}
+
 .list-tabs {
   display: none;
+}
+
+/* Same pills as map toolbar: "View list" = which columns are shown (inside map card, below map) */
+.list-pills-row {
+  display: none;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.list-pills-row--inside-map {
+  display: flex;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: var(--space-sm) var(--space-xl) var(--space-md);
+  border-top: none;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.list-pills-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.list-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.list-pills .filter-btn {
+  min-height: 32px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .country-lists-container {
@@ -3476,6 +3942,10 @@ html[data-theme="light"] .btn-backup:disabled {
 
 .country-column {
   min-width: 0;
+}
+
+.country-lists-container .country-column:not(.country-column-visible) {
+  display: none;
 }
 
 .country-card {
@@ -3519,9 +3989,9 @@ html[data-theme="light"] .btn-backup:disabled {
 .card-header {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  margin-bottom: var(--space-lg);
-  padding-bottom: var(--space-lg);
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-md);
   border-bottom: 1px solid var(--border-light);
 }
 
@@ -3552,8 +4022,8 @@ html[data-theme="light"] .btn-backup:disabled {
 }
 
 .card-icon {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -3562,8 +4032,8 @@ html[data-theme="light"] .btn-backup:disabled {
 }
 
 .card-icon svg {
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
 }
 
@@ -3591,8 +4061,8 @@ html[data-theme="light"] .btn-backup:disabled {
 
 .country-title {
   font-family: 'Poppins', sans-serif;
-  font-size: var(--text-2xl);
-  font-weight: var(--font-bold);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
   margin: 0;
   flex: 1;
   letter-spacing: -0.01em;
@@ -4824,21 +5294,68 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
     padding: 1.25rem 1.25rem;
   }
 
-  .map-header {
-    margin-bottom: 1.35rem;
-    padding: 0.6rem 0 0.85rem 0.7rem;
+  .map-header-top {
+    padding: 1rem 0.9rem 0.85rem;
+  }
+
+  .map-header .section-title {
+    font-size: 1.5rem;
+  }
+
+  .map-header .section-subtitle {
+    margin-left: 2.25rem;
+  }
+
+  .map-header-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .map-header-icon svg {
+    width: 18px;
+    height: 18px;
   }
 
   .map-header-actions {
-    margin-left: 0;
-    padding-left: 0;
-    border-left: none;
     width: 100%;
     justify-content: flex-start;
   }
 
-  .map-header .section-title {
-    font-size: 1.625rem;
+  .map-header-toolbar {
+    padding: 0.6rem 0.9rem 0.75rem;
+  }
+
+  .map-section-map-wrap--inside-header {
+    margin-left: -0.9rem;
+    margin-right: -0.9rem;
+    width: calc(100% + 1.8rem);
+    padding: 0 0.9rem 0.9rem;
+  }
+
+  .list-section-inside-map {
+    margin-left: -0.9rem;
+    margin-right: -0.9rem;
+    width: calc(100% + 1.8rem);
+    padding: 0 0.9rem 0.9rem;
+  }
+
+  .list-section-inside-map--collapsed {
+    margin-left: -0.9rem;
+    margin-right: -0.9rem;
+    padding: 0 0.9rem !important;
+  }
+
+  .progress-bar-standalone {
+    margin: 1rem 0;
+    padding: 0.65rem 0.9rem;
+  }
+
+  .progress-bar-standalone-inner {
+    gap: 0.75rem;
+  }
+
+  .progress-bar-standalone-bar {
+    min-width: 100px;
   }
 
   .map-filters {
@@ -4924,25 +5441,51 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
   }
 
   /* Travel Map section – tablet */
-  .map-header {
-    margin-bottom: 1.25rem;
-    padding: 0.6rem 0 0.85rem 0.65rem;
+  .map-header-top {
+    padding: 1.1rem 1rem 0.9rem;
   }
 
   .map-header-actions {
-    margin-left: 0;
-    padding-left: 0;
-    border-left: none;
     width: 100%;
     justify-content: flex-start;
   }
 
   .map-header .section-title {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
 
   .map-header .section-subtitle {
     font-size: 0.875rem;
+    margin-left: 2.5rem;
+  }
+
+  .map-header-toolbar {
+    padding: 0.65rem 1rem 0.8rem;
+  }
+
+  .map-section-map-wrap--inside-header {
+    margin-left: -1rem;
+    margin-right: -1rem;
+    width: calc(100% + 2rem);
+    padding: 0 1rem 1rem;
+  }
+
+  .list-section-inside-map {
+    margin-left: -1rem;
+    margin-right: -1rem;
+    width: calc(100% + 2rem);
+    padding: 0 1rem 1rem;
+  }
+
+  .list-section-inside-map--collapsed {
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding: 0 1rem !important;
+  }
+
+  .progress-bar-standalone {
+    margin: 1rem 0;
+    padding: 0.65rem 1rem;
   }
 
   .map-section-map-wrap {
@@ -4954,6 +5497,38 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
     border-radius: 16px;
     gap: 1rem;
     margin-bottom: 1.5rem;
+  }
+
+  /* Toolbar: stack on tablet */
+  .map-header-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .map-header-toolbar-label {
+    text-align: center;
+    margin-right: 0;
+    margin-bottom: 0.15rem;
+  }
+
+  .map-header-toolbar-pills {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .map-header-toolbar-sep {
+    display: none;
+  }
+
+  .map-header-toolbar .map-toggle-btn--in-bar {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .map-header-toolbar .btn-add-country-header--in-toolbar {
+    margin-left: 0;
+    width: 100%;
   }
 
   .map-filters-divider {
@@ -4973,11 +5548,6 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
     width: 100%;
     text-align: center;
     align-items: center;
-    border-left: none;
-    border-top: 1px solid var(--border-light);
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    background: transparent;
   }
 
   .filter-legend {
@@ -4987,9 +5557,6 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
   .filter-buttons {
     width: 100%;
     justify-content: center;
-    border-left: none;
-    padding-left: 0;
-    margin-left: 0;
   }
 
   .filter-btn {
@@ -5050,16 +5617,24 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
     padding-left: 0;
   }
 
-  /* World Travel Progress – card limpia en móvil (sin barra lateral) */
+  /* World Travel Progress – full width card */
   .progress-timeline {
-    margin: 0 1rem 2.5rem;
-    padding: 2rem 1.5rem 2.25rem;
-    border-left: none;
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--border);
-    border-top: 3px solid var(--success);
-    background: linear-gradient(180deg, rgba(16, 185, 129, 0.06) 0%, var(--bg-card) 100%);
-    box-shadow: var(--shadow-sm);
+    margin-bottom: 2.5rem;
+  }
+
+  .progress-header {
+    padding: 1.1rem 1rem 0.75rem;
+  }
+
+  .progress-bar-container {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+
+  .progress-milestone {
+    margin-left: 1rem;
+    margin-right: 1rem;
+    margin-bottom: 1.1rem;
   }
 
   .progress-celebration-banner {
@@ -5073,8 +5648,7 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
   .progress-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
+    gap: 1.25rem;
   }
 
   .progress-title-wrap {
@@ -5163,29 +5737,23 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
     color: var(--text-primary);
   }
 
-  html[data-theme="light"] .progress-timeline {
-    background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, #f8fafc 100%);
-    border-color: rgba(5, 150, 105, 0.2);
-    border-top-color: var(--success);
-  }
 
   .section-title {
     font-size: 1.875rem;
   }
 
-  /* Mobile: tabs as refined status bubbles */
+  /* Mobile: View list pills and lists inside map card */
+  .list-pills-row--inside-map,
+  .view-map-row {
+    padding: 0.75rem 0.9rem 1rem;
+  }
+
+  .country-lists-wrapper--inside-map {
+    padding: 0 0.9rem 1rem;
+  }
+
   .list-tabs {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: stretch;
-    gap: 0.6rem;
-    margin-top: 1.5rem;
-    margin-bottom: 0;
-    padding: 0;
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
+    display: none;
   }
 
   .list-tab {
@@ -5314,7 +5882,7 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
     display: none;
   }
 
-  .country-column.country-column-active {
+  .country-column.country-column-visible {
     display: block;
   }
 
@@ -5441,27 +6009,74 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
   }
 
   /* Travel Map section – mobile */
-  .map-header {
-    margin-bottom: 1rem;
-    padding: 0.5rem 0 0.75rem 0.5rem;
-    padding-left: 0.6rem;
-    border-left-width: 3px;
+  .map-header-top {
+    padding: 0.85rem 0.85rem 0.75rem;
   }
 
   .map-header-actions {
-    margin-left: 0;
-    padding-left: 0;
-    border-left: none;
     width: 100%;
     justify-content: flex-start;
   }
 
   .map-header .section-title {
-    font-size: 1.5rem;
+    font-size: 1.375rem;
   }
 
   .map-header .section-subtitle {
     font-size: var(--text-sm);
+    margin-left: 2.25rem;
+  }
+
+  .map-header-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .map-header-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .map-header-toolbar {
+    padding: 0.55rem 0.85rem 0.7rem;
+  }
+
+  .map-section-map-wrap--inside-header {
+    margin-left: -0.85rem;
+    margin-right: -0.85rem;
+    width: calc(100% + 1.7rem);
+    padding: 0 0.85rem 0.85rem;
+  }
+
+  .list-section-inside-map {
+    margin-left: -0.85rem;
+    margin-right: -0.85rem;
+    width: calc(100% + 1.7rem);
+    padding: 0 0.85rem 0.85rem;
+  }
+
+  .list-section-inside-map--collapsed {
+    margin-left: -0.85rem;
+    margin-right: -0.85rem;
+    padding: 0 0.85rem !important;
+  }
+
+  .progress-bar-standalone {
+    margin: 0.85rem 0;
+    padding: 0.6rem 0.85rem;
+  }
+
+  .progress-bar-standalone-inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .progress-bar-standalone-bar {
+    min-width: 0;
+  }
+
+  .progress-bar-standalone-actions {
+    align-self: flex-start;
   }
 
   .btn-add-country-header {
@@ -5624,14 +6239,22 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
   }
 
   .progress-timeline {
-    margin: 0 0.75rem 2.25rem;
-    padding: 1.85rem 1.25rem 2rem;
-    border-left: none;
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--border);
-    border-top: 3px solid var(--success);
-    background: linear-gradient(180deg, rgba(16, 185, 129, 0.06) 0%, var(--bg-card) 100%);
-    box-shadow: var(--shadow-sm);
+    margin-bottom: 2.25rem;
+  }
+
+  .progress-header {
+    padding: 1rem 1.25rem 0.7rem;
+  }
+
+  .progress-bar-container {
+    margin-left: 1.25rem;
+    margin-right: 1.25rem;
+  }
+
+  .progress-milestone {
+    margin-left: 1.25rem;
+    margin-right: 1.25rem;
+    margin-bottom: 1rem;
   }
 
   .progress-celebration-banner {
@@ -5727,13 +6350,13 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
   }
 
   .card-icon {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
   }
 
   .card-icon svg {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
   }
 }
 
@@ -5783,14 +6406,22 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
   }
 
   .progress-timeline {
-    margin: 0 0.5rem 2rem;
-    padding: 1.6rem 1.15rem 1.85rem;
-    border-left: none;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border);
-    border-top: 3px solid var(--success);
-    background: linear-gradient(180deg, rgba(16, 185, 129, 0.06) 0%, var(--bg-card) 100%);
-    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
+  }
+
+  .progress-header {
+    padding: 0.85rem 0.65rem 0.6rem;
+  }
+
+  .progress-bar-container {
+    margin-left: 0.65rem;
+    margin-right: 0.65rem;
+  }
+
+  .progress-milestone {
+    margin-left: 0.65rem;
+    margin-right: 0.65rem;
+    margin-bottom: 0.85rem;
   }
 
   .progress-celebration-banner {
@@ -5906,27 +6537,65 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
   }
 
   /* Travel Map – extra small */
-  .map-header {
-    margin-bottom: 0.75rem;
-    padding: 0.4rem 0 0.5rem 0.5rem;
-    padding-left: 0.5rem;
-    border-left-width: 3px;
+  .map-header-top {
+    padding: 0.65rem 0.65rem 0.55rem;
   }
 
   .map-header-actions {
-    margin-left: 0;
-    padding-left: 0;
-    border-left: none;
     width: 100%;
     justify-content: flex-start;
   }
 
   .map-header .section-title {
-    font-size: 1.375rem;
+    font-size: 1.2rem;
   }
 
   .map-header .section-subtitle {
     font-size: var(--text-xs);
+    margin-left: 2rem;
+  }
+
+  .map-header-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .map-header-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .map-header-toolbar {
+    padding: 0.5rem 0.65rem 0.6rem;
+  }
+
+  .map-section-map-wrap--inside-header {
+    margin-left: -0.65rem;
+    margin-right: -0.65rem;
+    width: calc(100% + 1.3rem);
+    padding: 0 0.65rem 0.65rem;
+  }
+
+  .list-section-inside-map {
+    margin-left: -0.65rem;
+    margin-right: -0.65rem;
+    width: calc(100% + 1.3rem);
+    padding: 0 0.65rem 0.65rem;
+  }
+
+  .list-section-inside-map--collapsed {
+    margin-left: -0.65rem;
+    margin-right: -0.65rem;
+    padding: 0 0.65rem !important;
+  }
+
+  .progress-bar-standalone {
+    margin: 0.75rem 0;
+    padding: 0.5rem 0.65rem;
+  }
+
+  .progress-bar-standalone-count {
+    font-size: 0.9375rem;
   }
 
   .map-filters {
