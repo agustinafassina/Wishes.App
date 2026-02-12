@@ -2,7 +2,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useUser } from "@auth0/nextjs-auth0";
 import Map from "../components/Map";
 import ThemeToggle from "../components/ThemeToggle";
@@ -33,8 +33,11 @@ export default function Home() {
   const { user, isLoading } = useUser();
   const contentRef = useRef<HTMLDivElement>(null);
   const manualPdfRef = useRef<HTMLDivElement>(null);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingManual, setIsExportingManual] = useState(false);
+  const [isExportingBackup, setIsExportingBackup] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const displayName = user ? getDisplayName(user) : null;
 
   const scrollToSection = (id: string) => {
@@ -43,9 +46,69 @@ export default function Home() {
     el?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  /** Placeholder for future profile/settings screen or modal */
+  useEffect(() => {
+    if (!profileMenuOpen) return;
+    const close = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (profileMenuRef.current && !profileMenuRef.current.contains(target)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener("click", close, true);
+    document.addEventListener("touchstart", close, true);
+    return () => {
+      document.removeEventListener("click", close, true);
+      document.removeEventListener("touchstart", close, true);
+    };
+  }, [profileMenuOpen]);
+
   const handleProfileClick = () => {
-    // TODO: open profile or settings
+    hapticLight();
+    setProfileMenuOpen((open) => !open);
+  };
+
+  const handleBackup = async (format: "json" | "csv") => {
+    setIsExportingBackup(true);
+    try {
+      const res = await fetch("/api/locations", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to load data");
+      const raw = await res.json();
+      const list = Array.isArray(raw) ? raw : [];
+      const date = new Date().toISOString().slice(0, 10);
+      if (format === "json") {
+        const blob = new Blob([JSON.stringify(list, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `wishes-backup-${date}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success("Backup downloaded as JSON.");
+      } else {
+        const headers = ["name", "code", "latitude", "longitude", "status", "notes", "visitedAt", "tags", "flag"];
+        const escapeCsv = (v: unknown) => {
+          const s = v == null ? "" : Array.isArray(v) ? v.join("; ") : String(v);
+          return /[,"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+        };
+        const rows = list.map((row: Record<string, unknown>) =>
+          headers.map((h) => escapeCsv(row[h])).join(",")
+        );
+        const csv = [headers.join(","), ...rows].join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `wishes-backup-${date}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success("Backup downloaded as CSV.");
+      }
+    } catch (error) {
+      console.error("Backup error:", error);
+      toast.error(getApiErrorDisplay(error, "Could not create backup."));
+    } finally {
+      setIsExportingBackup(false);
+    }
   };
 
   const handleExportManualPDF = async () => {
@@ -220,7 +283,7 @@ export default function Home() {
 
       <main id="main-content" className="main-content" ref={contentRef} tabIndex={-1}>
         <div className="content-section">
-          <Map onExportPDF={handleExportPDF} isExporting={isExporting} shareUserName={displayName ?? "User"} />
+          <Map shareUserName={displayName ?? "User"} />
         </div>
 
         <div ref={manualPdfRef} className="manual-pdf-source" aria-hidden />
@@ -258,6 +321,7 @@ export default function Home() {
             </svg>
             <span className="bottom-bar-label">List</span>
           </button>
+          <span className="bottom-bar-divider" aria-hidden />
           <button
             type="button"
             className="bottom-bar-btn"
@@ -278,19 +342,86 @@ export default function Home() {
             <span className="bottom-bar-label">{isExportingManual ? "…" : "Manual"}</span>
           </button>
           <ThemeToggle />
-          <button
-            type="button"
-            className="bottom-bar-btn bottom-bar-btn-profile"
-            title="Profile and settings"
-            aria-label="Profile and settings"
-            onClick={handleProfileClick}
-          >
-            <svg className="bottom-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-            <span className="bottom-bar-label">Profile</span>
-          </button>
+          <div className="profile-menu-wrap" ref={profileMenuRef}>
+            <button
+              type="button"
+              className={`bottom-bar-btn bottom-bar-btn-profile ${profileMenuOpen ? "profile-menu-open" : ""}`}
+              title="Profile and export options"
+              aria-label="Profile and export options"
+              aria-expanded={profileMenuOpen}
+              aria-haspopup="true"
+              onClick={handleProfileClick}
+            >
+              <svg className="bottom-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <span className="bottom-bar-label">Profile</span>
+            </button>
+            {profileMenuOpen && (
+              <div className="profile-menu" role="menu" aria-label="Export options">
+                <button
+                  type="button"
+                  className="profile-menu-item"
+                  role="menuitem"
+                  onClick={() => {
+                    setProfileMenuOpen(false);
+                    handleExportPDF();
+                  }}
+                  disabled={isExporting}
+                >
+                  {isExporting ? (
+                    <span className="profile-menu-spinner" aria-hidden />
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                  )}
+                  <span>{isExporting ? "Exporting…" : "Export PDF"}</span>
+                </button>
+                <button
+                  type="button"
+                  className="profile-menu-item"
+                  role="menuitem"
+                  onClick={() => {
+                    setProfileMenuOpen(false);
+                    handleBackup("json");
+                  }}
+                  disabled={isExportingBackup}
+                >
+                  {isExportingBackup ? (
+                    <span className="profile-menu-spinner" aria-hidden />
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                  )}
+                  <span>{isExportingBackup ? "Backing up…" : "Backup (JSON)"}</span>
+                </button>
+                <button
+                  type="button"
+                  className="profile-menu-item"
+                  role="menuitem"
+                  onClick={() => {
+                    setProfileMenuOpen(false);
+                    handleBackup("csv");
+                  }}
+                  disabled={isExportingBackup}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  <span>CSV</span>
+                </button>
+              </div>
+            )}
+          </div>
           {isLoading ? (
             <span className="bottom-bar-btn bottom-bar-btn-placeholder" aria-hidden>
               <span className="bottom-bar-spinner" />

@@ -517,13 +517,10 @@ function CountryColumn({
 }
 
 interface MapProps {
-  onExportPDF?: () => void;
-  isExporting?: boolean;
   shareUserName?: string;
 }
 
-
-const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }: MapProps) => {
+const Map = ({ shareUserName = 'My progress' }: MapProps) => {
   const toast = useToast();
   const [locations, setLocations] = useState<CountryLocation[]>([]);
   const [mapCenter, setMapCenter] = useState({ lat: 20.0, lng: 0.0 });
@@ -571,7 +568,6 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
   const [shareLinkCopied, setShareLinkCopied] = useState(false);
   const [isSharingImage, setIsSharingImage] = useState(false);
   const [mapCollapsed, setMapCollapsed] = useState(false);
-  const [isExportingBackup, setIsExportingBackup] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
   const viewModalRef = useRef<HTMLDivElement>(null);
   const notesModalRef = useRef<HTMLDivElement>(null);
@@ -1172,50 +1168,6 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
     }
   };
 
-  const handleBackup = async (format: 'json' | 'csv') => {
-    setIsExportingBackup(true);
-    try {
-      const res = await fetch('/api/locations', { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to load data');
-      const raw = await res.json();
-      const list = Array.isArray(raw) ? raw : [];
-      const date = new Date().toISOString().slice(0, 10);
-      if (format === 'json') {
-        const blob = new Blob([JSON.stringify(list, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `wishes-backup-${date}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-        toast.success('Backup downloaded as JSON.');
-      } else {
-        const headers = ['name', 'code', 'latitude', 'longitude', 'status', 'notes', 'visitedAt', 'tags', 'flag'];
-        const escapeCsv = (v: unknown) => {
-          const s = v == null ? '' : Array.isArray(v) ? v.join('; ') : String(v);
-          return /[,"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-        };
-        const rows = list.map((row: Record<string, unknown>) =>
-          headers.map((h) => escapeCsv(row[h])).join(',')
-        );
-        const csv = [headers.join(','), ...rows].join('\n');
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `wishes-backup-${date}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-        toast.success('Backup downloaded as CSV.');
-      }
-    } catch (error) {
-      console.error('Backup error:', error);
-      toast.error(getApiErrorDisplay(error, 'Could not create backup.'));
-    } finally {
-      setIsExportingBackup(false);
-    }
-  };
-
   const mapOptions = useMemo(() => {
     const darkStyles = [
       { featureType: "all", elementType: "geometry", stylers: [{ color: "#1a1f35" }] },
@@ -1289,8 +1241,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
         )}
         <div id="travel-map" className="map-header">
           <div className="map-header-text">
-            <h2 className="section-title">Travel Map</h2>
-            <p className="section-subtitle">Filter, explore and track your countries</p>
+            <h2 className="section-title">Your travel map</h2>
+            <p className="section-subtitle">Track where you've been and where you want to go. Filter by status and explore your list on the map.</p>
           </div>
           <div className="map-header-actions">
             <button
@@ -1388,8 +1340,14 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
               </div>
             ) : (
             <div className="map-empty-state" role="status" aria-live="polite">
-              <p className="map-empty-state-title">Your list is empty</p>
-              <p className="map-empty-state-hint">Add your first country to start your travel bucket list.</p>
+              <div className="map-empty-state-icon-wrap" aria-hidden>
+                <svg className="map-empty-state-icon-svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              </div>
+              <p className="map-empty-state-title">Start your journey</p>
+              <p className="map-empty-state-hint">Add your first country to begin your travel bucket list. Use the button below or double-tap a column to add one.</p>
               <button
                 type="button"
                 className="btn-add-country-header map-empty-state-cta"
@@ -1417,88 +1375,93 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
             )
           ) : (
           <>
-          <div className="map-filters">
-          <div className="filter-legend-wrap">
-            <span className="filter-label">Filter by status</span>
-            <span className="filter-legend">Select which to show on the map</span>
-          </div>
-          <div className="filter-buttons" role="group" aria-label="Filter map by status">
-            <button
-              type="button"
-              className={`filter-btn filter-btn-done ${statusFilters.done ? 'active' : ''}`}
-              onClick={() => handleFilterToggle('done')}
-              aria-pressed={statusFilters.done}
-              title={statusFilters.done ? 'Show done on map' : 'Hide done on map'}
-            >
-              <span className="filter-btn-dot" aria-hidden />
-              <span className="filter-btn-label">Done</span>
-              {doneLocations.length > 0 && (
-                <span className="filter-btn-count">{doneLocations.length}</span>
-              )}
-            </button>
-            <button
-              type="button"
-              className={`filter-btn filter-btn-in-review ${statusFilters['in review'] ? 'active' : ''}`}
-              onClick={() => handleFilterToggle('in review')}
-              aria-pressed={statusFilters['in review']}
-              title={statusFilters['in review'] ? 'Show in review on map' : 'Hide in review on map'}
-            >
-              <span className="filter-btn-dot" aria-hidden />
-              <span className="filter-btn-label">In Review</span>
-              {inReviewLocations.length > 0 && (
-                <span className="filter-btn-count">{inReviewLocations.length}</span>
-              )}
-            </button>
-            <button
-              type="button"
-              className={`filter-btn filter-btn-pending ${statusFilters.pending ? 'active' : ''}`}
-              onClick={() => handleFilterToggle('pending')}
-              aria-pressed={statusFilters.pending}
-              title={statusFilters.pending ? 'Show pending on map' : 'Hide pending on map'}
-            >
-              <span className="filter-btn-dot" aria-hidden />
-              <span className="filter-btn-label">Pending</span>
-              {pendingLocations.length > 0 && (
-                <span className="filter-btn-count">{pendingLocations.length}</span>
-              )}
-            </button>
-          </div>
-        </div>
-
-        <div className="map-section-map-wrap">
-          <button
-            type="button"
-            className={`map-toggle-btn ${mapCollapsed ? 'map-toggle-btn--collapsed' : ''}`}
-            onClick={() => { hapticLight(); setMapCollapsed((c) => !c); }}
-            aria-expanded={!mapCollapsed}
-            aria-controls="map-wrapper-id"
-            aria-label={mapCollapsed
-              ? (filteredLocations.length > 0 ? `Show map (${filteredLocations.length} ${filteredLocations.length === 1 ? 'country' : 'countries'} on map)` : 'Show map')
-              : 'Hide map'}
-          >
-            {mapCollapsed ? (
-              <>
-                <svg className="map-toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                <span className="map-toggle-text">Show map</span>
-                {filteredLocations.length > 0 && (
-                  <span className="map-toggle-count" aria-hidden>
-                    {filteredLocations.length} {filteredLocations.length === 1 ? 'country' : 'countries'}
-                  </span>
+          <div className="map-filters" role="group" aria-label="Map options">
+            <div className="map-filters-group map-filters-group--filter">
+              <div className="filter-legend-wrap">
+                <span className="filter-label">Filter by status</span>
+                <span className="filter-legend">Select which to show on the map</span>
+              </div>
+              <div className="filter-buttons" role="group" aria-label="Filter map by status">
+                <button
+                  type="button"
+                  className={`filter-btn filter-btn-done ${statusFilters.done ? 'active' : ''}`}
+                  onClick={() => handleFilterToggle('done')}
+                  aria-pressed={statusFilters.done}
+                  title={statusFilters.done ? 'Show done on map' : 'Hide done on map'}
+                >
+                  <span className="filter-btn-dot" aria-hidden />
+                  <span className="filter-btn-label">Done</span>
+                  {doneLocations.length > 0 && (
+                    <span className="filter-btn-count">{doneLocations.length}</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className={`filter-btn filter-btn-in-review ${statusFilters['in review'] ? 'active' : ''}`}
+                  onClick={() => handleFilterToggle('in review')}
+                  aria-pressed={statusFilters['in review']}
+                  title={statusFilters['in review'] ? 'Show in review on map' : 'Hide in review on map'}
+                >
+                  <span className="filter-btn-dot" aria-hidden />
+                  <span className="filter-btn-label">In Review</span>
+                  {inReviewLocations.length > 0 && (
+                    <span className="filter-btn-count">{inReviewLocations.length}</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className={`filter-btn filter-btn-pending ${statusFilters.pending ? 'active' : ''}`}
+                  onClick={() => handleFilterToggle('pending')}
+                  aria-pressed={statusFilters.pending}
+                  title={statusFilters.pending ? 'Show pending on map' : 'Hide pending on map'}
+                >
+                  <span className="filter-btn-dot" aria-hidden />
+                  <span className="filter-btn-label">Pending</span>
+                  {pendingLocations.length > 0 && (
+                    <span className="filter-btn-count">{pendingLocations.length}</span>
+                  )}
+                </button>
+              </div>
+            </div>
+            <div className="map-filters-divider" aria-hidden />
+            <div className="map-filters-group map-filters-group--toggle">
+              <button
+                type="button"
+                className={`map-toggle-btn map-toggle-btn--in-bar ${mapCollapsed ? 'map-toggle-btn--collapsed' : ''}`}
+                onClick={() => { hapticLight(); setMapCollapsed((c) => !c); }}
+                aria-expanded={!mapCollapsed}
+                aria-controls="map-wrapper-id"
+                aria-label={mapCollapsed
+                  ? (filteredLocations.length > 0 ? `Show map (${filteredLocations.length} ${filteredLocations.length === 1 ? 'country' : 'countries'} on map)` : 'Show map')
+                  : 'Hide map'}
+              >
+                {mapCollapsed ? (
+                  <>
+                    <svg className="map-toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <span className="map-toggle-text">Show map</span>
+                    {filteredLocations.length > 0 && (
+                      <span className="map-toggle-count" aria-hidden>
+                        {filteredLocations.length}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <svg className="map-toggle-icon map-toggle-icon--up" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <polyline points="18 15 12 9 6 15" />
+                    </svg>
+                    <span className="map-toggle-text">Hide map</span>
+                  </>
                 )}
-              </>
-            ) : (
-              <>
-                <svg className="map-toggle-icon map-toggle-icon--up" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <polyline points="18 15 12 9 6 15" />
-                </svg>
-                <span className="map-toggle-text">Hide map</span>
-              </>
-            )}
-          </button>
-          <div
+              </button>
+            </div>
+          </div>
+
+          <div className="map-section-map-wrap">
+            <div
             id="map-wrapper-id"
             className={`map-wrapper ${mapCollapsed ? 'map-wrapper--collapsed' : ''} ${pickingLocationFromMap ? 'map-wrapper--picking' : ''}`}
           >
@@ -1597,7 +1560,10 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                   <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
                 </svg>
               </span>
-              <h2 className="progress-title">World Travel Progress</h2>
+              <div className="progress-title-block">
+                <h2 className="progress-title">World Travel Progress</h2>
+                <p className="progress-tagline">See how much of the world you've explored</p>
+              </div>
             </div>
             <div className="progress-header-right">
               <div className="progress-stats">
@@ -1693,92 +1659,6 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
           </div>
         </div>
 
-        <div className="export-actions">
-          {onExportPDF && (
-            <button
-              className="btn-export-pdf"
-              onClick={onExportPDF}
-              disabled={isExporting}
-              aria-label="Export to PDF"
-            >
-              {isExporting ? (
-                <>
-                  <svg className="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeDasharray="32" strokeDashoffset="32" strokeLinecap="round">
-                      <animate attributeName="stroke-dasharray" dur="1.5s" values="0 32;16 16;0 32;0 32" repeatCount="indefinite" />
-                      <animate attributeName="stroke-dashoffset" dur="1.5s" values="0;-16;-32;-32" repeatCount="indefinite" />
-                    </circle>
-                  </svg>
-                  <span>Exporting...</span>
-                </>
-              ) : (
-                <>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                  <span>Export PDF</span>
-                </>
-              )}
-            </button>
-          )}
-          <button
-            type="button"
-            className="btn-backup"
-            onClick={() => handleBackup('json')}
-            disabled={isExportingBackup}
-            aria-label="Backup data as JSON"
-            title="Download full list as JSON"
-          >
-            {isExportingBackup ? (
-              <>
-                <span className="btn-backup-spinner" aria-hidden />
-                <span>Backing up...</span>
-              </>
-            ) : (
-              <>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-                <span>Backup</span>
-              </>
-            )}
-          </button>
-          <button
-            type="button"
-            className="btn-backup btn-backup-csv"
-            onClick={() => handleBackup('csv')}
-            disabled={isExportingBackup}
-            aria-label="Backup data as CSV"
-            title="Download full list as CSV"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            <span>CSV</span>
-          </button>
-        </div>
-
-        <div className="stats-container">
-          <div className="stat-card stat-done">
-            <div className="stat-number">{doneLocations.length}</div>
-            <div className="stat-label">Completed</div>
-          </div>
-          <div className="stat-card stat-review">
-            <div className="stat-number">{inReviewLocations.length}</div>
-            <div className="stat-label">In Review</div>
-          </div>
-          <div className="stat-card stat-pending">
-            <div className="stat-number">{pendingLocations.length}</div>
-            <div className="stat-label">Pending</div>
-          </div>
-        </div>
-
           <div id="country-list" className="country-lists-wrapper">
             <div className="list-tabs" role="tablist" aria-label="Country lists by status">
               <button
@@ -1790,11 +1670,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                 className={`list-tab ${mobileListTab === 'done' ? 'list-tab-active' : ''} list-tab-done`}
                 onClick={() => { hapticLight(); setMobileListTab('done'); }}
               >
-                <span className="list-tab-dot" aria-hidden />
-                <span>Completed</span>
-                {doneLocations.length > 0 && (
-                  <span className="list-tab-count">{doneLocations.length}</span>
-                )}
+                <span className="list-tab-count">{doneLocations.length}</span>
+                <span className="list-tab-label">Completed</span>
               </button>
               <button
                 type="button"
@@ -1805,11 +1682,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                 className={`list-tab ${mobileListTab === 'in review' ? 'list-tab-active' : ''} list-tab-in-review`}
                 onClick={() => { hapticLight(); setMobileListTab('in review'); }}
               >
-                <span className="list-tab-dot" aria-hidden />
-                <span>In Review</span>
-                {inReviewLocations.length > 0 && (
-                  <span className="list-tab-count">{inReviewLocations.length}</span>
-                )}
+                <span className="list-tab-count">{inReviewLocations.length}</span>
+                <span className="list-tab-label">In Review</span>
               </button>
               <button
                 type="button"
@@ -1820,11 +1694,8 @@ const Map = ({ onExportPDF, isExporting = false, shareUserName = 'My progress' }
                 className={`list-tab ${mobileListTab === 'pending' ? 'list-tab-active' : ''} list-tab-pending`}
                 onClick={() => { hapticLight(); setMobileListTab('pending'); }}
               >
-                <span className="list-tab-dot" aria-hidden />
-                <span>Pending</span>
-                {pendingLocations.length > 0 && (
-                  <span className="list-tab-count">{pendingLocations.length}</span>
-                )}
+                <span className="list-tab-count">{pendingLocations.length}</span>
+                <span className="list-tab-label">Pending</span>
               </button>
             </div>
             <div className="country-lists-container">
