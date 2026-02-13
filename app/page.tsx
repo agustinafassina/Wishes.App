@@ -1,8 +1,8 @@
 // app/page.tsx
 "use client";
 
-import Image from "next/image";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import { useUser } from "@auth0/nextjs-auth0";
 import Map from "../components/Map";
 import ThemeToggle from "../components/ThemeToggle";
@@ -34,10 +34,13 @@ export default function Home() {
   const contentRef = useRef<HTMLDivElement>(null);
   const manualPdfRef = useRef<HTMLDivElement>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const hamburgerButtonRef = useRef<HTMLButtonElement>(null);
+  const menuPortalRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingManual, setIsExportingManual] = useState(false);
   const [isExportingBackup, setIsExportingBackup] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const displayName = user ? getDisplayName(user) : null;
 
   const scrollToSection = (id: string) => {
@@ -46,13 +49,19 @@ export default function Home() {
     el?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  useLayoutEffect(() => {
+    if (!profileMenuOpen || !hamburgerButtonRef.current || typeof document === "undefined") return;
+    const rect = hamburgerButtonRef.current.getBoundingClientRect();
+    setMenuPosition({ top: rect.bottom + 8, left: rect.left });
+  }, [profileMenuOpen]);
+
   useEffect(() => {
     if (!profileMenuOpen) return;
     const close = (e: MouseEvent | TouchEvent) => {
       const target = e.target as Node;
-      if (profileMenuRef.current && !profileMenuRef.current.contains(target)) {
-        setProfileMenuOpen(false);
-      }
+      const inButton = profileMenuRef.current?.contains(target);
+      const inMenu = menuPortalRef.current?.contains(target);
+      if (!inButton && !inMenu) setProfileMenuOpen(false);
     };
     document.addEventListener("click", close, true);
     document.addEventListener("touchstart", close, true);
@@ -64,6 +73,10 @@ export default function Home() {
 
   const handleProfileClick = () => {
     hapticLight();
+    if (!profileMenuOpen && hamburgerButtonRef.current) {
+      const rect = hamburgerButtonRef.current.getBoundingClientRect();
+      setMenuPosition({ top: rect.bottom + 8, left: rect.left });
+    }
     setProfileMenuOpen((open) => !open);
   };
 
@@ -242,132 +255,91 @@ export default function Home() {
         Skip to main content
       </a>
       <header className="page-header">
-        <div className="header-identity">
-          <div className="logo-wrapper">
-              {user?.picture ? (
-                <img
-                  className="logo"
-                  src={user.picture}
-                  alt={displayName ?? "Avatar"}
-                  width={72}
-                  height={72}
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <Image
-                  className="logo"
-                  src="/agus_animada.PNG"
-                  alt="Avatar"
-                  width={72}
-                  height={72}
-                  priority
-                />
-              )}
-          </div>
-          <div className="header-text">
-            <h1 className="page-title">{displayName ?? "My travel bucket list"}</h1>
-            <p className="header-tagline">
-              <img src="https://flagcdn.com/w40/ar.png" alt="Argentina" className="header-flag" width={28} height={21} />
-              <span>My travel bucket list</span>
-            </p>
-          </div>
-        </div>
-        <div className="header-travel-badge" aria-hidden>
-          <svg className="header-travel-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-            <circle cx="12" cy="10" r="3" />
-          </svg>
-          <span className="header-travel-label">Travels</span>
-        </div>
-      </header>
-
-      <main id="main-content" className="main-content" ref={contentRef} tabIndex={-1}>
-        <div className="content-section">
-          <Map shareUserName={displayName ?? "User"} />
-        </div>
-
-        <div ref={manualPdfRef} className="manual-pdf-source" aria-hidden />
-      </main>
-
-      <footer className="bottom-bar" role="navigation" aria-label="App actions">
-        <div className="bottom-bar-inner">
-          <button
-            type="button"
-            className="bottom-bar-btn bottom-bar-btn-nav"
-            onClick={() => scrollToSection("travel-map")}
-            title="Go to map"
-            aria-label="Go to travel map"
-          >
-            <svg className="bottom-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-            <span className="bottom-bar-label">Map</span>
-          </button>
-          <button
-            type="button"
-            className="bottom-bar-btn bottom-bar-btn-nav"
-            onClick={() => scrollToSection("country-list")}
-            title="Go to list"
-            aria-label="Go to country list"
-          >
-            <svg className="bottom-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <line x1="8" y1="6" x2="21" y2="6" />
-              <line x1="8" y1="12" x2="21" y2="12" />
-              <line x1="8" y1="18" x2="21" y2="18" />
-              <line x1="3" y1="6" x2="3.01" y2="6" />
-              <line x1="3" y1="12" x2="3.01" y2="12" />
-              <line x1="3" y1="18" x2="3.01" y2="18" />
-            </svg>
-            <span className="bottom-bar-label">List</span>
-          </button>
-          <span className="bottom-bar-divider" aria-hidden />
-          <button
-            type="button"
-            className="bottom-bar-btn"
-            title="Download user manual (PDF)"
-            aria-label="Download user manual as PDF"
-            onClick={handleExportManualPDF}
-            disabled={isExportingManual}
-          >
-            {isExportingManual ? (
-              <span className="bottom-bar-spinner" aria-hidden />
-            ) : (
-              <svg className="bottom-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-            )}
-            <span className="bottom-bar-label">{isExportingManual ? "…" : "Manual"}</span>
-          </button>
-          <ThemeToggle />
-          <div className="profile-menu-wrap" ref={profileMenuRef}>
+        <div className="header-nav-left">
+          <div className="hamburger-menu-wrap" ref={profileMenuRef}>
             <button
+              ref={hamburgerButtonRef}
               type="button"
-              className={`bottom-bar-btn bottom-bar-btn-profile ${profileMenuOpen ? "profile-menu-open" : ""}`}
-              title="Profile and export options"
-              aria-label="Profile and export options"
+              className="header-icon-btn"
+              onClick={handleProfileClick}
+              title="Menu"
+              aria-label="Menu"
               aria-expanded={profileMenuOpen}
               aria-haspopup="true"
-              onClick={handleProfileClick}
             >
-              <svg className="bottom-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
+              <svg className="header-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
               </svg>
-              <span className="bottom-bar-label">Profile</span>
             </button>
-            {profileMenuOpen && (
-              <div className="profile-menu" role="menu" aria-label="Export options">
+            {profileMenuOpen && typeof document !== "undefined" && createPortal(
+              <div
+                ref={menuPortalRef}
+                className="hamburger-menu-portal"
+                style={{
+                  position: 'fixed',
+                  top: `${menuPosition.top}px`,
+                  left: `${menuPosition.left}px`,
+                }}
+                role="presentation"
+              >
+                <div className="hamburger-menu hamburger-menu--portal" role="menu" aria-label="App menu">
                 <button
                   type="button"
                   className="profile-menu-item"
                   role="menuitem"
-                  onClick={() => {
-                    setProfileMenuOpen(false);
-                    handleExportPDF();
-                  }}
+                  onClick={() => { setProfileMenuOpen(false); scrollToSection("travel-map"); }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <span>Map</span>
+                </button>
+                <button
+                  type="button"
+                  className="profile-menu-item"
+                  role="menuitem"
+                  onClick={() => { setProfileMenuOpen(false); scrollToSection("country-list"); }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <line x1="8" y1="6" x2="21" y2="6" />
+                    <line x1="8" y1="12" x2="21" y2="12" />
+                    <line x1="8" y1="18" x2="21" y2="18" />
+                    <line x1="3" y1="6" x2="3.01" y2="6" />
+                    <line x1="3" y1="12" x2="3.01" y2="12" />
+                    <line x1="3" y1="18" x2="3.01" y2="18" />
+                  </svg>
+                  <span>List</span>
+                </button>
+                <button
+                  type="button"
+                  className="profile-menu-item"
+                  role="menuitem"
+                  onClick={() => { setProfileMenuOpen(false); handleExportManualPDF(); }}
+                  disabled={isExportingManual}
+                >
+                  {isExportingManual ? (
+                    <span className="profile-menu-spinner" aria-hidden />
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                  )}
+                  <span>{isExportingManual ? "…" : "Manual (PDF)"}</span>
+                </button>
+                <div className="hamburger-menu-theme-row">
+                  <span className="hamburger-menu-theme-label">Theme</span>
+                  <ThemeToggle />
+                </div>
+                <button
+                  type="button"
+                  className="profile-menu-item"
+                  role="menuitem"
+                  onClick={() => { setProfileMenuOpen(false); handleExportPDF(); }}
                   disabled={isExporting}
                 >
                   {isExporting ? (
@@ -385,10 +357,7 @@ export default function Home() {
                   type="button"
                   className="profile-menu-item"
                   role="menuitem"
-                  onClick={() => {
-                    setProfileMenuOpen(false);
-                    handleBackup("json");
-                  }}
+                  onClick={() => { setProfileMenuOpen(false); handleBackup("json"); }}
                   disabled={isExportingBackup}
                 >
                   {isExportingBackup ? (
@@ -406,10 +375,7 @@ export default function Home() {
                   type="button"
                   className="profile-menu-item"
                   role="menuitem"
-                  onClick={() => {
-                    setProfileMenuOpen(false);
-                    handleBackup("csv");
-                  }}
+                  onClick={() => { setProfileMenuOpen(false); handleBackup("csv"); }}
                   disabled={isExportingBackup}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -419,45 +385,68 @@ export default function Home() {
                   </svg>
                   <span>CSV</span>
                 </button>
-              </div>
+                {user ? (
+                  <a
+                    href="/auth/logout"
+                    className="profile-menu-item profile-menu-item-logout"
+                    role="menuitem"
+                    onClick={() => setProfileMenuOpen(false)}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                      <line x1="9" y1="21" x2="5" y2="21" />
+                      <line x1="5" y1="21" x2="5" y2="3" />
+                    </svg>
+                    <span>Log out</span>
+                  </a>
+                ) : (
+                  <a
+                    href="/auth/login"
+                    className="profile-menu-item profile-menu-item-login"
+                    role="menuitem"
+                    onClick={() => setProfileMenuOpen(false)}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <polyline points="10 17 15 12 10 7" />
+                      <line x1="15" y1="12" x2="3" y2="12" />
+                    </svg>
+                    <span>Log in</span>
+                  </a>
+                )}
+                </div>
+              </div>,
+              document.body
             )}
           </div>
-          {isLoading ? (
-            <span className="bottom-bar-btn bottom-bar-btn-placeholder" aria-hidden>
-              <span className="bottom-bar-spinner" />
-              <span className="bottom-bar-label">…</span>
-            </span>
-          ) : user ? (
-            <a
-              href="/auth/logout"
-              className="bottom-bar-btn bottom-bar-btn-logout"
-              title="Log out"
-              aria-label="Log out"
-            >
-              <svg className="bottom-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-              <span className="bottom-bar-label">Log out</span>
-            </a>
-          ) : (
-            <a
-              href="/auth/login"
-              className="bottom-bar-btn bottom-bar-btn-login"
-              title="Log in"
-              aria-label="Log in"
-            >
-              <svg className="bottom-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                <polyline points="10 17 15 12 10 7" />
-                <line x1="15" y1="12" x2="3" y2="12" />
-              </svg>
-              <span className="bottom-bar-label">Log in</span>
-            </a>
-          )}
         </div>
-      </footer>
+        <h1 className="header-title">Travel Tracker</h1>
+        <div className="header-nav-right">
+          <button
+            type="button"
+            className="header-icon-btn"
+            onClick={() => {
+              hapticLight();
+              scrollToSection("travel-map");
+            }}
+            title="Add country"
+            aria-label="Add country"
+          >
+            <svg className="header-icon header-icon-plus" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <main id="main-content" className="main-content" ref={contentRef} tabIndex={-1}>
+        <div className="content-section">
+          <Map shareUserName={displayName ?? "User"} />
+        </div>
+
+        <div ref={manualPdfRef} className="manual-pdf-source" aria-hidden />
+      </main>
     </div>
   );
 }

@@ -418,6 +418,128 @@ function CountryItem({
   );
 }
 
+// Card para lista debajo del mapa – estilo mockup: flag, nombre, fecha, tags, badge estado
+function CountryListCard({
+  location,
+  status,
+  onRequestDelete,
+  onEditNotes,
+  onViewNotes,
+  onMoveToStatus,
+  isDeleting,
+}: {
+  location: CountryLocation;
+  status: string;
+  onRequestDelete: (loc: CountryLocation) => void;
+  onEditNotes?: (loc: CountryLocation) => void;
+  onViewNotes?: (loc: CountryLocation) => void;
+  onMoveToStatus?: (loc: CountryLocation, newStatus: string) => void;
+  isDeleting?: boolean;
+}) {
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+  const tags = normalizeTags(location);
+  const isDone = status === 'done';
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    const close = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (moreRef.current && !moreRef.current.contains(target)) setMoreOpen(false);
+    };
+    document.addEventListener('click', close, true);
+    document.addEventListener('touchstart', close, true);
+    return () => {
+      document.removeEventListener('click', close, true);
+      document.removeEventListener('touchstart', close, true);
+    };
+  }, [moreOpen]);
+
+  const dateLine = isDone && location.visitedAt?.trim()
+    ? `Visited: ${location.visitedAt.trim()}`
+    : status === 'in review'
+      ? 'Planned'
+      : 'Not scheduled';
+
+  const statusLabel = status === 'done' ? 'Complete' : status === 'in review' ? 'In Review' : 'To Do';
+  const statusClass = status.replace(/\s+/g, '-');
+
+  return (
+    <div className={`country-list-card country-list-card--${statusClass} ${isDeleting ? 'country-list-card--deleting' : ''} ${moreOpen ? 'country-list-card--menu-open' : ''}`}>
+      {isDeleting && (
+        <div className="country-list-card-deleting" aria-hidden>
+          <span className="country-list-card-deleting-spinner" />
+          <span>Deleting...</span>
+        </div>
+      )}
+      {location.flag && (
+        <img src={location.flag} alt="" className="country-list-card-flag" />
+      )}
+      <div className="country-list-card-body">
+        <h3 className="country-list-card-name">{location.name}</h3>
+        <p className="country-list-card-meta">
+          <span className="country-list-card-meta-icon" aria-hidden>📅</span>
+          {dateLine}
+        </p>
+        {tags.length > 0 && (
+          <div className="country-list-card-tags">
+            {tags.map((t, i) => (
+              <span key={i} className="country-list-card-tag">{t}</span>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="country-list-card-right">
+        <span className={`country-list-card-badge country-list-card-badge--${statusClass}`}>
+          {statusLabel}
+        </span>
+        <div className="country-list-card-more-wrap" ref={moreRef}>
+          <button
+            type="button"
+            className={`country-list-card-more-btn ${moreOpen ? 'country-list-card-more-btn--open' : ''}`}
+            onClick={(e) => { e.stopPropagation(); setMoreOpen((o) => !o); }}
+            aria-label="More actions"
+            aria-expanded={moreOpen}
+            aria-haspopup="true"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+              <circle cx="12" cy="5" r="1.5" />
+              <circle cx="12" cy="12" r="1.5" />
+              <circle cx="12" cy="19" r="1.5" />
+            </svg>
+          </button>
+          {moreOpen && (
+            <div className="country-list-card-more-menu" role="menu">
+              {isDone && onViewNotes && (
+                <button type="button" role="menuitem" className="country-list-card-more-item"
+                  onClick={(e) => { e.stopPropagation(); setMoreOpen(false); onViewNotes(location); }}>
+                  View notes
+                </button>
+              )}
+              {isDone && onEditNotes && (
+                <button type="button" role="menuitem" className="country-list-card-more-item"
+                  onClick={(e) => { e.stopPropagation(); setMoreOpen(false); onEditNotes(location); }}>
+                  Edit notes
+                </button>
+              )}
+              {onMoveToStatus && STATUS_OPTIONS.filter((o) => o.id !== status).map((opt) => (
+                <button key={opt.id} type="button" role="menuitem" className="country-list-card-more-item"
+                  onClick={(e) => { e.stopPropagation(); setMoreOpen(false); onMoveToStatus(location, opt.id); }}>
+                  Move to {opt.label}
+                </button>
+              ))}
+              <button type="button" role="menuitem" className="country-list-card-more-item country-list-card-more-item--delete"
+                onClick={(e) => { e.stopPropagation(); setMoreOpen(false); onRequestDelete(location); }} disabled={isDeleting}>
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Country column (list card)
 function CountryColumn({ 
   id, 
@@ -548,6 +670,8 @@ const Map = ({ shareUserName = 'My progress' }: MapProps) => {
   columnSortRef.current = columnSort;
   type ListTabId = 'done' | 'in review' | 'pending';
   const [mobileListTab, setMobileListTab] = useState<ListTabId>('done');
+  type ListTabBelowId = 'all' | 'done' | 'in review' | 'pending';
+  const [listTabBelow, setListTabBelow] = useState<ListTabBelowId>('all');
   const [newCountry, setNewCountry] = useState({
     name: '',
     code: '',
@@ -638,6 +762,21 @@ const Map = ({ shareUserName = 'My progress' }: MapProps) => {
   const handleMarkerClick = (countryLocation: CountryLocation): void => {
     setSelectedLocation(countryLocation);
   };
+
+  const getMarkerIcon = useCallback((status: string) => {
+    if (typeof window === 'undefined') return undefined;
+    const g = (window as unknown as { google?: { maps?: { SymbolPath?: { CIRCLE: number } } } }).google;
+    if (!g?.maps?.SymbolPath) return undefined;
+    const colors: Record<string, string> = { done: '#059669', 'in review': '#d97706', pending: '#dc2626' };
+    return {
+      path: g.maps.SymbolPath.CIRCLE,
+      fillColor: colors[status] || colors.pending,
+      fillOpacity: 1,
+      strokeColor: '#ffffff',
+      strokeWeight: 2,
+      scale: 10,
+    };
+  }, []);
 
   const handleMoveToStatus = async (location: CountryLocation, newStatus: string) => {
     const validStatuses = ['done', 'in review', 'pending'];
@@ -1077,6 +1216,20 @@ const Map = ({ shareUserName = 'My progress' }: MapProps) => {
   const pendingLocations = locations.filter(location => location.status === 'pending');
   const inReviewLocations = locations.filter(location => location.status === 'in review');
 
+  const sortedAllLocations = useMemo(
+    () => reorderLocationsByColumnSort(locations, columnSort),
+    [locations, columnSort]
+  );
+
+  const displayLocationsBelow =
+    listTabBelow === 'all'
+      ? sortedAllLocations
+      : listTabBelow === 'done'
+        ? doneLocations
+        : listTabBelow === 'in review'
+          ? inReviewLocations
+          : pendingLocations;
+
   const handleColumnSort = (columnId: string) => {
     const nextOrder: 'a-z' | 'z-a' = columnSort[columnId] === 'a-z' ? 'z-a' : 'a-z';
     const nextSort: Record<string, 'a-z' | 'z-a'> = { ...columnSort, [columnId]: nextOrder };
@@ -1244,97 +1397,148 @@ const Map = ({ shareUserName = 'My progress' }: MapProps) => {
             <span>Saving...</span>
           </div>
         )}
+        <div className="stats-bubbles" role="region" aria-label="Travel summary">
+          <div className="stats-bubble stats-bubble-done">
+            <span className="stats-bubble-number">{doneLocations.length}</span>
+            <span className="stats-bubble-label">Visited</span>
+          </div>
+          <div className="stats-bubble stats-bubble-in-review">
+            <span className="stats-bubble-number">{inReviewLocations.length}</span>
+            <span className="stats-bubble-label">In Review</span>
+          </div>
+          <div className="stats-bubble stats-bubble-pending">
+            <span className="stats-bubble-number">{pendingLocations.length}</span>
+            <span className="stats-bubble-label">To Visit</span>
+          </div>
+        </div>
+
+        <section className="quick-actions" aria-label="Quick actions">
+          <h2 className="quick-actions-title">Quick Actions</h2>
+          <div className="quick-actions-grid">
+            <button
+              type="button"
+              className="quick-action-btn quick-action-btn-map"
+              onClick={() => {
+                hapticLight();
+                setMapCollapsed(false);
+                document.getElementById('travel-map')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              aria-label="Map view"
+            >
+              <span className="quick-action-icon" aria-hidden>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              </span>
+              <span className="quick-action-label">Map View</span>
+            </button>
+            <button
+              type="button"
+              className="quick-action-btn quick-action-btn-list"
+              onClick={() => {
+                hapticLight();
+                document.getElementById('country-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              aria-label="List view"
+            >
+              <span className="quick-action-icon" aria-hidden>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                  <line x1="3" y1="6" x2="3.01" y2="6" />
+                  <line x1="3" y1="12" x2="3.01" y2="12" />
+                  <line x1="3" y1="18" x2="3.01" y2="18" />
+                </svg>
+              </span>
+              <span className="quick-action-label">List View</span>
+            </button>
+            <button
+              type="button"
+              className="quick-action-btn quick-action-btn-add"
+              onClick={() => {
+                hapticLight();
+                handleColumnDoubleClick('pending');
+              }}
+              disabled={isAddingCountry}
+              aria-label="Add new country"
+              aria-busy={isAddingCountry}
+            >
+              <span className="quick-action-icon" aria-hidden>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="16" />
+                  <line x1="8" y1="12" x2="16" y2="12" />
+                </svg>
+              </span>
+              <span className="quick-action-label">Add New</span>
+            </button>
+            <button
+              type="button"
+              className="quick-action-btn quick-action-btn-done"
+              onClick={() => {
+                hapticLight();
+                setListTabBelow('done');
+                document.getElementById('country-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              aria-label="View Complete list"
+            >
+              <span className="quick-action-icon" aria-hidden>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+              </span>
+              <span className="quick-action-label">Complete</span>
+            </button>
+            <button
+              type="button"
+              className="quick-action-btn quick-action-btn-in-review"
+              onClick={() => {
+                hapticLight();
+                setListTabBelow('in review');
+                document.getElementById('country-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              aria-label="View In Review list"
+            >
+              <span className="quick-action-icon" aria-hidden>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              </span>
+              <span className="quick-action-label">In Review</span>
+            </button>
+            <button
+              type="button"
+              className="quick-action-btn quick-action-btn-pending"
+              onClick={() => {
+                hapticLight();
+                setListTabBelow('pending');
+                document.getElementById('country-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              aria-label="View To Do list"
+            >
+              <span className="quick-action-icon" aria-hidden>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              </span>
+              <span className="quick-action-label">To Do</span>
+            </button>
+          </div>
+        </section>
+
         <div id="travel-map" className={`map-header ${locations.length > 0 ? 'map-header--unified' : ''}`}>
           <div className="map-header-top">
-            <div className="map-header-text">
-              <div className="map-header-title-row">
-                <span className="map-header-icon" aria-hidden>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                </span>
-                <h2 className="section-title">Your travel map</h2>
-              </div>
-              <p className="section-subtitle">Track where you've been and where you want to go.</p>
-            </div>
-            {locations.length === 0 && (
-              <div className="map-header-actions">
-                <button
-                  type="button"
-                  className="btn-add-country-header btn-add-country-header--compact"
-                  onClick={() => handleColumnDoubleClick('pending')}
-                  disabled={isAddingCountry}
-                  aria-label={isAddingCountry ? 'Adding country…' : 'Add new country'}
-                  aria-busy={isAddingCountry}
-                >
-                  {isAddingCountry ? (
-                    <>
-                      <span className="btn-spinner" aria-hidden />
-                      <span>Adding…</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                        <line x1="12" y1="5" x2="12" y2="19" />
-                        <line x1="5" y1="12" x2="19" y2="12" />
-                      </svg>
-                      <span>Add country</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
-          </div>
-            {locations.length > 0 && (
-            <>
-            <div className="map-header-toolbar" role="group" aria-label="Map options">
-              <span className="map-header-toolbar-label">Map & list</span>
-              <div className="map-header-toolbar-pills" role="group" aria-label="Filter map and switch list column">
-                <button
-                  type="button"
-                  className={`filter-btn filter-btn-done ${statusFilters.done ? 'active' : ''}`}
-                  onClick={() => handleFilterToggle('done')}
-                  aria-pressed={statusFilters.done}
-                  title={statusFilters.done ? 'Shown on map · View Done list' : 'Show on map · View Done list'}
-                >
-                  <span className="filter-btn-dot" aria-hidden />
-                  <span className="filter-btn-label">Done</span>
-                  {doneLocations.length > 0 && (
-                    <span className="filter-btn-count">{doneLocations.length}</span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className={`filter-btn filter-btn-in-review ${statusFilters['in review'] ? 'active' : ''}`}
-                  onClick={() => handleFilterToggle('in review')}
-                  aria-pressed={statusFilters['in review']}
-                  title={statusFilters['in review'] ? 'Shown on map · View In Review list' : 'Show on map · View In Review list'}
-                >
-                  <span className="filter-btn-dot" aria-hidden />
-                  <span className="filter-btn-label">In Review</span>
-                  {inReviewLocations.length > 0 && (
-                    <span className="filter-btn-count">{inReviewLocations.length}</span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className={`filter-btn filter-btn-pending ${statusFilters.pending ? 'active' : ''}`}
-                  onClick={() => handleFilterToggle('pending')}
-                  aria-pressed={statusFilters.pending}
-                  title={statusFilters.pending ? 'Shown on map · View Pending list' : 'Show on map · View Pending list'}
-                >
-                  <span className="filter-btn-dot" aria-hidden />
-                  <span className="filter-btn-label">Pending</span>
-                  {pendingLocations.length > 0 && (
-                    <span className="filter-btn-count">{pendingLocations.length}</span>
-                  )}
-                </button>
-              </div>
-              <span className="map-header-toolbar-sep" aria-hidden />
+            <div className="map-world-map-row" role="group" aria-label="World map section">
+              <h2 className="map-world-map-title">World Map</h2>
               <button
                 type="button"
-                className="btn-add-country-header btn-add-country-header--compact btn-add-country-header--in-toolbar"
+                className="btn-add-country-header btn-add-country-header--compact"
                 onClick={() => handleColumnDoubleClick('pending')}
                 disabled={isAddingCountry}
                 aria-label={isAddingCountry ? 'Adding country…' : 'Add new country'}
@@ -1355,87 +1559,58 @@ const Map = ({ shareUserName = 'My progress' }: MapProps) => {
                   </>
                 )}
               </button>
-              <span className="map-header-toolbar-sep" aria-hidden />
-              <button
-                type="button"
-                className={`map-toggle-btn map-toggle-btn--in-bar ${mapCollapsed ? 'map-toggle-btn--collapsed' : ''}`}
-                onClick={() => { hapticLight(); setMapCollapsed((c) => !c); }}
-                aria-expanded={!mapCollapsed}
-                aria-controls="map-wrapper-id"
-                aria-label={mapCollapsed
-                  ? (filteredLocations.length > 0 ? `Show map (${filteredLocations.length} ${filteredLocations.length === 1 ? 'country' : 'countries'} on map)` : 'Show map')
-                  : 'Hide map'}
-              >
-                {mapCollapsed ? (
-                  <>
-                    <svg className="map-toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                      <circle cx="12" cy="10" r="3" />
-                    </svg>
-                    <span className="map-toggle-text">Show map</span>
-                    {filteredLocations.length > 0 && (
-                      <span className="map-toggle-count" aria-hidden>
-                        {filteredLocations.length}
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <svg className="map-toggle-icon map-toggle-icon--up" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <polyline points="18 15 12 9 6 15" />
-                    </svg>
-                    <span className="map-toggle-text">Hide map</span>
-                  </>
-                )}
-              </button>
-              <button
-                type="button"
-                className={`map-toggle-btn map-toggle-btn--in-bar ${listCollapsed ? 'map-toggle-btn--collapsed' : ''}`}
-                onClick={() => { hapticLight(); setListCollapsed((c) => !c); }}
-                aria-expanded={!listCollapsed}
-                aria-controls="list-wrapper-id"
-                aria-label={listCollapsed
-                  ? (filteredLocations.length > 0 ? `Show list (${filteredLocations.length} ${filteredLocations.length === 1 ? 'country' : 'countries'})` : 'Show list')
-                  : 'Hide list'}
-              >
-                {listCollapsed ? (
-                  <>
-                    <svg className="map-toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <line x1="8" y1="6" x2="21" y2="6" />
-                      <line x1="8" y1="12" x2="21" y2="12" />
-                      <line x1="8" y1="18" x2="21" y2="18" />
-                      <line x1="3" y1="6" x2="3.01" y2="6" />
-                      <line x1="3" y1="12" x2="3.01" y2="12" />
-                      <line x1="3" y1="18" x2="3.01" y2="18" />
-                    </svg>
-                    <span className="map-toggle-text">Show list</span>
-                    {filteredLocations.length > 0 && (
-                      <span className="map-toggle-count" aria-hidden>
-                        {filteredLocations.length}
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <svg className="map-toggle-icon map-toggle-icon--up" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <polyline points="18 15 12 9 6 15" />
-                    </svg>
-                    <span className="map-toggle-text">Hide list</span>
-                  </>
-                )}
-              </button>
             </div>
-            <div className={`map-section-map-wrap map-section-map-wrap--inside-header ${mapCollapsed ? 'map-section-map-wrap--map-collapsed' : ''}`}>
+          </div>
+            {locations.length > 0 && (
+            <div className="map-header-toolbar" role="group" aria-label="Filter map by status">
+              <div className="map-header-toolbar-pills map-header-toolbar-pills--legend-style" role="group" aria-label="Filter map and switch list column">
+                <button
+                  type="button"
+                  className={`filter-btn filter-btn-done ${statusFilters.done ? 'active' : ''}`}
+                  onClick={() => handleFilterToggle('done')}
+                  aria-pressed={statusFilters.done}
+                  title={statusFilters.done ? 'Shown on map · View Complete list' : 'Show on map · View Complete list'}
+                >
+                  <span className="filter-btn-dot" aria-hidden />
+                  <span className="filter-btn-label">Complete</span>
+                  {doneLocations.length > 0 && (
+                    <span className="filter-btn-count">{doneLocations.length}</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className={`filter-btn filter-btn-in-review ${statusFilters['in review'] ? 'active' : ''}`}
+                  onClick={() => handleFilterToggle('in review')}
+                  aria-pressed={statusFilters['in review']}
+                  title={statusFilters['in review'] ? 'Shown on map · View Review list' : 'Show on map · View Review list'}
+                >
+                  <span className="filter-btn-dot" aria-hidden />
+                  <span className="filter-btn-label">Review</span>
+                  {inReviewLocations.length > 0 && (
+                    <span className="filter-btn-count">{inReviewLocations.length}</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className={`filter-btn filter-btn-pending ${statusFilters.pending ? 'active' : ''}`}
+                  onClick={() => handleFilterToggle('pending')}
+                  aria-pressed={statusFilters.pending}
+                  title={statusFilters.pending ? 'Shown on map · View To Do list' : 'Show on map · View To Do list'}
+                >
+                  <span className="filter-btn-dot" aria-hidden />
+                  <span className="filter-btn-label">To Do</span>
+                  {pendingLocations.length > 0 && (
+                    <span className="filter-btn-count">{pendingLocations.length}</span>
+                  )}
+                </button>
+              </div>
+            </div>
+            )}
+            <div className="map-section-map-wrap map-section-map-wrap--inside-header">
               <div
                 id="map-wrapper-id"
-                className={`map-wrapper ${mapCollapsed ? 'map-wrapper--collapsed' : ''} ${pickingLocationFromMap ? 'map-wrapper--picking' : ''}`}
+                className={`map-wrapper ${pickingLocationFromMap ? 'map-wrapper--picking' : ''}`}
               >
-                {!mapCollapsed && (
-                <div className="view-map-row" role="group" aria-label="View map">
-                  <span className="list-pills-label">View map</span>
-                </div>
-                )}
-                {!mapCollapsed && (
                 <>
                 {pickingLocationFromMap && (
                   <div className="map-pick-banner" role="status" aria-live="polite">
@@ -1458,10 +1633,11 @@ const Map = ({ shareUserName = 'My progress' }: MapProps) => {
                 {filteredLocations.map((location) => {
                   const countryLocation: CountryLocation = location;
                   return (
-                    <Marker 
-                      key={location.id} 
-                      position={location.position} 
-                      title={location.name} 
+                    <Marker
+                      key={location.id}
+                      position={location.position}
+                      title={location.name}
+                      icon={getMarkerIcon(location.status)}
                       onClick={() => handleMarkerClick(countryLocation)}
                     />
                   );
@@ -1472,7 +1648,7 @@ const Map = ({ shareUserName = 'My progress' }: MapProps) => {
                     onCloseClick={() => setSelectedLocation(null)}
                   >
                     <div className={`info-window info-window--${selectedLocation.status.replace(/\s+/g, '-')}`}>
-                      <span className="info-window-status-pill">{selectedLocation.status === 'done' ? 'Done' : selectedLocation.status === 'in review' ? 'In Review' : 'Pending'}</span>
+                      <span className="info-window-status-pill">{selectedLocation.status === 'done' ? 'Complete' : selectedLocation.status === 'in review' ? 'Review' : 'To Do'}</span>
                       <div className="info-window-header">
                         {selectedLocation.flag && (
                           <img 
@@ -1510,219 +1686,177 @@ const Map = ({ shareUserName = 'My progress' }: MapProps) => {
                 )}
                 </GoogleMap>
                 </>
+              </div>
+              <div className="map-legend" role="group" aria-label="Map legend">
+                  <span className="map-legend-item map-legend-item--done">
+                    <span className="map-legend-dot" aria-hidden />
+                    <span className="map-legend-label">Complete</span>
+                  </span>
+                  <span className="map-legend-item map-legend-item--in-review">
+                    <span className="map-legend-dot" aria-hidden />
+                    <span className="map-legend-label">Review</span>
+                  </span>
+                  <span className="map-legend-item map-legend-item--pending">
+                    <span className="map-legend-dot" aria-hidden />
+                    <span className="map-legend-label">To Do</span>
+                  </span>
+                </div>
+            </div>
+        </div>
+
+        {locations.length > 0 && (
+          <section id="country-list" className="list-section-below-map" aria-label="Country list">
+            <div className="list-tabs-wrap" role="tablist" aria-label="Filter list by status">
+              <button
+                type="button"
+                role="tab"
+                className={`list-tab ${listTabBelow === 'all' ? 'list-tab--active' : ''}`}
+                aria-selected={listTabBelow === 'all'}
+                onClick={() => { hapticLight(); setListTabBelow('all'); }}
+              >
+                All ({locations.length})
+              </button>
+              <button
+                type="button"
+                role="tab"
+                className={`list-tab ${listTabBelow === 'done' ? 'list-tab--active' : ''}`}
+                aria-selected={listTabBelow === 'done'}
+                onClick={() => { hapticLight(); setListTabBelow('done'); }}
+              >
+                Complete
+              </button>
+              <button
+                type="button"
+                role="tab"
+                className={`list-tab ${listTabBelow === 'in review' ? 'list-tab--active' : ''}`}
+                aria-selected={listTabBelow === 'in review'}
+                onClick={() => { hapticLight(); setListTabBelow('in review'); }}
+              >
+                Review
+              </button>
+              <button
+                type="button"
+                role="tab"
+                className={`list-tab ${listTabBelow === 'pending' ? 'list-tab--active' : ''}`}
+                aria-selected={listTabBelow === 'pending'}
+                onClick={() => { hapticLight(); setListTabBelow('pending'); }}
+              >
+                To Do
+              </button>
+            </div>
+            {listTabBelow === 'done' && (
+              <>
+                <div className="progress-bar-standalone progress-bar-standalone--below-map" role="region" aria-label="Travel progress">
+                  {celebratingMilestone !== null && (
+                    <div className="progress-bar-standalone-celebration" role="alert" aria-live="assertive">
+                      <span className="progress-bar-standalone-celebration-emoji">🎉</span>
+                      <span>You reached {celebratingMilestone} countries!</span>
+                    </div>
+                  )}
+                  <div className="progress-bar-standalone-inner">
+                    <span className="progress-bar-standalone-count">{visitedCount} / {TOTAL_COUNTRIES}</span>
+                    <div className="progress-bar-standalone-bar">
+                      <div className="progress-bar-standalone-fill" style={{ width: `${progressDisplay}%` }}>
+                        <span className="progress-bar-standalone-pct">{progressPercentage.toFixed(1)}%</span>
+                      </div>
+                      <span className="progress-bar-standalone-remaining" aria-hidden>{remainingCount} left</span>
+                    </div>
+                    <div className="progress-bar-standalone-actions">
+                      <button
+                        type="button"
+                        className="btn-share-progress btn-share-progress--strip"
+                        onClick={() => setShowShareModal(true)}
+                        aria-label="Share progress"
+                        title="Share progress"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="18" cy="5" r="3" />
+                          <circle cx="6" cy="12" r="3" />
+                          <circle cx="18" cy="19" r="3" />
+                          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                        </svg>
+                        <span>Share</span>
+                      </button>
+                      {showShareModal && (
+                        <>
+                          <div className="share-modal-backdrop" onClick={() => setShowShareModal(false)} aria-hidden />
+                          <div className="share-modal" role="dialog" aria-label="Share options">
+                            <button type="button" className="share-modal-close" onClick={() => setShowShareModal(false)} aria-label="Close">
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                            </button>
+                            <h2 className="share-modal-title">Share your progress</h2>
+                            <div className="share-modal-actions">
+                              <button type="button" className="share-action-btn" onClick={handleCopyShareLink}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                                <span>{shareLinkCopied ? 'Copied!' : 'Copy link'}</span>
+                              </button>
+                              <button type="button" className="share-action-btn" onClick={handleDownloadShareImage} disabled={isSharingImage}>
+                                {isSharingImage ? (
+                                  <span className="share-spinner" aria-hidden />
+                                ) : (
+                                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                                )}
+                                <span>{isSharingImage ? 'Creating...' : 'Download image'}</span>
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {milestone && (
+                    <p className="progress-bar-standalone-milestone" role="status" aria-live="polite">
+                      <span className="progress-bar-standalone-milestone-emoji">{milestone.emoji}</span>
+                      <span>{milestone.label}</span>
+                    </p>
+                  )}
+                </div>
+                <div ref={shareCardRef} className="share-card-for-image" aria-hidden>
+                  <div className="share-card-inner">
+                    <p className="share-card-name">{shareUserName}</p>
+                    <p className="share-card-stats">{visitedCount} / {TOTAL_COUNTRIES} countries visited</p>
+                    <div className="share-card-bar-wrap">
+                      <div className="share-card-bar-fill" style={{ width: `${progressPercentage}%` }} />
+                    </div>
+                    <p className="share-card-tagline">My travel bucket list</p>
+                  </div>
+                </div>
+              </>
+            )}
+            <div className="list-section-below-map-content">
+              <div className="country-list-scroll country-list-scroll--standalone">
+                {displayLocationsBelow.length > 0 ? (
+                  displayLocationsBelow.map((loc) => (
+                    <CountryListCard
+                      key={loc.id}
+                      location={loc}
+                      status={loc.status}
+                      onRequestDelete={(l) => setConfirmDeleteLocation(l)}
+                      onEditNotes={handleEditNotes}
+                      onViewNotes={handleViewNotes}
+                      onMoveToStatus={handleMoveToStatus}
+                      isDeleting={deletingId === loc.id}
+                    />
+                  ))
+                ) : (
+                  <div className="list-empty-state">
+                    <p className="list-empty-state-message">
+                      {listTabBelow === 'all' ? 'No countries yet' : listTabBelow === 'done' ? 'No countries completed yet' : listTabBelow === 'in review' ? 'No countries in review' : 'No countries to do'}
+                    </p>
+                    <button
+                      type="button"
+                      className="empty-state-cta"
+                      onClick={() => { hapticLight(); handleColumnDoubleClick('pending'); }}
+                    >
+                      Add country
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
-            <div
-              id="list-wrapper-id"
-              className={`list-section-inside-map ${listCollapsed ? 'list-section-inside-map--collapsed' : ''}`}
-              aria-hidden={listCollapsed}
-            >
-            <div className="list-section-inside-map-inner">
-            <div className="list-pills-row list-pills-row--inside-map" role="group" aria-label="View list by status">
-              <span className="list-pills-label">View list</span>
-              <div className="list-pills" role="group" aria-label="Filter columns by status">
-                <button
-                  type="button"
-                  className={`filter-btn filter-btn-done ${statusFilters.done ? 'active' : ''}`}
-                  onClick={() => handleFilterToggle('done')}
-                  aria-pressed={statusFilters.done}
-                  title={statusFilters.done ? 'Hide Done column' : 'Show Done column'}
-                >
-                  <span className="filter-btn-dot" aria-hidden />
-                  <span className="filter-btn-label">Done</span>
-                  {doneLocations.length > 0 && (
-                    <span className="filter-btn-count">{doneLocations.length}</span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className={`filter-btn filter-btn-in-review ${statusFilters['in review'] ? 'active' : ''}`}
-                  onClick={() => handleFilterToggle('in review')}
-                  aria-pressed={statusFilters['in review']}
-                  title={statusFilters['in review'] ? 'Hide In Review column' : 'Show In Review column'}
-                >
-                  <span className="filter-btn-dot" aria-hidden />
-                  <span className="filter-btn-label">In Review</span>
-                  {inReviewLocations.length > 0 && (
-                    <span className="filter-btn-count">{inReviewLocations.length}</span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className={`filter-btn filter-btn-pending ${statusFilters.pending ? 'active' : ''}`}
-                  onClick={() => handleFilterToggle('pending')}
-                  aria-pressed={statusFilters.pending}
-                  title={statusFilters.pending ? 'Hide Pending column' : 'Show Pending column'}
-                >
-                  <span className="filter-btn-dot" aria-hidden />
-                  <span className="filter-btn-label">Pending</span>
-                  {pendingLocations.length > 0 && (
-                    <span className="filter-btn-count">{pendingLocations.length}</span>
-                  )}
-                </button>
-              </div>
-            </div>
-            {statusFilters.done && (
-            <>
-            <div className="progress-bar-standalone progress-bar-standalone--inside-list" role="region" aria-label="Travel progress">
-              {celebratingMilestone !== null && (
-                <div className="progress-bar-standalone-celebration" role="alert" aria-live="assertive">
-                  <span className="progress-bar-standalone-celebration-emoji">🎉</span>
-                  <span>You reached {celebratingMilestone} countries!</span>
-                </div>
-              )}
-              <div className="progress-bar-standalone-inner">
-                <span className="progress-bar-standalone-count">{visitedCount} / {TOTAL_COUNTRIES}</span>
-                <div className="progress-bar-standalone-bar">
-                  <div className="progress-bar-standalone-fill" style={{ width: `${progressDisplay}%` }}>
-                    <span className="progress-bar-standalone-pct">{progressPercentage.toFixed(1)}%</span>
-                  </div>
-                  <span className="progress-bar-standalone-remaining" aria-hidden>{remainingCount} left</span>
-                </div>
-                <div className="progress-bar-standalone-actions">
-                  <button
-                    type="button"
-                    className="btn-share-progress btn-share-progress--strip"
-                    onClick={() => setShowShareModal(true)}
-                    aria-label="Share progress"
-                    title="Share progress"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="18" cy="5" r="3" />
-                      <circle cx="6" cy="12" r="3" />
-                      <circle cx="18" cy="19" r="3" />
-                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                    </svg>
-                    <span>Share</span>
-                  </button>
-                  {showShareModal && (
-                    <>
-                      <div className="share-modal-backdrop" onClick={() => setShowShareModal(false)} aria-hidden />
-                      <div className="share-modal" role="dialog" aria-label="Share options">
-                        <button type="button" className="share-modal-close" onClick={() => setShowShareModal(false)} aria-label="Close">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                        </button>
-                        <h2 className="share-modal-title">Share your progress</h2>
-                        <div className="share-modal-actions">
-                          <button type="button" className="share-action-btn" onClick={handleCopyShareLink}>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-                            <span>{shareLinkCopied ? 'Copied!' : 'Copy link'}</span>
-                          </button>
-                          <button type="button" className="share-action-btn" onClick={handleDownloadShareImage} disabled={isSharingImage}>
-                            {isSharingImage ? (
-                              <span className="share-spinner" aria-hidden />
-                            ) : (
-                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-                            )}
-                            <span>{isSharingImage ? 'Creating...' : 'Download image'}</span>
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-              {milestone && (
-                <p className="progress-bar-standalone-milestone" role="status" aria-live="polite">
-                  <span className="progress-bar-standalone-milestone-emoji">{milestone.emoji}</span>
-                  <span>{milestone.label}</span>
-                </p>
-              )}
-            </div>
-            <div ref={shareCardRef} className="share-card-for-image" aria-hidden>
-              <div className="share-card-inner">
-                <p className="share-card-name">{shareUserName}</p>
-                <p className="share-card-stats">{visitedCount} / {TOTAL_COUNTRIES} countries visited</p>
-                <div className="share-card-bar-wrap">
-                  <div className="share-card-bar-fill" style={{ width: `${progressPercentage}%` }} />
-                </div>
-                <p className="share-card-tagline">My travel bucket list</p>
-              </div>
-            </div>
-            </>
-            )}
-            <div id="country-list" className="country-lists-wrapper country-lists-wrapper--inside-map">
-              <div className="country-lists-container">
-                <div
-                  className={`country-column ${statusFilters.done ? 'country-column-visible' : ''}`}
-                  id="panel-done"
-                  role="tabpanel"
-                  aria-labelledby="tab-done"
-                  data-tab="done"
-                >
-                  <CountryColumn
-                    id="done"
-                    title="Completed"
-                    icon={<IconDone />}
-                    locations={doneLocations}
-                    status="done"
-                    emptyMessage="No countries completed yet"
-                    onDoubleClick={() => handleColumnDoubleClick('done')}
-                    onEmptyCtaClick={() => handleColumnDoubleClick('done')}
-                    onRequestDelete={(loc) => setConfirmDeleteLocation(loc)}
-                    onEditNotes={handleEditNotes}
-                    onViewNotes={handleViewNotes}
-                    onMoveToStatus={handleMoveToStatus}
-                    onSortClick={handleColumnSort}
-                    sortOrder={columnSort.done}
-                    deletingId={deletingId}
-                  />
-                </div>
-                <div
-                  className={`country-column ${statusFilters['in review'] ? 'country-column-visible' : ''}`}
-                  id="panel-in-review"
-                  role="tabpanel"
-                  aria-labelledby="tab-in-review"
-                  data-tab="in review"
-                >
-                  <CountryColumn
-                    id="in review"
-                    title="In Review"
-                    icon={<IconInReview />}
-                    locations={inReviewLocations}
-                    status="in review"
-                    emptyMessage="No countries in review"
-                    onDoubleClick={() => handleColumnDoubleClick('in review')}
-                    onEmptyCtaClick={() => handleColumnDoubleClick('in review')}
-                    onRequestDelete={(loc) => setConfirmDeleteLocation(loc)}
-                    onMoveToStatus={handleMoveToStatus}
-                    onSortClick={handleColumnSort}
-                    sortOrder={columnSort['in review']}
-                    deletingId={deletingId}
-                  />
-                </div>
-                <div
-                  className={`country-column ${statusFilters.pending ? 'country-column-visible' : ''}`}
-                  id="panel-pending"
-                  role="tabpanel"
-                  aria-labelledby="tab-pending"
-                  data-tab="pending"
-                >
-                  <CountryColumn
-                    id="pending"
-                    title="Pending"
-                    icon={<IconPending />}
-                    locations={pendingLocations}
-                    status="pending"
-                    emptyMessage="No pending countries"
-                    onDoubleClick={() => handleColumnDoubleClick('pending')}
-                    onEmptyCtaClick={() => handleColumnDoubleClick('pending')}
-                    onRequestDelete={(loc) => setConfirmDeleteLocation(loc)}
-                    onMoveToStatus={handleMoveToStatus}
-                    onSortClick={handleColumnSort}
-                    sortOrder={columnSort.pending}
-                    deletingId={deletingId}
-                  />
-                </div>
-              </div>
-            </div>
-            </div>
-            </div>
-            </>
-          )}
-        </div>
+          </section>
+        )}
 
         {isLoadingLocations ? (
           <div className="loading-skeleton" aria-busy="true" aria-label="Loading locations">
