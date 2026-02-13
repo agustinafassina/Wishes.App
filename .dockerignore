@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+npm-debug.log*
+.pnpm-debug.log*
+.yarn/cache
+.yarn/install-state.gz
+.pnp.*
+
+# Build output (rebuilt in container)
+.next
+out
+dist
+build
+
+# Git and IDE
+.git
+.gitignore
+.cursor
+.vscode
+*.md
+!README.md
+
+# Env files (pass at runtime or build-arg)
+
+
+!.env.example
+
+# Misc
+*.log
+.DS_Store

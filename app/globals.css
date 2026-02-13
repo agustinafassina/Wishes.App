@@ -2838,6 +2838,24 @@ html[data-theme="light"] .list-tab--active:hover::after {
   gap: 0.15rem;
 }
 
+/* Menú 3 puntitos en portal: por encima de todo, abre hacia arriba */
+.country-list-card-more-portal {
+  position: fixed;
+  z-index: 10000;
+  min-width: 160px;
+  pointer-events: none;
+}
+
+.country-list-card-more-portal .country-list-card-more-menu--portal {
+  pointer-events: auto;
+  position: static;
+  bottom: auto;
+  right: auto;
+  margin-bottom: 0;
+  transform: translateY(-100%);
+  z-index: 10000;
+}
+
 .country-list-card-more-item {
   display: block;
   width: 100%;

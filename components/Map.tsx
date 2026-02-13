@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import html2canvas from 'html2canvas';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useToast } from './ToastContext';
@@ -437,15 +438,26 @@ function CountryListCard({
   isDeleting?: boolean;
 }) {
   const [moreOpen, setMoreOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const moreRef = useRef<HTMLDivElement>(null);
+  const moreBtnRef = useRef<HTMLButtonElement>(null);
+  const menuPortalRef = useRef<HTMLDivElement>(null);
   const tags = normalizeTags(location);
   const isDone = status === 'done';
+
+  useLayoutEffect(() => {
+    if (!moreOpen || !moreBtnRef.current || typeof document === 'undefined') return;
+    const rect = moreBtnRef.current.getBoundingClientRect();
+    setMenuPosition({ top: rect.top - 8, left: rect.left });
+  }, [moreOpen]);
 
   useEffect(() => {
     if (!moreOpen) return;
     const close = (e: MouseEvent | TouchEvent) => {
       const target = e.target as Node;
-      if (moreRef.current && !moreRef.current.contains(target)) setMoreOpen(false);
+      const inButton = moreRef.current?.contains(target);
+      const inMenu = menuPortalRef.current?.contains(target);
+      if (!inButton && !inMenu) setMoreOpen(false);
     };
     document.addEventListener('click', close, true);
     document.addEventListener('touchstart', close, true);
@@ -495,6 +507,7 @@ function CountryListCard({
         </span>
         <div className="country-list-card-more-wrap" ref={moreRef}>
           <button
+            ref={moreBtnRef}
             type="button"
             className={`country-list-card-more-btn ${moreOpen ? 'country-list-card-more-btn--open' : ''}`}
             onClick={(e) => { e.stopPropagation(); setMoreOpen((o) => !o); }}
@@ -508,31 +521,43 @@ function CountryListCard({
               <circle cx="12" cy="19" r="1.5" />
             </svg>
           </button>
-          {moreOpen && (
-            <div className="country-list-card-more-menu" role="menu">
-              {isDone && onViewNotes && (
-                <button type="button" role="menuitem" className="country-list-card-more-item"
-                  onClick={(e) => { e.stopPropagation(); setMoreOpen(false); onViewNotes(location); }}>
-                  View notes
+          {moreOpen && typeof document !== 'undefined' && createPortal(
+            <div
+              ref={menuPortalRef}
+              className="country-list-card-more-portal"
+              style={{
+                position: 'fixed',
+                top: `${menuPosition.top}px`,
+                left: `${menuPosition.left}px`,
+              }}
+              role="presentation"
+            >
+              <div className="country-list-card-more-menu country-list-card-more-menu--portal" role="menu">
+                {isDone && onViewNotes && (
+                  <button type="button" role="menuitem" className="country-list-card-more-item"
+                    onClick={(e) => { e.stopPropagation(); setMoreOpen(false); onViewNotes(location); }}>
+                    View notes
+                  </button>
+                )}
+                {isDone && onEditNotes && (
+                  <button type="button" role="menuitem" className="country-list-card-more-item"
+                    onClick={(e) => { e.stopPropagation(); setMoreOpen(false); onEditNotes(location); }}>
+                    Edit notes
+                  </button>
+                )}
+                {onMoveToStatus && STATUS_OPTIONS.filter((o) => o.id !== status).map((opt) => (
+                  <button key={opt.id} type="button" role="menuitem" className="country-list-card-more-item"
+                    onClick={(e) => { e.stopPropagation(); setMoreOpen(false); onMoveToStatus(location, opt.id); }}>
+                    Move to {opt.label}
+                  </button>
+                ))}
+                <button type="button" role="menuitem" className="country-list-card-more-item country-list-card-more-item--delete"
+                  onClick={(e) => { e.stopPropagation(); setMoreOpen(false); onRequestDelete(location); }} disabled={isDeleting}>
+                  Delete
                 </button>
-              )}
-              {isDone && onEditNotes && (
-                <button type="button" role="menuitem" className="country-list-card-more-item"
-                  onClick={(e) => { e.stopPropagation(); setMoreOpen(false); onEditNotes(location); }}>
-                  Edit notes
-                </button>
-              )}
-              {onMoveToStatus && STATUS_OPTIONS.filter((o) => o.id !== status).map((opt) => (
-                <button key={opt.id} type="button" role="menuitem" className="country-list-card-more-item"
-                  onClick={(e) => { e.stopPropagation(); setMoreOpen(false); onMoveToStatus(location, opt.id); }}>
-                  Move to {opt.label}
-                </button>
-              ))}
-              <button type="button" role="menuitem" className="country-list-card-more-item country-list-card-more-item--delete"
-                onClick={(e) => { e.stopPropagation(); setMoreOpen(false); onRequestDelete(location); }} disabled={isDeleting}>
-                Delete
-              </button>
-            </div>
+              </div>
+            </div>,
+            document.body
           )}
         </div>
       </div>

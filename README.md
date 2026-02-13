@@ -113,6 +113,31 @@ pnpm dev
 # or
 bun dev
 ```
+
+### Docker 🐳
+
+Construir la imagen:
+```bash
+docker build -t wishes-app .
+```
+
+Ejecutar el contenedor (puerto 3000). **Solo el nombre de la imagen al final; no agregues otro argumento:**
+```bash
+docker run -p 3000:3000 wishes-app
+```
+
+Si ves `Error: Cannot find module '/app/wishes-app'`, es porque se pasó el nombre de la imagen como comando. Usá solo `docker run -p 3000:3000 wishes-app`.
+
+Ejecutar con variables de entorno desde un archivo `.env`:
+```bash
+docker run -p 3000:3000 --env-file .env wishes-app
+```
+
+Ejecutar en segundo plano (detached):
+```bash
+docker run -d -p 3000:3000 --name wishes-app wishes-app
+```
+
 ### Test app ⌛
 Open [http://localhost:3000](http://localhost:3000) with the browser to see the result.
 
