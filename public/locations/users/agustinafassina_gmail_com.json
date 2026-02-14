@@ -9,7 +9,13 @@
             "https://example.com/brazil-photo1.jpg",
             "https://example.com/brazil-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "visitedAt": "Mayo 2023",
+        "tags": [
+            "Pescado",
+            "Playa",
+            "Obrigado"
+        ]
     },
     {
         "name": "Chile",
@@ -21,7 +27,9 @@
             "https://example.com/chile-photo1.jpg",
             "https://example.com/chile-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "visitedAt": "April 2023",
+        "tags": []
     },
     {
         "name": "Colombia",
@@ -33,7 +41,14 @@
             "https://example.com/colombia-photo1.jpg",
             "https://example.com/colombia-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "visitedAt": "October 2023",
+        "tags": [
+            "Comida Rica",
+            "pescado",
+            "playa",
+            "work"
+        ]
     },
     {
         "name": "Uruguay",
@@ -45,7 +60,10 @@
             "https://example.com/uruguay-photo1.jpg",
             "https://example.com/uruguay-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "tags": [
+            "Family"
+        ]
     },
     {
         "name": "México",
@@ -57,7 +75,12 @@
             "https://example.com/mexico-photo1.jpg",
             "https://example.com/mexico-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "tags": [
+            "Tacos",
+            "Rico"
+        ],
+        "visitedAt": "Marzo 2023"
     },
     {
         "name": "España",
@@ -69,7 +92,11 @@
             "https://example.com/spain-photo1.jpg",
             "https://example.com/spain-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "visitedAt": "April 2024",
+        "tags": [
+            "Comida Rica"
+        ]
     },
     {
         "name": "Italia",
@@ -95,7 +122,11 @@
             "https://example.com/malta-photo1.jpg",
             "https://example.com/malta-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "visitedAt": "Agosto 2024",
+        "tags": [
+            "Pizza con peperoni"
+        ]
     },
     {
         "name": "Andorra",
@@ -123,7 +154,12 @@
             "https://example.com/england-photo1.jpg",
             "https://example.com/england-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "visitedAt": "October 2024",
+        "tags": [
+            "Frio",
+            "Harry Potter"
+        ]
     },
     {
         "name": "Escocia",
@@ -138,7 +174,8 @@
         "status": "done",
         "tags": [
             "Castillos"
-        ]
+        ],
+        "visitedAt": "October 2024"
     },
     {
         "name": "Países Bajos",
@@ -150,7 +187,11 @@
             "https://example.com/netherlands-photo1.jpg",
             "https://example.com/netherlands-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "visitedAt": "October 2024",
+        "tags": [
+            "Mariaa"
+        ]
     },
     {
         "name": "Luxemburgo",
@@ -162,7 +203,11 @@
             "https://example.com/luxembourg-photo1.jpg",
             "https://example.com/luxembourg-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "visitedAt": "November 2024",
+        "tags": [
+            "City"
+        ]
     },
     {
         "name": "Bélgica",
@@ -190,7 +235,9 @@
             "https://example.com/france-photo1.jpg",
             "https://example.com/france-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "visitedAt": "Noviembre 2024",
+        "tags": []
     },
     {
         "name": "Suiza",
@@ -202,7 +249,12 @@
             "https://example.com/switzerland-photo1.jpg",
             "https://example.com/switzerland-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "visitedAt": "November 2024",
+        "tags": [
+            "Frio",
+            "Chocolates"
+        ]
     },
     {
         "name": "Singapur",
