@@ -28,12 +28,15 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+COPY docker-entrypoint.sh .
+RUN sed -i 's/\r$//' docker-entrypoint.sh && chmod +x docker-entrypoint.sh && chown nextjs:nodejs docker-entrypoint.sh
+
 USER nextjs
 
-EXPOSE 3000
+ARG PORT=3000
+ENV PORT=${PORT}
+EXPOSE ${PORT}
 
-ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# ENTRYPOINT asegura que siempre se ejecute el server aunque se pase un argumento al run
-ENTRYPOINT ["node", "server.js"]
+ENTRYPOINT ["./docker-entrypoint.sh"]

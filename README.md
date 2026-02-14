@@ -115,15 +115,26 @@ bun dev
 ```
 
 ### Docker 🐳
+El puerto es configurable (default **3000**). Podés definirlo al construir la imagen o al ejecutar el contenedor.
 
-Construir la imagen:
+**Construir la imagen** (puerto por defecto 3000):
 ```bash
 docker build -t wishes-app .
 ```
 
-Ejecutar el contenedor (puerto 3000). **Solo el nombre de la imagen al final; no agregues otro argumento:**
+**Construir para otro puerto** (ej. 8080):
+```bash
+docker build --build-arg PORT=8080 -t wishes-app .
+```
+
+**Ejecutar** (puerto 3000). Solo el nombre de la imagen al final; no agregues otro argumento:
 ```bash
 docker run -p 3000:3000 wishes-app
+```
+
+**Ejecutar en otro puerto** (ej. 8080), sin rebuild:
+```bash
+docker run -p 8080:8080 -e PORT=8080 wishes-app
 ```
 
 Si ves `Error: Cannot find module '/app/wishes-app'`, es porque se pasó el nombre de la imagen como comando. Usá solo `docker run -p 3000:3000 wishes-app`.
@@ -136,6 +147,72 @@ docker run -p 3000:3000 --env-file .env wishes-app
 Ejecutar en segundo plano (detached):
 ```bash
 docker run -d -p 3000:3000 --name wishes-app wishes-app
+```
+
+#### Publicar en Docker Hub
+
+Reemplazá `TU_USUARIO` por tu usuario de Docker Hub.
+
+1. **Build** de la imagen con el nombre que tendrá en Docker Hub:
+```bash
+docker build -t TU_USUARIO/wishes-app:latest .
+```
+
+2. **Login** en Docker Hub (te pide usuario y contraseña):
+```bash
+docker login
+```
+
+3. **Push** de la imagen:
+```bash
+docker push TU_USUARIO/wishes-app:latest
+```
+
+Opcional: etiquetar también una versión (ej. `v1.0.0`) y pushearla:
+```bash
+docker tag TU_USUARIO/wishes-app:latest TU_USUARIO/wishes-app:v1.0.0
+docker push TU_USUARIO/wishes-app:v1.0.0
+```
+
+Para correr la imagen desde Docker Hub en otra máquina (reemplazá el puerto si usás otro):
+```bash
+docker run -p 3000:3000 --env-file .env TU_USUARIO/wishes-app:latest
+```
+
+### Deploy en otro environment (producción) 🌐
+
+En el servidor donde vas a correr el Docker, creá un archivo `.env` con las mismas variables pero apuntando al **host público** de ese environment.
+
+**Ejemplo de `.env` para producción** (reemplazá con tu host real, ej. `https://tudominio.com` o `http://179.43.1.99:3000`):
+
+```env
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="tu_google_maps_key"
+AUTH0_DOMAIN="dev-fzmzwj3owyilh2cw.us.auth0.com"
+AUTH0_CLIENT_ID="tu_client_id"
+AUTH0_CLIENT_SECRET="tu_client_secret"
+AUTH0_SECRET="una_cadena_aleatoria_larga_de_al_menos_32_caracteres"
+APP_BASE_URL="https://tudominio.com"
+```
+
+**Importante:**
+
+| Variable | En producción |
+|----------|----------------|
+| `APP_BASE_URL` | **URL pública** por la que se accede a la app: `https://tudominio.com` o `http://IP:3000`. Debe ser la URL que el usuario ve en el navegador (sin barra final). Si usás IP: `http://192.43.1.00:3000`. |
+| `AUTH0_*` | Mismos valores que en desarrollo (mismo tenant de Auth0). |
+
+**En el dashboard de Auth0** tenés que agregar las URLs de producción en la aplicación:
+
+- **Allowed Callback URLs:**  
+  `https://tudominio.com/auth/callback` (o `http://IP:3000/auth/callback` si usás IP).
+- **Allowed Logout URLs:**  
+  `https://tudominio.com` (o `http://IP:3000`).
+
+Si usás **HTTPS** con dominio, `APP_BASE_URL` debe ser `https://...`. Si accedés por IP y puerto, `http://192.43.1.00:3000` (revisá que la IP sea correcta, sin `001` en el tercer octeto: suele ser `192.43.1.00`).
+
+### Pull and docker build
+```
+
 ```
 
 ### Test app ⌛

@@ -16,13 +16,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Wishes – Travel bucket list",
+  title: "TravelTrack App",
   description: "Track and explore your travel bucket list. Mark countries as done, in review or pending.",
-  applicationName: "Wishes",
+  applicationName: "TravelTrack App",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Wishes",
+    title: "TravelTrack App",
   },
 };
 

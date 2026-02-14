@@ -420,7 +420,7 @@ export default function Home() {
             )}
           </div>
         </div>
-        <h1 className="header-title">Travel Tracker</h1>
+        <h1 className="header-title">TravelTrack App</h1>
         <div className="header-nav-right">
           <button
             type="button"
