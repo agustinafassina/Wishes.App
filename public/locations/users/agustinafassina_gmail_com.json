@@ -110,7 +110,8 @@
         "status": "done",
         "tags": [
             "Dalmatar"
-        ]
+        ],
+        "visitedAt": "October 2024"
     },
     {
         "name": "Inglaterra",
@@ -173,7 +174,11 @@
             "https://example.com/belgium-photo1.jpg",
             "https://example.com/belgium-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "visitedAt": "October 2024",
+        "tags": [
+            "Comida dulce"
+        ]
     },
     {
         "name": "Francia",

@@ -1672,40 +1672,28 @@ const Map = ({ shareUserName = 'My progress' }: MapProps) => {
                     position={selectedLocation.position} 
                     onCloseClick={() => setSelectedLocation(null)}
                   >
-                    <div className={`info-window info-window--${selectedLocation.status.replace(/\s+/g, '-')}`}>
-                      <span className="info-window-status-pill">{selectedLocation.status === 'done' ? 'Complete' : selectedLocation.status === 'in review' ? 'Review' : 'To Do'}</span>
-                      <div className="info-window-header">
-                        {selectedLocation.flag && (
-                          <img 
-                            src={selectedLocation.flag} 
-                            alt="" 
-                            className="info-window-flag"
-                          />
+                    <div className={`map-popup map-popup--${selectedLocation.status.replace(/\s+/g, '-')}`} role="dialog" aria-label={`${selectedLocation.name}`}>
+                      <div className="map-popup-body">
+                        <span className="map-popup-badge">{selectedLocation.status === 'done' ? 'Complete' : selectedLocation.status === 'in review' ? 'Review' : 'To Do'}</span>
+                        <h3 className="map-popup-title">{selectedLocation.name}</h3>
+                        {(selectedLocation.visitedAt || selectedLocation.notes || normalizeTags(selectedLocation).length > 0) && (
+                          <div className="map-popup-details">
+                            {selectedLocation.visitedAt && (
+                              <p className="map-popup-visited">Visited {selectedLocation.visitedAt}</p>
+                            )}
+                            {selectedLocation.notes && (
+                              <p className="map-popup-notes">{selectedLocation.notes}</p>
+                            )}
+                            {normalizeTags(selectedLocation).length > 0 && (
+                              <div className="map-popup-tags">
+                                {normalizeTags(selectedLocation).map((tag, i) => (
+                                  <span key={i} className="map-popup-tag">{tag}</span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         )}
-                        <h3 className="info-window-title">{selectedLocation.name}</h3>
                       </div>
-                      {selectedLocation.status === 'done' && (selectedLocation.visitedAt || selectedLocation.notes) && (
-                        <div className="info-window-visited">
-                          {selectedLocation.visitedAt && (
-                            <p className="info-window-visited-at">Visited in {selectedLocation.visitedAt}</p>
-                          )}
-                          {selectedLocation.notes && (
-                            <p className="info-window-notes">{selectedLocation.notes}</p>
-                          )}
-                        </div>
-                      )}
-                      {selectedLocation.photos && selectedLocation.photos.length > 0 && (
-                        <div className="info-window-photos">
-                          {selectedLocation.photos.slice(0, 3).map((photo, photoIndex) => (
-                            <img 
-                              key={photoIndex} 
-                              src={photo} 
-                              alt="" 
-                              className="info-window-photo"
-                            />
-                          ))}
-                        </div>
-                      )}
                     </div>
                   </InfoWindow>
                 )}
