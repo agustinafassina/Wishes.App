@@ -5,12 +5,13 @@ import { createPortal } from 'react-dom';
 import html2canvas from 'html2canvas';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useToast } from './ToastContext';
-import { getApiErrorDisplay } from '../lib/api-error-display';
-import { hapticLight, hapticSuccess } from '../lib/haptic';
+import { getApiErrorDisplay } from '@/lib/api-error-display';
+import { env } from '@/lib/env';
+import { hapticLight, hapticSuccess } from '@/lib/haptic';
 import ConfirmModal from './ConfirmModal';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 
-const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+const API_KEY = env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 interface CountryLocation {
   id: string;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import { auth0 } from '@/lib/auth0';
 import { getUserLocationsFilename, getUserLocationsFilePath } from '@/lib/user-locations';
+import { type Country } from '@/types/country';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,9 +30,9 @@ export async function POST(request: NextRequest) {
     } catch {
       return NextResponse.json({ error: 'User locations file not found' }, { status: 404 });
     }
-    const countries = JSON.parse(fileContents);
+    const countries: Country[] = JSON.parse(fileContents);
 
-    const countryIndex = countries.findIndex((c: { code: string; name: string }) => c.code === countryCode && c.name === countryName);
+    const countryIndex = countries.findIndex((c) => c.code === countryCode && c.name === countryName);
     if (countryIndex === -1) {
       return NextResponse.json(
         { error: 'Country not found' },

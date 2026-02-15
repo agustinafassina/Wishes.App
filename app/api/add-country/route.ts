@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import { auth0 } from '@/lib/auth0';
 import { getUserLocationsFilename, getUserLocationsFilePath, ensureUserLocationsDir } from '@/lib/user-locations';
+import { type Country, isCountryStatus } from '@/types/country';
+import { getDefaultFlagUrl } from '@/constants/country';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +15,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, code, latitude, longitude, flag, photos, status } = body;
 
-    // Validate required fields
     if (!name || !code || latitude === undefined || longitude === undefined || !status) {
       return NextResponse.json(
         { error: 'Missing required fields: name, code, latitude, longitude, status' },
@@ -21,9 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Valid status values
-    const validStatuses = ['done', 'in review', 'pending'];
-    if (!validStatuses.includes(status)) {
+    if (!isCountryStatus(status)) {
       return NextResponse.json(
         { error: 'Invalid status. Must be: done, in review, or pending' },
         { status: 400 }
@@ -33,33 +32,32 @@ export async function POST(request: NextRequest) {
     const filename = getUserLocationsFilename(session.user);
     const filePath = getUserLocationsFilePath(filename);
 
-    let countries: any[];
+    let countries: Country[];
     try {
       const fileContents = await fs.readFile(filePath, 'utf8');
-      countries = JSON.parse(fileContents);
-      if (!Array.isArray(countries)) countries = [];
+      const parsed = JSON.parse(fileContents);
+      countries = Array.isArray(parsed) ? parsed : [];
     } catch {
       countries = [];
     }
 
-    // Check if country code already exists
-    const existingCountry = countries.find((country: any) => country.code === code.toUpperCase());
+    const codeUpper = code.toUpperCase();
+    const existingCountry = countries.find((c) => c.code === codeUpper && c.name === (name as string).trim());
     if (existingCountry) {
       return NextResponse.json(
-        { error: `Country with code ${code.toUpperCase()} already exists` },
+        { error: `A country with code ${codeUpper} and this name already exists` },
         { status: 400 }
       );
     }
 
-    // Create new country object
-    const newCountry = {
-      name: name,
-      code: code.toUpperCase(),
+    const newCountry: Country = {
+      name: String(name).trim(),
+      code: codeUpper,
       latitude: parseFloat(latitude),
       longitude: parseFloat(longitude),
-      flag: flag || `https://flagcdn.com/w40/${code.toLowerCase()}.png`,
-      photos: photos || [],
-      status: status,
+      flag: flag && String(flag).trim() ? String(flag).trim() : getDefaultFlagUrl(code),
+      photos: Array.isArray(photos) ? photos : [],
+      status,
     };
 
     // Add the new country to the array

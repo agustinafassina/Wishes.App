@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import { auth0 } from '@/lib/auth0';
 import { getUserLocationsFilename, getUserLocationsFilePath } from '@/lib/user-locations';
+import { type Country, isCountryStatus } from '@/types/country';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,9 +21,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Valid status values
-    const validStatuses = ['done', 'in review', 'pending'];
-    if (!validStatuses.includes(newStatus)) {
+    if (!isCountryStatus(newStatus)) {
       return NextResponse.json(
         { error: 'Invalid status. Must be: done, in review, or pending' },
         { status: 400 }
@@ -38,10 +37,9 @@ export async function POST(request: NextRequest) {
     } catch {
       return NextResponse.json({ error: 'User locations file not found' }, { status: 404 });
     }
-    const countries = JSON.parse(fileContents);
+    const countries: Country[] = JSON.parse(fileContents);
 
-    // Find and update the country (code + name to support e.g. England vs Scotland both GB)
-    const countryIndex = countries.findIndex((country: any) => country.code === countryCode && country.name === countryName);
+    const countryIndex = countries.findIndex((c) => c.code === countryCode && c.name === countryName);
     
     if (countryIndex === -1) {
       return NextResponse.json(

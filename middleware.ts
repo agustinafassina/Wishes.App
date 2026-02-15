@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import "./lib/env"; // Validates server env on first request; throws if missing
 import { auth0 } from "./lib/auth0";
 
 export async function middleware(request: NextRequest) {
