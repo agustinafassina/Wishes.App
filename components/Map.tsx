@@ -1,668 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import html2canvas from 'html2canvas';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useToast } from './ToastContext';
 import { getApiErrorDisplay } from '@/lib/api-error-display';
 import { env } from '@/lib/env';
 import { hapticLight, hapticSuccess } from '@/lib/haptic';
+import type { Country, CountryLocation, CountryStatus } from '@/types/country';
+import { CountryListCard, MapPopup, normalizeTags } from '@/components/map/index';
 import ConfirmModal from './ConfirmModal';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 
 const API_KEY = env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-interface CountryLocation {
-  id: string;
-  name: string;
-  code: string;
-  position: {
-    lat: number;
-    lng: number;
-  };
-  photos: string[];
-  status: string;
-  flag?: string;
-  notes?: string;
-  visitedAt?: string;
-  /** @deprecated use tags */
-  tag?: string;
-  tags?: string[];
-}
-
-interface CountryData {
-  name: string;
-  code: string;
-  latitude: number;
-  longitude: number;
-  photos: string[];
-  status: string;
-  flag?: string;
-  notes?: string;
-  visitedAt?: string;
-  tag?: string;
-  tags?: string[];
-}
-
-function normalizeTags(c: { tag?: string; tags?: string[] }): string[] {
-  if (Array.isArray(c.tags) && c.tags.length > 0) return c.tags.filter((t): t is string => typeof t === 'string' && t.trim() !== '');
-  if (typeof c.tag === 'string' && c.tag.trim() !== '') return [c.tag.trim()];
-  return [];
-}
-
-const iconProps = { width: 24, height: 24, viewBox: '0 0 24 24' as const, fill: 'none' as const, stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
-
-const IconDone = () => (
-  <svg {...iconProps} aria-hidden>
-    <circle cx="12" cy="12" r="10" />
-    <path d="M9 12l2 2 4-4" />
-  </svg>
-);
-const IconInReview = () => (
-  <svg {...iconProps} aria-hidden>
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="12 6 12 12 16 14" />
-  </svg>
-);
-const IconPending = () => (
-  <svg {...iconProps} aria-hidden>
-    <circle cx="12" cy="12" r="10" />
-  </svg>
-);
-
-const STATUS_OPTIONS: { id: string; label: string }[] = [
-  { id: 'done', label: 'Completed' },
-  { id: 'in review', label: 'In Review' },
-  { id: 'pending', label: 'Pending' },
-];
-
-// Draggable Country Item Component
-function CountryItem({
-  location,
-  status,
-  onRequestDelete,
-  onEditNotes,
-  onViewNotes,
-  onMoveToStatus,
-  isDeleting,
-}: {
-  location: CountryLocation;
-  status: string;
-  onRequestDelete: (loc: CountryLocation) => void;
-  onEditNotes?: (loc: CountryLocation) => void;
-  onViewNotes?: (loc: CountryLocation) => void;
-  onMoveToStatus?: (loc: CountryLocation, newStatus: string) => void;
-  isDeleting?: boolean;
-}) {
-  const [moveMenuOpen, setMoveMenuOpen] = useState(false);
-  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
-  const [popoverOpen, setPopoverOpen] = useState(false);
-  const moveMenuRef = useRef<HTMLDivElement>(null);
-  const moreMenuRef = useRef<HTMLDivElement>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!moveMenuOpen) return;
-    const close = (e: MouseEvent | TouchEvent) => {
-      const target = e.target as Node;
-      if (moveMenuRef.current && !moveMenuRef.current.contains(target)) setMoveMenuOpen(false);
-    };
-    document.addEventListener('click', close, true);
-    document.addEventListener('touchstart', close, true);
-    return () => {
-      document.removeEventListener('click', close, true);
-      document.removeEventListener('touchstart', close, true);
-    };
-  }, [moveMenuOpen]);
-
-  useEffect(() => {
-    if (!moreMenuOpen) return;
-    const close = (e: MouseEvent | TouchEvent) => {
-      const target = e.target as Node;
-      if (moreMenuRef.current && !moreMenuRef.current.contains(target)) setMoreMenuOpen(false);
-    };
-    document.addEventListener('click', close, true);
-    document.addEventListener('touchstart', close, true);
-    return () => {
-      document.removeEventListener('click', close, true);
-      document.removeEventListener('touchstart', close, true);
-    };
-  }, [moreMenuOpen]);
-
-  useEffect(() => {
-    if (!popoverOpen) return;
-    const close = (e: MouseEvent | TouchEvent) => {
-      const target = e.target as Node;
-      if (popoverRef.current && !popoverRef.current.contains(target)) setPopoverOpen(false);
-    };
-    document.addEventListener('click', close, true);
-    document.addEventListener('touchstart', close, true);
-    return () => {
-      document.removeEventListener('click', close, true);
-      document.removeEventListener('touchstart', close, true);
-    };
-  }, [popoverOpen]);
-
-  const statusClass = status.replace(/\s+/g, '-');
-  const isDone = status === 'done';
-
-  const handleDeleteClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    e.nativeEvent.stopImmediatePropagation();
-    onRequestDelete(location);
-  };
-
-  const handleEditNotesClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    onEditNotes?.(location);
-  };
-
-  const handleViewNotesClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    onViewNotes?.(location);
-  };
-
-  const notesPreview = location.notes?.trim() ? (location.notes.trim().length > 80 ? `${location.notes.trim().slice(0, 80)}…` : location.notes.trim()) : null;
-  const tooltipLines: { text: string; className?: string }[] = [];
-  const locationTags = normalizeTags(location);
-  if (isDone) {
-    if (location.visitedAt?.trim()) tooltipLines.push({ text: `Visited in ${location.visitedAt.trim()}` });
-    if (notesPreview) tooltipLines.push({ text: notesPreview, className: 'country-item-tooltip-notes' });
-    if (tooltipLines.length === 0 && locationTags.length === 0) tooltipLines.push({ text: 'No notes yet' });
-  } else {
-    tooltipLines.push({ text: status === 'in review' ? 'In review' : 'Pending' });
-  }
-
-  return (
-    <div
-      className={`country-item country-item-${statusClass} ${isDeleting ? 'item-deleting' : ''}`}
-    >
-      {isDeleting && (
-        <div className="country-item-deleting-overlay" aria-hidden>
-          <span className="country-item-deleting-spinner" />
-          <span>Deleting...</span>
-        </div>
-      )}
-      <div className="country-item-info-wrap" ref={popoverRef}>
-        <div
-          className={`country-item-tooltip ${popoverOpen ? 'country-item-tooltip-open' : ''}`}
-          role="tooltip"
-          id={`country-item-tooltip-${location.id}`}
-        >
-          {locationTags.length > 0 && (
-            <div className="country-item-tooltip-tags">
-              {locationTags.map((t, i) => (
-                <span key={i} className="country-item-tooltip-tag-pill">
-                  <svg className="country-item-tooltip-tag-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                    <line x1="7" y1="7" x2="7.01" y2="7" />
-                  </svg>
-                  {t}
-                </span>
-              ))}
-            </div>
-          )}
-          {tooltipLines.map((line, i) => (
-            <span key={i} className={`country-item-tooltip-line ${line.className ?? ''}`.trim()}>{line.text}</span>
-          ))}
-        </div>
-        <div className="country-item-text">
-          {location.flag && (
-            <img
-              src={location.flag}
-              alt=""
-              className="country-flag"
-            />
-          )}
-          <button
-            type="button"
-            className="country-item-info-trigger"
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setPopoverOpen((o) => !o); }}
-            onPointerDown={(e) => e.stopPropagation()}
-            aria-expanded={popoverOpen}
-            aria-label={`Show details for ${location.name}`}
-            aria-describedby={popoverOpen ? `country-item-tooltip-${location.id}` : undefined}
-          >
-            <span className="country-name">{location.name}</span>
-            <span className="country-item-info-icon" aria-hidden>i</span>
-          </button>
-        </div>
-      </div>
-      <div className="country-item-actions">
-        {/* Inline actions: shown on desktop, hidden on mobile (replaced by More menu) */}
-        <div className="country-item-actions-inline">
-          {isDone && onViewNotes && (
-            <button
-              type="button"
-              className="country-item-view-btn"
-              onClick={handleViewNotesClick}
-              onPointerDown={(e) => e.stopPropagation()}
-              aria-label={`View notes: ${location.name}`}
-              title="View notes and visit date"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            </button>
-          )}
-          {isDone && onEditNotes && (
-            <button
-              type="button"
-              className="country-item-notes-btn"
-              onClick={handleEditNotesClick}
-              onPointerDown={(e) => e.stopPropagation()}
-              aria-label={`Edit notes: ${location.name}`}
-              title="Edit notes and visit date"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
-            </button>
-          )}
-          {onMoveToStatus && (
-            <div className="country-item-move-wrap" ref={moveMenuRef}>
-              <button
-                type="button"
-                className={`country-item-move-btn ${moveMenuOpen ? 'country-item-move-btn-open' : ''}`}
-                onClick={(e) => { e.stopPropagation(); e.preventDefault(); setMoveMenuOpen((o) => !o); }}
-                onPointerDown={(e) => e.stopPropagation()}
-                aria-label={`Move ${location.name} to another list`}
-                aria-expanded={moveMenuOpen}
-                aria-haspopup="true"
-                title="Move to another list"
-              >
-                <svg className="country-item-move-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M7 17L17 7" />
-                  <path d="M17 7H7V17" />
-                </svg>
-              </button>
-              {moveMenuOpen && (
-                <div className="country-item-move-menu" role="menu">
-                  <p className="country-item-move-menu-title">Move to</p>
-                  {STATUS_OPTIONS.filter((opt) => opt.id !== status).map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      role="menuitem"
-                      className={`country-item-move-menu-item country-item-move-menu-item--${opt.id.replace(/\s+/g, '-')}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        onMoveToStatus(location, opt.id);
-                        setMoveMenuOpen(false);
-                      }}
-                      onPointerDown={(e) => e.stopPropagation()}
-                    >
-                      <span className="country-item-move-menu-dot" aria-hidden />
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-          <button
-            type="button"
-            className="country-item-delete-btn"
-            onClick={handleDeleteClick}
-            onPointerDown={(e) => e.stopPropagation()}
-            aria-label={`Delete ${location.name}`}
-            title="Delete country"
-            disabled={isDeleting}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              <line x1="10" y1="11" x2="10" y2="17" />
-              <line x1="14" y1="11" x2="14" y2="17" />
-            </svg>
-          </button>
-        </div>
-
-        {/* More menu: shown on mobile only; one button opens View / Edit / Move to… / Delete */}
-        <div className="country-item-more-wrap" ref={moreMenuRef}>
-          <button
-            type="button"
-            className={`country-item-more-btn ${moreMenuOpen ? 'country-item-more-btn-open' : ''}`}
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setMoreMenuOpen((o) => !o); }}
-            onPointerDown={(e) => e.stopPropagation()}
-            aria-label={`More actions for ${location.name}`}
-            aria-expanded={moreMenuOpen}
-            aria-haspopup="true"
-            title="More actions"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-              <circle cx="12" cy="5" r="1.5" />
-              <circle cx="12" cy="12" r="1.5" />
-              <circle cx="12" cy="19" r="1.5" />
-            </svg>
-          </button>
-          {moreMenuOpen && (
-            <div className="country-item-more-menu" role="menu">
-              {isDone && onViewNotes && (
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="country-item-more-menu-item country-item-more-menu-item--view"
-                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); setMoreMenuOpen(false); handleViewNotesClick(e as unknown as React.MouseEvent); }}
-                  onPointerDown={(e) => e.stopPropagation()}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                  View notes
-                </button>
-              )}
-              {isDone && onEditNotes && (
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="country-item-more-menu-item country-item-more-menu-item--edit"
-                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); setMoreMenuOpen(false); handleEditNotesClick(e as unknown as React.MouseEvent); }}
-                  onPointerDown={(e) => e.stopPropagation()}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                  Edit notes
-                </button>
-              )}
-              {onMoveToStatus && STATUS_OPTIONS.filter((opt) => opt.id !== status).map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  role="menuitem"
-                  className={`country-item-more-menu-item country-item-more-menu-item--move country-item-more-menu-item--${opt.id.replace(/\s+/g, '-')}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    setMoreMenuOpen(false);
-                    onMoveToStatus(location, opt.id);
-                  }}
-                  onPointerDown={(e) => e.stopPropagation()}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <path d="M7 17L17 7" />
-                    <path d="M17 7H7V17" />
-                  </svg>
-                  Move to {opt.label}
-                </button>
-              ))}
-              <button
-                type="button"
-                role="menuitem"
-                className="country-item-more-menu-item country-item-more-menu-item--delete"
-                onClick={(e) => { e.stopPropagation(); e.preventDefault(); setMoreMenuOpen(false); handleDeleteClick(e as unknown as React.MouseEvent); }}
-                onPointerDown={(e) => e.stopPropagation()}
-                disabled={isDeleting}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  <line x1="10" y1="11" x2="10" y2="17" />
-                  <line x1="14" y1="11" x2="14" y2="17" />
-                </svg>
-                Delete
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Card para lista debajo del mapa – estilo mockup: flag, nombre, fecha, tags, badge estado
-function CountryListCard({
-  location,
-  status,
-  onRequestDelete,
-  onEditNotes,
-  onViewNotes,
-  onMoveToStatus,
-  isDeleting,
-}: {
-  location: CountryLocation;
-  status: string;
-  onRequestDelete: (loc: CountryLocation) => void;
-  onEditNotes?: (loc: CountryLocation) => void;
-  onViewNotes?: (loc: CountryLocation) => void;
-  onMoveToStatus?: (loc: CountryLocation, newStatus: string) => void;
-  isDeleting?: boolean;
-}) {
-  const [moreOpen, setMoreOpen] = useState(false);
-  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
-  const moreRef = useRef<HTMLDivElement>(null);
-  const moreBtnRef = useRef<HTMLButtonElement>(null);
-  const menuPortalRef = useRef<HTMLDivElement>(null);
-  const tags = normalizeTags(location);
-  const isDone = status === 'done';
-
-  useLayoutEffect(() => {
-    if (!moreOpen || !moreBtnRef.current || typeof document === 'undefined') return;
-    const rect = moreBtnRef.current.getBoundingClientRect();
-    setMenuPosition({ top: rect.top - 8, left: rect.left });
-  }, [moreOpen]);
-
-  useEffect(() => {
-    if (!moreOpen) return;
-    const close = (e: MouseEvent | TouchEvent) => {
-      const target = e.target as Node;
-      const inButton = moreRef.current?.contains(target);
-      const inMenu = menuPortalRef.current?.contains(target);
-      if (!inButton && !inMenu) setMoreOpen(false);
-    };
-    document.addEventListener('click', close, true);
-    document.addEventListener('touchstart', close, true);
-    return () => {
-      document.removeEventListener('click', close, true);
-      document.removeEventListener('touchstart', close, true);
-    };
-  }, [moreOpen]);
-
-  const dateLine = isDone && location.visitedAt?.trim()
-    ? `Visited: ${location.visitedAt.trim()}`
-    : status === 'in review'
-      ? 'Planned'
-      : 'Not scheduled';
-
-  const statusLabel = status === 'done' ? 'Complete' : status === 'in review' ? 'In Review' : 'To Do';
-  const statusClass = status.replace(/\s+/g, '-');
-
-  return (
-    <div className={`country-list-card country-list-card--${statusClass} ${isDeleting ? 'country-list-card--deleting' : ''} ${moreOpen ? 'country-list-card--menu-open' : ''}`}>
-      {isDeleting && (
-        <div className="country-list-card-deleting" aria-hidden>
-          <span className="country-list-card-deleting-spinner" />
-          <span>Deleting...</span>
-        </div>
-      )}
-      {location.flag && (
-        <img src={location.flag} alt="" className="country-list-card-flag" />
-      )}
-      <div className="country-list-card-body">
-        <h3 className="country-list-card-name">{location.name}</h3>
-        <p className="country-list-card-meta">
-          <span className="country-list-card-meta-icon" aria-hidden>📅</span>
-          {dateLine}
-        </p>
-        {tags.length > 0 && (
-          <div className="country-list-card-tags">
-            {tags.map((t, i) => (
-              <span key={i} className="country-list-card-tag">{t}</span>
-            ))}
-          </div>
-        )}
-      </div>
-      <div className="country-list-card-right">
-        <span className={`country-list-card-badge country-list-card-badge--${statusClass}`}>
-          {statusLabel}
-        </span>
-        <div className="country-list-card-more-wrap" ref={moreRef}>
-          <button
-            ref={moreBtnRef}
-            type="button"
-            className={`country-list-card-more-btn ${moreOpen ? 'country-list-card-more-btn--open' : ''}`}
-            onClick={(e) => { e.stopPropagation(); setMoreOpen((o) => !o); }}
-            aria-label="More actions"
-            aria-expanded={moreOpen}
-            aria-haspopup="true"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-              <circle cx="12" cy="5" r="1.5" />
-              <circle cx="12" cy="12" r="1.5" />
-              <circle cx="12" cy="19" r="1.5" />
-            </svg>
-          </button>
-          {moreOpen && typeof document !== 'undefined' && createPortal(
-            <div
-              ref={menuPortalRef}
-              className="country-list-card-more-portal"
-              style={{
-                position: 'fixed',
-                top: `${menuPosition.top}px`,
-                left: `${menuPosition.left}px`,
-              }}
-              role="presentation"
-            >
-              <div className="country-list-card-more-menu country-list-card-more-menu--portal" role="menu">
-                {isDone && onViewNotes && (
-                  <button type="button" role="menuitem" className="country-list-card-more-item"
-                    onClick={(e) => { e.stopPropagation(); setMoreOpen(false); onViewNotes(location); }}>
-                    View notes
-                  </button>
-                )}
-                {isDone && onEditNotes && (
-                  <button type="button" role="menuitem" className="country-list-card-more-item"
-                    onClick={(e) => { e.stopPropagation(); setMoreOpen(false); onEditNotes(location); }}>
-                    Edit notes
-                  </button>
-                )}
-                {onMoveToStatus && STATUS_OPTIONS.filter((o) => o.id !== status).map((opt) => (
-                  <button key={opt.id} type="button" role="menuitem" className="country-list-card-more-item"
-                    onClick={(e) => { e.stopPropagation(); setMoreOpen(false); onMoveToStatus(location, opt.id); }}>
-                    Move to {opt.label}
-                  </button>
-                ))}
-                <button type="button" role="menuitem" className="country-list-card-more-item country-list-card-more-item--delete"
-                  onClick={(e) => { e.stopPropagation(); setMoreOpen(false); onRequestDelete(location); }} disabled={isDeleting}>
-                  Delete
-                </button>
-              </div>
-            </div>,
-            document.body
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Country column (list card)
-function CountryColumn({ 
-  id, 
-  title, 
-  icon, 
-  locations, 
-  status, 
-  emptyMessage,
-  onDoubleClick,
-  onRequestDelete,
-  onEditNotes,
-  onViewNotes,
-  onMoveToStatus,
-  onSortClick,
-  sortOrder,
-  deletingId,
-  onEmptyCtaClick,
-}: { 
-  id: string;
-  title: string;
-  icon: React.ReactNode;
-  locations: CountryLocation[];
-  status: string;
-  emptyMessage: string;
-  onDoubleClick: () => void;
-  onRequestDelete: (loc: CountryLocation) => void;
-  onEditNotes?: (loc: CountryLocation) => void;
-  onViewNotes?: (loc: CountryLocation) => void;
-  onMoveToStatus?: (loc: CountryLocation, newStatus: string) => void;
-  onSortClick?: (columnId: string) => void;
-  sortOrder?: 'a-z' | 'z-a';
-  deletingId?: string | null;
-  onEmptyCtaClick?: () => void;
-}) {
-  const statusClass = status.replace(/\s+/g, '-');
-
-  return (
-    <div className={`country-card ${statusClass}`} onDoubleClick={onDoubleClick}>
-      <div className="card-header">
-        <div className={`card-icon card-icon-${statusClass}`}>{icon}</div>
-        <h2 className="country-title">{title}</h2>
-        {onSortClick && locations.length > 1 && (
-          <button
-            type="button"
-            className="column-sort-btn"
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onSortClick(id); }}
-            onDoubleClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
-            onPointerDown={(e) => e.stopPropagation()}
-            title={sortOrder === 'z-a' ? 'Sort A–Z' : 'Sort Z–A'}
-            aria-label={sortOrder === 'z-a' ? 'Sort A–Z' : 'Sort Z–A'}
-          >
-            {sortOrder === 'z-a' ? 'Z–A' : 'A–Z'}
-          </button>
-        )}
-      </div>
-      <div className="country-list-content">
-        <div className="country-list-scroll">
-          {locations.length > 0 ? (
-            locations.map((location) => (
-              <CountryItem
-                key={location.id}
-                location={location}
-                status={status}
-                onRequestDelete={onRequestDelete}
-                onEditNotes={onEditNotes}
-                onViewNotes={onViewNotes}
-                onMoveToStatus={onMoveToStatus}
-                isDeleting={deletingId === location.id}
-              />
-            ))
-          ) : (
-            <div className="empty-state" data-status={statusClass}>
-              <div className="empty-state-icon">{icon}</div>
-              <p className="empty-state-message">{emptyMessage}</p>
-              {status === 'pending' && onEmptyCtaClick && (
-                <p className="empty-state-hint">Or double-tap this card to add one.</p>
-              )}
-              {(status === 'in review' || status === 'done') && onEmptyCtaClick && (
-                <p className="empty-state-hint">Use the move icon to move items between columns or add below.</p>
-              )}
-              {onEmptyCtaClick && (
-                <button
-                  type="button"
-                  className="empty-state-cta"
-                  onClick={(e) => { e.stopPropagation(); onEmptyCtaClick(); }}
-                  onPointerDown={(e) => e.stopPropagation()}
-                >
-                  Add country
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 interface MapProps {
   shareUserName?: string;
@@ -755,19 +105,18 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
         if (!response.ok) return response.json().then(() => []);
         return response.json();
       })
-      .then((data: CountryData[]) => {
+      .then((data: Country[]) => {
         const list = Array.isArray(data) ? data : [];
         const places: CountryLocation[] = list.map((country) => ({
           id: `${country.code}-${country.name}`,
           name: country.name,
           code: country.code,
-          position: {
-            lat: country.latitude,
-            lng: country.longitude
-          },
-          photos: country.photos || [],
-          status: country.status || "pending",
-          flag: country.flag || "",
+          latitude: country.latitude,
+          longitude: country.longitude,
+          position: { lat: country.latitude, lng: country.longitude },
+          photos: country.photos ?? [],
+          status: country.status ?? 'pending',
+          flag: country.flag ?? '',
           notes: country.notes,
           visitedAt: country.visitedAt,
           tags: normalizeTags(country),
@@ -816,7 +165,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     const countryId = location.id;
     const originalStatus = location.status;
     setLocations((prev) =>
-      prev.map((loc) => (loc.id === countryId ? { ...loc, status: newStatus } : loc))
+      prev.map((loc) => (loc.id === countryId ? { ...loc, status: newStatus as CountryStatus } : loc))
     );
     setIsSavingStatus(true);
     try {
@@ -836,7 +185,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     } catch (error) {
       console.error('Error updating country status:', error);
       setLocations((prev) =>
-        prev.map((loc) => (loc.id === countryId ? { ...loc, status: originalStatus } : loc))
+        prev.map((loc) => (loc.id === countryId ? { ...loc, status: originalStatus as CountryStatus } : loc))
       );
       toast.error(getApiErrorDisplay(error, 'Failed to update status. Please try again.'));
     } finally {
@@ -924,17 +273,16 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
       const locationsResponse = await fetch('/api/locations', { credentials: 'include' });
       const locationsData = await (locationsResponse.ok ? locationsResponse.json() : Promise.resolve([]));
       const list = Array.isArray(locationsData) ? locationsData : [];
-      const places: CountryLocation[] = list.map((country: CountryData) => ({
+      const places: CountryLocation[] = list.map((country: Country) => ({
         id: `${country.code}-${country.name}`,
         name: country.name,
         code: country.code,
-        position: {
-          lat: country.latitude,
-          lng: country.longitude
-        },
-        photos: country.photos || [],
-        status: country.status || "pending",
-        flag: country.flag || "",
+        latitude: country.latitude,
+        longitude: country.longitude,
+        position: { lat: country.latitude, lng: country.longitude },
+        photos: country.photos ?? [],
+        status: country.status ?? 'pending',
+        flag: country.flag ?? '',
         notes: country.notes,
         visitedAt: country.visitedAt,
         tags: normalizeTags(country),
@@ -977,14 +325,16 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
       const locationsResponse = await fetch('/api/locations', { credentials: 'include' });
       const locationsData = await (locationsResponse.ok ? locationsResponse.json() : Promise.resolve([]));
       const list = Array.isArray(locationsData) ? locationsData : [];
-      const places: CountryLocation[] = list.map((country: CountryData) => ({
+      const places: CountryLocation[] = list.map((country: Country) => ({
         id: `${country.code}-${country.name}`,
         name: country.name,
         code: country.code,
+        latitude: country.latitude,
+        longitude: country.longitude,
         position: { lat: country.latitude, lng: country.longitude },
-        photos: country.photos || [],
-        status: country.status || 'pending',
-        flag: country.flag || '',
+        photos: country.photos ?? [],
+        status: country.status ?? 'pending',
+        flag: country.flag ?? '',
         notes: country.notes,
         visitedAt: country.visitedAt,
         tags: normalizeTags(country),
@@ -1200,14 +550,16 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
       const locationsResponse = await fetch('/api/locations', { credentials: 'include' });
       const locationsData = await (locationsResponse.ok ? locationsResponse.json() : Promise.resolve([]));
       const list = Array.isArray(locationsData) ? locationsData : [];
-      const places: CountryLocation[] = list.map((country: CountryData) => ({
+      const places: CountryLocation[] = list.map((country: Country) => ({
         id: `${country.code}-${country.name}`,
         name: country.name,
         code: country.code,
+        latitude: country.latitude,
+        longitude: country.longitude,
         position: { lat: country.latitude, lng: country.longitude },
-        photos: country.photos || [],
-        status: country.status || 'pending',
-        flag: country.flag || '',
+        photos: country.photos ?? [],
+        status: country.status ?? 'pending',
+        flag: country.flag ?? '',
         notes: country.notes,
         visitedAt: country.visitedAt,
         tags: normalizeTags(country),
@@ -1675,33 +1027,11 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                   );
                 })}
                 {selectedLocation && (
-                  <InfoWindow 
-                    position={selectedLocation.position} 
+                  <InfoWindow
+                    position={selectedLocation.position}
                     onCloseClick={() => setSelectedLocation(null)}
                   >
-                    <div className={`map-popup map-popup--${selectedLocation.status.replace(/\s+/g, '-')}`} role="dialog" aria-label={`${selectedLocation.name}`}>
-                      <div className="map-popup-body">
-                        <span className="map-popup-badge">{selectedLocation.status === 'done' ? 'Complete' : selectedLocation.status === 'in review' ? 'Review' : 'To Do'}</span>
-                        <h3 className="map-popup-title">{selectedLocation.name}</h3>
-                        {(selectedLocation.visitedAt || selectedLocation.notes || normalizeTags(selectedLocation).length > 0) && (
-                          <div className="map-popup-details">
-                            {selectedLocation.visitedAt && (
-                              <p className="map-popup-visited">Visited {selectedLocation.visitedAt}</p>
-                            )}
-                            {selectedLocation.notes && (
-                              <p className="map-popup-notes">{selectedLocation.notes}</p>
-                            )}
-                            {normalizeTags(selectedLocation).length > 0 && (
-                              <div className="map-popup-tags">
-                                {normalizeTags(selectedLocation).map((tag, i) => (
-                                  <span key={i} className="map-popup-tag">{tag}</span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <MapPopup location={selectedLocation} />
                   </InfoWindow>
                 )}
                 </GoogleMap>
@@ -1852,7 +1182,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                       key={loc.id}
                       location={loc}
                       status={loc.status}
-                      onRequestDelete={(l) => setConfirmDeleteLocation(l)}
+                      onRequestDelete={(l: CountryLocation) => setConfirmDeleteLocation(l)}
                       onEditNotes={handleEditNotes}
                       onViewNotes={handleViewNotes}
                       onMoveToStatus={handleMoveToStatus}
@@ -1993,7 +1323,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                     <h2 id="view-modal-title" className="modal-title">{locationForView.name}</h2>
                     {normalizeTags(locationForView).length > 0 && (
                       <div className="view-modal-tags">
-                        {normalizeTags(locationForView).map((t, i) => (
+                        {normalizeTags(locationForView).map((t: string, i: number) => (
                           <span key={i} className="view-modal-tag">
                             <svg className="view-modal-tag-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                               <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />

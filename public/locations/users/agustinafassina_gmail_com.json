@@ -369,18 +369,6 @@
         "status": "pending"
     },
     {
-        "name": "Islandia",
-        "code": "IS",
-        "latitude": 64.9631,
-        "longitude": -19.0208,
-        "flag": "https://flagcdn.com/w40/is.png",
-        "photos": [
-            "https://example.com/iceland-photo1.jpg",
-            "https://example.com/iceland-photo2.jpg"
-        ],
-        "status": "pending"
-    },
-    {
         "name": "Chequia",
         "code": "CZ",
         "latitude": 49.8175,
@@ -426,7 +414,7 @@
             "https://example.com/ireland-photo1.jpg",
             "https://example.com/ireland-photo2.jpg"
         ],
-        "status": "pending"
+        "status": "in review"
     },
     {
         "name": "Hungría",
