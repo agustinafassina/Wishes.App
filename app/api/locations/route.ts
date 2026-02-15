@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
-import path from 'path';
 import { auth0 } from '@/lib/auth0';
-import { getUserLocationsFilename } from '@/lib/user-locations';
+import { getUserLocationsFilename, getUserLocationsFilePath } from '@/lib/user-locations';
 
 export async function GET() {
   try {
@@ -12,7 +11,7 @@ export async function GET() {
     }
 
     const filename = getUserLocationsFilename(session.user);
-    const filePath = path.join(process.cwd(), 'public', 'locations', 'users', `${filename}.json`);
+    const filePath = getUserLocationsFilePath(filename);
 
     let data: unknown[];
     try {

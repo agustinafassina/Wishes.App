@@ -210,10 +210,73 @@ APP_BASE_URL="https://tudominio.com"
 
 Si usás **HTTPS** con dominio, `APP_BASE_URL` debe ser `https://...`. Si accedés por IP y puerto, `http://192.43.1.00:3000` (revisá que la IP sea correcta, sin `001` en el tercer octeto: suele ser `192.43.1.00`).
 
-### Pull and docker build
+### Persistencia de datos con Docker (no perder los JSON) 💾
+En Docker los datos se guardan dentro del contenedor. En un nuevo `build` o borrás el contenedor, **perdés los JSON** de cada usuario. Para evitarlo se puede usar un volumen.
+
+**Paso 1: Crear la carpeta del volumen (en tu máquina)**  
+Ahí es donde Docker leerá y guardará los JSON.
+
+```bash
+mkdir -p ./data/locations-users
 ```
 
+**Paso 2: Poblar la carpeta (una de estas opciones)**
+
+- **Opción A – Build y deploy en servidores distintos:** Si construís la imagen en un server y la deployás en otro, no tenés los JSON en la máquina de deploy. Podés **copiar desde la imagen** al host la primera vez (la imagen trae lo que haya en `public/locations/users/` al hacer build):
+
+```bash
+# En el servidor de deploy, con la imagen ya bajada (ej. docker pull ...)
+mkdir -p ./data/locations-users
+
+# Crear un contenedor temporal sin ejecutarlo y copiar su carpeta al host
+docker create --name wishes-app-seed TU_USUARIO/wishes-app:latest
+docker cp wishes-app-seed:/app/public/locations/users/. ./data/locations-users/
+docker rm wishes-app-seed
 ```
+
+Después corrés el contenedor real con el volumen (Paso 3). La imagen solo trae JSON si en el **build** tenías archivos en `public/locations/users/` (si ese directorio estaba vacío o no en el repo, la carpeta en el deploy queda vacía y la app creará archivos cuando los usuarios agreguen países).
+
+- **Opción B – Tenés los JSON en la misma máquina:** Si en desarrollo tenés `public/locations/users/*.json`, copialos a la carpeta del volumen antes del primer `docker run`:
+
+```bash
+cp -r public/locations/users/* ./data/locations-users/
+```
+
+En Windows (PowerShell): `Copy-Item -Path .\public\locations\users\* -Destination .\data\locations-users\ -Force`
+
+Si **no** hacés ninguna de las dos, la carpeta queda vacía: la app arranca sin datos y creará un JSON cuando cada usuario agregue su primer país.
+
+**Paso 3: Ejecutar Docker con el volumen**  
+Docker monta `./data/locations-users` dentro del contenedor en `/app/public/locations/users`. Todo lo que la app lee o escribe va a esa carpeta de tu máquina.
+
+```bash
+docker run -d -p 3000:3000 --env-file .env \
+  -v "$(pwd)/data/locations-users:/app/public/locations/users" \
+  --name wishes-app wishes-app
+```
+
+En Windows (PowerShell):
+
+```powershell
+docker run -d -p 3000:3000 --env-file .env -v "${PWD}\data\locations-users:/app/public/locations/users" --name wishes-app wishes-app
+```
+
+**2. Backup de los JSON**  
+- **Desde la app:** en el menú hamburger hay **Backup JSON**, que descarga tu lista completa. Conviene usarlo de vez en cuando.  
+- **Desde el servidor:** si usás volumen, los archivos están en `./data/locations-users/` (un `.json` por usuario). Podés copiarlos a otro lugar o comprimirlos:
+
+```bash
+# Ejemplo: copiar a una carpeta de backup con fecha
+cp -r ./data/locations-users ./backup/locations-$(date +%Y%m%d)
+# O comprimir
+tar -czvf backup-locations.tar.gz ./data/locations-users
+```
+
+**3. Restaurar después**  
+- Si tenés un backup JSON descargado desde la app, por ahora no hay “Import” en la UI; guardá ese JSON y, si en el futuro agregás import, lo usás.  
+- Si usás volumen y tenés una copia de `data/locations-users`, volvé a montar esa carpeta al correr el contenedor y los datos vuelven a estar.
+
+**Resumen:** (1) Crear `./data/locations-users`. (2) Primera vez en el servidor de deploy: copiar desde la imagen con `docker create` + `docker cp` + `docker rm`, o copiar tus JSON locales si los tenés. (3) Correr Docker con `-v ./data/locations-users:/app/public/locations/users` para que los datos persistan.
 
 ### Test app ⌛
 Open [http://localhost:3000](http://localhost:3000) with the browser to see the result.

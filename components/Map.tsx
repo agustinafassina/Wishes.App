@@ -665,9 +665,11 @@ function CountryColumn({
 
 interface MapProps {
   shareUserName?: string;
+  /** When this value changes (e.g. incremented from header), open the Add country modal. */
+  triggerOpenAddModal?: number;
 }
 
-const Map = ({ shareUserName = 'My progress' }: MapProps) => {
+const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProps) => {
   const toast = useToast();
   const [locations, setLocations] = useState<CountryLocation[]>([]);
   const [mapCenter, setMapCenter] = useState({ lat: 20.0, lng: 0.0 });
@@ -740,6 +742,10 @@ const Map = ({ shareUserName = 'My progress' }: MapProps) => {
     observer.observe(el, { attributes: true, attributeFilter: ['data-theme'] });
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (triggerOpenAddModal > 0) setShowAddModal(true);
+  }, [triggerOpenAddModal]);
 
   useEffect(() => {
     setIsLoadingLocations(true);

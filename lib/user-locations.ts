@@ -1,3 +1,8 @@
+import path from 'path';
+import { promises as fs } from 'fs';
+
+const USER_LOCATIONS_DIR = path.join(process.cwd(), 'public', 'locations', 'users');
+
 /**
  * Maps the logged-in user (from Auth0 session) to the filename of their locations JSON.
  * Convention: email → agustinafassina_gmail_com.json; nickname → agusfas_5.json.
@@ -18,4 +23,19 @@ export function getUserLocationsFilename(user: {
     .replace(/_+/g, '_')
     .replace(/^_|_$/g, '') || 'default';
   return slug || 'default';
+}
+
+/**
+ * Returns the full path to a user's locations JSON file.
+ */
+export function getUserLocationsFilePath(filename: string): string {
+  return path.join(USER_LOCATIONS_DIR, `${filename}.json`);
+}
+
+/**
+ * Ensures the user locations directory exists (for Docker volume or first run).
+ * Call before writing so that an empty mounted volume works.
+ */
+export async function ensureUserLocationsDir(): Promise<void> {
+  await fs.mkdir(USER_LOCATIONS_DIR, { recursive: true });
 }

@@ -41,6 +41,7 @@ export default function Home() {
   const [isExportingBackup, setIsExportingBackup] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const [addModalTrigger, setAddModalTrigger] = useState(0);
   const displayName = user ? getDisplayName(user) : null;
 
   const scrollToSection = (id: string) => {
@@ -260,18 +261,22 @@ export default function Home() {
             <button
               ref={hamburgerButtonRef}
               type="button"
-              className="header-icon-btn"
+              className={`header-icon-btn ${user?.picture ? 'header-icon-btn--avatar' : ''}`}
               onClick={handleProfileClick}
               title="Menu"
               aria-label="Menu"
               aria-expanded={profileMenuOpen}
               aria-haspopup="true"
             >
-              <svg className="header-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="18" x2="21" y2="18" />
-              </svg>
+              {user?.picture ? (
+                <img src={user.picture} alt="" className="header-avatar" width={32} height={32} />
+              ) : (
+                <svg className="header-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+              )}
             </button>
             {profileMenuOpen && typeof document !== "undefined" && createPortal(
               <div
@@ -427,7 +432,7 @@ export default function Home() {
             className="header-icon-btn"
             onClick={() => {
               hapticLight();
-              scrollToSection("travel-map");
+              setAddModalTrigger((t) => t + 1);
             }}
             title="Add country"
             aria-label="Add country"
@@ -442,7 +447,7 @@ export default function Home() {
 
       <main id="main-content" className="main-content" ref={contentRef} tabIndex={-1}>
         <div className="content-section">
-          <Map shareUserName={displayName ?? "User"} />
+          <Map shareUserName={displayName ?? "User"} triggerOpenAddModal={addModalTrigger} />
         </div>
 
         <div ref={manualPdfRef} className="manual-pdf-source" aria-hidden />
