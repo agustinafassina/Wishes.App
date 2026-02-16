@@ -20,18 +20,20 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 nextjs \
+  && apk add --no-cache su-exec
 
 # Copy standalone output
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-COPY docker-entrypoint.sh .
-RUN sed -i 's/\r$//' docker-entrypoint.sh && chmod +x docker-entrypoint.sh && chown nextjs:nodejs docker-entrypoint.sh
+# Ensure locations dir exists and is writable by nextjs (and by entrypoint when volume is mounted)
+RUN mkdir -p /app/public/locations/users && chown -R nextjs:nodejs /app/public/locations
 
-USER nextjs
+COPY docker-entrypoint.sh .
+RUN sed -i 's/\r$//' docker-entrypoint.sh && chmod +x docker-entrypoint.sh
 
 ARG PORT=3000
 ENV PORT=${PORT}

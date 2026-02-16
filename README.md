@@ -247,7 +247,7 @@ En Windows (PowerShell): `Copy-Item -Path .\public\locations\users\* -Destinatio
 Si **no** hacés ninguna de las dos, la carpeta queda vacía: la app arranca sin datos y creará un JSON cuando cada usuario agregue su primer país.
 
 **Paso 3: Ejecutar Docker con el volumen**  
-Docker monta `./data/locations-users` dentro del contenedor en `/app/public/locations/users`. Todo lo que la app lee o escribe va a esa carpeta de tu máquina.
+Docker monta `./data/locations-users` dentro del contenedor en `/app/public/locations/users`. Todo lo que la app lee o escribe va a esa carpeta de tu máquina. Al arrancar, el contenedor ajusta permisos de ese directorio para que la app pueda escribir (evita `EACCES` al agregar países).
 
 ```bash
 docker run -d -p 3000:3000 --env-file .env \

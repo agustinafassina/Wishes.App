@@ -817,6 +817,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
               </div>
             </div>
             )}
+            {locations.length > 0 && (
             <div className="map-section-map-wrap map-section-map-wrap--inside-header">
               <div
                 id="map-wrapper-id"
@@ -879,6 +880,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                   </span>
                 </div>
             </div>
+            )}
         </div>
 
         {locations.length > 0 && (

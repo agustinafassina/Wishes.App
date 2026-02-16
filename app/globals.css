@@ -395,6 +395,20 @@ html[data-theme="light"] .map-header .map-header-toolbar-pills:not(.map-header-t
   border-color: rgba(0, 0, 0, 0.07);
 }
 
+html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-done.active,
+html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-in-review.active,
+html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-pending.active {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-done.active .filter-btn-dot,
+html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-in-review.active .filter-btn-dot,
+html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-pending.active .filter-btn-dot {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+}
+
 html[data-theme="light"] .map-header .map-header-toolbar-pills:not(.map-header-toolbar-pills--legend-style) .filter-btn:hover {
   background: rgba(0, 0, 0, 0.05);
   border-color: rgba(0, 0, 0, 0.1);
@@ -766,7 +780,6 @@ html[data-theme="light"] .filter-label {
 
 html[data-theme="light"] .map-wrapper {
   background: #f7f7fa;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.06);
   border-color: rgba(0, 0, 0, 0.06);
 }
 
@@ -1119,6 +1132,30 @@ body::after {
   left: auto;
 }
 
+.hamburger-menu-user-header {
+  padding: 0.75rem 0.85rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.25rem;
+}
+
+.hamburger-menu-welcome {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hamburger-menu-user-name {
+  margin: 0.2em 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+  word-break: break-word;
+}
+
 .hamburger-menu-theme-row {
   display: flex;
   align-items: center;
@@ -1202,8 +1239,8 @@ body::after {
 }
 
 .header-avatar {
-  width: 36px;
-  height: 36px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   object-fit: cover;
   display: block;
@@ -1211,13 +1248,15 @@ body::after {
 
 .header-icon-btn--avatar {
   padding: 0;
+  min-width: 52px;
+  min-height: 52px;
 }
 
 .header-icon-btn--avatar .header-avatar {
   width: 100%;
   height: 100%;
-  max-width: 36px;
-  max-height: 36px;
+  max-width: 52px;
+  max-height: 52px;
 }
 
 .header-travel-badge {
@@ -2643,7 +2682,6 @@ html[data-theme="light"] .country-list-card-more-btn--open {
 @media (max-width: 768px) {
   .list-section-below-map {
     margin-top: 1.25rem;
-    border-radius: 14px;
   }
 
   .list-section-below-map .progress-bar-standalone--below-map {
@@ -2659,6 +2697,7 @@ html[data-theme="light"] .country-list-card-more-btn--open {
   .list-tab {
     padding: 0.45rem 0;
     font-size: 0.875rem;
+    border: none !important;
   }
 
   .list-tab--active::after {
@@ -2775,9 +2814,26 @@ html[data-theme="light"] .country-list-card-more-btn--open {
 
 .map-header-toolbar-pills--legend-style .filter-btn.active {
   color: var(--text-primary);
-  background: none;
-  border: none;
-  box-shadow: none;
+  font-weight: 600;
+}
+
+/* Dark theme: visible active state for map status filters */
+.map-header-toolbar-pills--legend-style .filter-btn-done.active {
+  background: rgba(16, 185, 129, 0.22);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.25), 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.map-header-toolbar-pills--legend-style .filter-btn-in-review.active {
+  background: rgba(245, 158, 11, 0.22);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25), 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.map-header-toolbar-pills--legend-style .filter-btn-pending.active {
+  background: rgba(239, 68, 68, 0.22);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.25), 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 .map-header-toolbar-pills--legend-style .filter-btn-dot {
@@ -2791,9 +2847,18 @@ html[data-theme="light"] .country-list-card-more-btn--open {
 .map-header-toolbar-pills--legend-style .filter-btn-in-review .filter-btn-dot { background: #d97706; }
 .map-header-toolbar-pills--legend-style .filter-btn-pending .filter-btn-dot { background: #dc2626; }
 
-.map-header-toolbar-pills--legend-style .filter-btn-done.active .filter-btn-dot { background: #059669; }
-.map-header-toolbar-pills--legend-style .filter-btn-in-review.active .filter-btn-dot { background: #d97706; }
-.map-header-toolbar-pills--legend-style .filter-btn-pending.active .filter-btn-dot { background: #dc2626; }
+.map-header-toolbar-pills--legend-style .filter-btn-done.active .filter-btn-dot {
+  background: var(--success-light);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.5), 0 0 10px rgba(16, 185, 129, 0.35);
+}
+.map-header-toolbar-pills--legend-style .filter-btn-in-review.active .filter-btn-dot {
+  background: var(--warning-light);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.5), 0 0 10px rgba(245, 158, 11, 0.35);
+}
+.map-header-toolbar-pills--legend-style .filter-btn-pending.active .filter-btn-dot {
+  background: var(--pending-light);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.5), 0 0 10px rgba(239, 68, 68, 0.35);
+}
 
 .map-header-toolbar-pills--legend-style .filter-btn-count {
   margin-left: 0.2rem;
@@ -3756,11 +3821,10 @@ html[data-theme="light"] .btn-share-progress--strip:hover {
 .map-wrapper {
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: var(--shadow-md), 0 0 0 1px var(--border);
   border: 1px solid var(--border);
   background: var(--bg-tertiary);
   position: relative;
-  height: 500px;
+  height: 560px;
   transition: height 0.35s ease, min-height 0.35s ease, margin 0.35s ease;
 }
 
@@ -3890,7 +3954,6 @@ html[data-theme="light"] .btn-share-progress--strip:hover {
   position: absolute;
   inset: 0;
   border-radius: 20px;
-  box-shadow: inset 0 0 80px rgba(139, 92, 246, 0.03);
   pointer-events: none;
   z-index: 1;
 }
@@ -5912,8 +5975,8 @@ html[data-theme="light"] .confirm-modal-danger .confirm-modal-confirm:hover {
   }
 
   .map-wrapper {
-    height: 50vh;
-    min-height: 280px;
+    height: 55vh;
+    min-height: 320px;
     margin-bottom: 0;
   }
 
