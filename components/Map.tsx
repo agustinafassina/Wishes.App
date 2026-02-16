@@ -7,8 +7,10 @@ import { useToast } from './ToastContext';
 import { getApiErrorDisplay } from '@/lib/api-error-display';
 import { env } from '@/lib/env';
 import { hapticLight, hapticSuccess } from '@/lib/haptic';
-import type { Country, CountryLocation, CountryStatus } from '@/types/country';
-import { CountryListCard, MapPopup, normalizeTags } from '@/components/map/index';
+import type { CountryLocation } from '@/types/country';
+import { AddCountryModal, CountryListCard, MapPopup, normalizeTags, NotesModal, ShareModal, ViewModal } from '@/components/map/index';
+import { useLocations } from '@/hooks/useLocations';
+import { useCountryActions } from '@/hooks/useCountryActions';
 import ConfirmModal from './ConfirmModal';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 
@@ -22,9 +24,31 @@ interface MapProps {
 
 const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProps) => {
   const toast = useToast();
-  const [locations, setLocations] = useState<CountryLocation[]>([]);
   const [mapCenter, setMapCenter] = useState({ lat: 20.0, lng: 0.0 });
-  const [zoom, setZoom] = useState(2);
+  const [zoom, setZoom] = useState(1);
+  const [columnSort, setColumnSort] = useState<Record<string, 'a-z' | 'z-a'>>({
+    done: 'a-z',
+    'in review': 'a-z',
+    pending: 'a-z',
+  });
+  const columnSortRef = useRef(columnSort);
+  columnSortRef.current = columnSort;
+  const getColumnSort = useCallback(() => columnSortRef.current, []);
+
+  const { locations, setLocations, isLoadingLocations, refetchLocations, reorderByColumnSort } = useLocations({
+    getColumnSort,
+    onFirstLoad: (pos) => {
+      setMapCenter(pos);
+      setZoom(1);
+    },
+  });
+
+  const { deleteCountry, moveToStatus, saveNotes, addCountry } = useCountryActions({
+    setLocations,
+    refetchLocations,
+    toast,
+  });
+
   const [selectedLocation, setSelectedLocation] = useState<CountryLocation | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [pickingLocationFromMap, setPickingLocationFromMap] = useState(false);
@@ -39,13 +63,6 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     'in review': false,
     pending: false,
   });
-  const [columnSort, setColumnSort] = useState<Record<string, 'a-z' | 'z-a'>>({
-    done: 'a-z',
-    'in review': 'a-z',
-    pending: 'a-z',
-  });
-  const columnSortRef = useRef(columnSort);
-  columnSortRef.current = columnSort;
   type ListTabId = 'done' | 'in review' | 'pending';
   const [mobileListTab, setMobileListTab] = useState<ListTabId>('done');
   type ListTabBelowId = 'all' | 'done' | 'in review' | 'pending';
@@ -75,7 +92,6 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
   const viewModalRef = useRef<HTMLDivElement>(null);
   const notesModalRef = useRef<HTMLDivElement>(null);
   const addModalRef = useRef<HTMLDivElement>(null);
-  const [isLoadingLocations, setIsLoadingLocations] = useState(true);
   const [isSavingNotes, setIsSavingNotes] = useState(false);
   const [isAddingCountry, setIsAddingCountry] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -97,44 +113,6 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
   useEffect(() => {
     if (triggerOpenAddModal > 0) setShowAddModal(true);
   }, [triggerOpenAddModal]);
-
-  useEffect(() => {
-    setIsLoadingLocations(true);
-    fetch('/api/locations', { credentials: 'include' })
-      .then((response) => {
-        if (!response.ok) return response.json().then(() => []);
-        return response.json();
-      })
-      .then((data: Country[]) => {
-        const list = Array.isArray(data) ? data : [];
-        const places: CountryLocation[] = list.map((country) => ({
-          id: `${country.code}-${country.name}`,
-          name: country.name,
-          code: country.code,
-          latitude: country.latitude,
-          longitude: country.longitude,
-          position: { lat: country.latitude, lng: country.longitude },
-          photos: country.photos ?? [],
-          status: country.status ?? 'pending',
-          flag: country.flag ?? '',
-          notes: country.notes,
-          visitedAt: country.visitedAt,
-          tags: normalizeTags(country),
-        }));
-
-        const initialSort = { done: 'a-z' as const, 'in review': 'a-z' as const, pending: 'a-z' as const };
-        setLocations(reorderLocationsByColumnSort(places, initialSort));
-        if (places.length > 0) {
-          setMapCenter(places[0].position);
-          setZoom(2);
-        }
-      })
-      .catch((error) => {
-        console.error('Error loading countries:', error);
-        setLocations([]);
-      })
-      .finally(() => setIsLoadingLocations(false));
-  }, []);
 
   const filteredLocations = locations.filter(location => {
     return statusFilters[location.status as keyof typeof statusFilters] === true;
@@ -160,34 +138,9 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
   }, []);
 
   const handleMoveToStatus = async (location: CountryLocation, newStatus: string) => {
-    const validStatuses = ['done', 'in review', 'pending'];
-    if (!validStatuses.includes(newStatus) || location.status === newStatus) return;
-    const countryId = location.id;
-    const originalStatus = location.status;
-    setLocations((prev) =>
-      prev.map((loc) => (loc.id === countryId ? { ...loc, status: newStatus as CountryStatus } : loc))
-    );
     setIsSavingStatus(true);
     try {
-      const response = await fetch('/api/update-country', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          countryCode: location.code,
-          countryName: location.name,
-          newStatus,
-        }),
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(typeof data?.error === 'string' ? data.error : `Error (${response.status})`);
-      }
-    } catch (error) {
-      console.error('Error updating country status:', error);
-      setLocations((prev) =>
-        prev.map((loc) => (loc.id === countryId ? { ...loc, status: originalStatus as CountryStatus } : loc))
-      );
-      toast.error(getApiErrorDisplay(error, 'Failed to update status. Please try again.'));
+      await moveToStatus(location, newStatus);
     } finally {
       setIsSavingStatus(false);
     }
@@ -238,11 +191,8 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     }
     setAddCountryErrors({});
     setIsAddingCountry(true);
-
-    // Generate flag URL if code is provided
     const flagUrl = newCountry.flag || `https://flagcdn.com/w40/${newCountry.code.toLowerCase()}.png`;
-
-    const countryData = {
+    const payload = {
       name: newCountry.name,
       code: newCountry.code.toUpperCase(),
       latitude: parseFloat(newCountry.latitude),
@@ -251,56 +201,12 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
       photos: newCountry.photos.filter(p => p.trim() !== ''),
       status: targetStatus,
     };
-
     try {
-      const response = await fetch('/api/add-country', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(countryData),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(typeof data?.error === 'string' ? data.error : `Error (${response.status})`);
-      }
-
-      const result = await response.json();
-      console.log('Country added:', result);
-
-      // Reload locations from user's JSON
-      const locationsResponse = await fetch('/api/locations', { credentials: 'include' });
-      const locationsData = await (locationsResponse.ok ? locationsResponse.json() : Promise.resolve([]));
-      const list = Array.isArray(locationsData) ? locationsData : [];
-      const places: CountryLocation[] = list.map((country: Country) => ({
-        id: `${country.code}-${country.name}`,
-        name: country.name,
-        code: country.code,
-        latitude: country.latitude,
-        longitude: country.longitude,
-        position: { lat: country.latitude, lng: country.longitude },
-        photos: country.photos ?? [],
-        status: country.status ?? 'pending',
-        flag: country.flag ?? '',
-        notes: country.notes,
-        visitedAt: country.visitedAt,
-        tags: normalizeTags(country),
-      }));
-
-      setLocations(reorderLocationsByColumnSort(places, columnSortRef.current));
+      await addCountry(payload);
       setShowAddModal(false);
       hapticSuccess();
-      setNewCountry({
-        name: '',
-        code: '',
-        latitude: '',
-        longitude: '',
-        flag: '',
-        photos: [],
-      });
+      setNewCountry({ name: '', code: '', latitude: '', longitude: '', flag: '', photos: [] });
     } catch (error) {
-      console.error('Error adding country:', error);
       toast.error(getApiErrorDisplay(error, 'Failed to add country. Please try again.'));
     } finally {
       setIsAddingCountry(false);
@@ -312,37 +218,9 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     if (!location) return;
     setDeletingId(locationId);
     try {
-      const response = await fetch('/api/delete-country', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ countryCode: location.code, countryName: location.name }),
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(typeof data?.error === 'string' ? data.error : `Error (${response.status})`);
-      }
-
-      const locationsResponse = await fetch('/api/locations', { credentials: 'include' });
-      const locationsData = await (locationsResponse.ok ? locationsResponse.json() : Promise.resolve([]));
-      const list = Array.isArray(locationsData) ? locationsData : [];
-      const places: CountryLocation[] = list.map((country: Country) => ({
-        id: `${country.code}-${country.name}`,
-        name: country.name,
-        code: country.code,
-        latitude: country.latitude,
-        longitude: country.longitude,
-        position: { lat: country.latitude, lng: country.longitude },
-        photos: country.photos ?? [],
-        status: country.status ?? 'pending',
-        flag: country.flag ?? '',
-        notes: country.notes,
-        visitedAt: country.visitedAt,
-        tags: normalizeTags(country),
-      }));
-      setLocations(reorderLocationsByColumnSort(places, columnSortRef.current));
+      await deleteCountry(location);
       hapticSuccess();
     } catch (error) {
-      console.error('Error deleting country:', error);
       toast.error(getApiErrorDisplay(error, 'Failed to delete country. Please try again.'));
     } finally {
       setDeletingId(null);
@@ -531,69 +409,18 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     setNotesFormErrors({});
     setIsSavingNotes(true);
     try {
-      const response = await fetch('/api/update-country-notes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          countryCode: locationForNotes.code,
-          countryName: locationForNotes.name,
-          notes: notesForm.notes.trim() || undefined,
-          visitedAt: notesForm.visitedAt.trim() || undefined,
-          tags: notesForm.tags.split(',').map((s) => s.trim()).filter(Boolean),
-        }),
+      await saveNotes(locationForNotes, {
+        notes: notesForm.notes.trim() || undefined,
+        visitedAt: notesForm.visitedAt.trim() || undefined,
+        tags: notesForm.tags.split(',').map((s) => s.trim()).filter(Boolean),
       });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(typeof data?.error === 'string' ? data.error : `Error (${response.status})`);
-      }
-
-      const locationsResponse = await fetch('/api/locations', { credentials: 'include' });
-      const locationsData = await (locationsResponse.ok ? locationsResponse.json() : Promise.resolve([]));
-      const list = Array.isArray(locationsData) ? locationsData : [];
-      const places: CountryLocation[] = list.map((country: Country) => ({
-        id: `${country.code}-${country.name}`,
-        name: country.name,
-        code: country.code,
-        latitude: country.latitude,
-        longitude: country.longitude,
-        position: { lat: country.latitude, lng: country.longitude },
-        photos: country.photos ?? [],
-        status: country.status ?? 'pending',
-        flag: country.flag ?? '',
-        notes: country.notes,
-        visitedAt: country.visitedAt,
-        tags: normalizeTags(country),
-      }));
-      setLocations(reorderLocationsByColumnSort(places, columnSortRef.current));
       setShowNotesModal(false);
       setLocationForNotes(null);
     } catch (error) {
-      console.error('Error updating notes:', error);
       toast.error(getApiErrorDisplay(error, 'Failed to save notes. Please try again.'));
     } finally {
       setIsSavingNotes(false);
     }
-  };
-
-  const sortByName = (list: CountryLocation[], order: 'a-z' | 'z-a') =>
-    [...list].sort((a, b) =>
-      order === 'a-z'
-        ? (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
-        : (b.name || '').localeCompare(a.name || '', undefined, { sensitivity: 'base' })
-    );
-
-  const reorderLocationsByColumnSort = (
-    list: CountryLocation[],
-    sortState: Record<string, 'a-z' | 'z-a'>
-  ): CountryLocation[] => {
-    const done = list.filter(l => l.status === 'done');
-    const inReview = list.filter(l => l.status === 'in review');
-    const pending = list.filter(l => l.status === 'pending');
-    return [
-      ...sortByName(done, sortState.done ?? 'a-z'),
-      ...sortByName(inReview, sortState['in review'] ?? 'a-z'),
-      ...sortByName(pending, sortState.pending ?? 'a-z'),
-    ];
   };
 
   const doneLocations = locations.filter(location => location.status === 'done');
@@ -601,8 +428,8 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
   const inReviewLocations = locations.filter(location => location.status === 'in review');
 
   const sortedAllLocations = useMemo(
-    () => reorderLocationsByColumnSort(locations, columnSort),
-    [locations, columnSort]
+    () => reorderByColumnSort(locations, columnSort),
+    [locations, columnSort, reorderByColumnSort]
   );
 
   const displayLocationsBelow =
@@ -618,7 +445,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     const nextOrder: 'a-z' | 'z-a' = columnSort[columnId] === 'a-z' ? 'z-a' : 'a-z';
     const nextSort: Record<string, 'a-z' | 'z-a'> = { ...columnSort, [columnId]: nextOrder };
     setColumnSort(nextSort);
-    setLocations(prev => reorderLocationsByColumnSort(prev, nextSort));
+    setLocations(prev => reorderByColumnSort(prev, nextSort));
   };
 
   // Total countries in the world (UN recognized)
@@ -1128,31 +955,14 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                         </svg>
                         <span>Share</span>
                       </button>
-                      {showShareModal && (
-                        <>
-                          <div className="share-modal-backdrop" onClick={() => setShowShareModal(false)} aria-hidden />
-                          <div className="share-modal" role="dialog" aria-label="Share options">
-                            <button type="button" className="share-modal-close" onClick={() => setShowShareModal(false)} aria-label="Close">
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                            </button>
-                            <h2 className="share-modal-title">Share your progress</h2>
-                            <div className="share-modal-actions">
-                              <button type="button" className="share-action-btn" onClick={handleCopyShareLink}>
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-                                <span>{shareLinkCopied ? 'Copied!' : 'Copy link'}</span>
-                              </button>
-                              <button type="button" className="share-action-btn" onClick={handleDownloadShareImage} disabled={isSharingImage}>
-                                {isSharingImage ? (
-                                  <span className="share-spinner" aria-hidden />
-                                ) : (
-                                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-                                )}
-                                <span>{isSharingImage ? 'Creating...' : 'Download image'}</span>
-                              </button>
-                            </div>
-                          </div>
-                        </>
-                      )}
+                      <ShareModal
+                        open={showShareModal}
+                        onClose={() => setShowShareModal(false)}
+                        onCopyLink={handleCopyShareLink}
+                        onDownloadImage={handleDownloadShareImage}
+                        shareLinkCopied={shareLinkCopied}
+                        isSharingImage={isSharingImage}
+                      />
                     </div>
                   </div>
                   {milestone && (
@@ -1314,254 +1124,42 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
           <>
 
         {/* View notes modal (read-only) */}
-        {showViewModal && locationForView && (
-          <div className="modal-overlay" onClick={() => setShowViewModal(false)} role="dialog" aria-modal="true" aria-labelledby="view-modal-title">
-            <div ref={viewModalRef} className="modal-content modal-content-view" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header modal-header-view">
-                <div className="modal-header-view-top">
-                  <div className="modal-title-wrap">
-                    <h2 id="view-modal-title" className="modal-title">{locationForView.name}</h2>
-                    {normalizeTags(locationForView).length > 0 && (
-                      <div className="view-modal-tags">
-                        {normalizeTags(locationForView).map((t: string, i: number) => (
-                          <span key={i} className="view-modal-tag">
-                            <svg className="view-modal-tag-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                              <line x1="7" y1="7" x2="7.01" y2="7" />
-                            </svg>
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <button className="modal-close" onClick={() => setShowViewModal(false)}>×</button>
-                </div>
-                {locationForView.visitedAt && (
-                  <p className="view-modal-visited-at">
-                    <svg className="view-modal-date-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                      <line x1="16" y1="2" x2="16" y2="6" />
-                      <line x1="8" y1="2" x2="8" y2="6" />
-                      <line x1="3" y1="10" x2="21" y2="10" />
-                    </svg>
-                    Visited in {locationForView.visitedAt}
-                  </p>
-                )}
-              </div>
-              <div className="modal-body">
-                {locationForView.notes ? (
-                  <p className="view-modal-notes">{locationForView.notes}</p>
-                ) : (
-                  !locationForView.visitedAt && (
-                    <p className="view-modal-empty">No notes or visit date.</p>
-                  )
-                )}
-              </div>
-              <div className="modal-footer">
-                <button className="btn-submit" onClick={() => setShowViewModal(false)}>Close</button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ViewModal
+          ref={viewModalRef}
+          location={showViewModal ? locationForView : null}
+          onClose={() => setShowViewModal(false)}
+        />
 
           </>
           )}
         {/* Notes & visit date modal (Done countries) */}
-        {showNotesModal && locationForNotes && (
-          <div className="modal-overlay" onClick={requestCloseNotesModal} role="dialog" aria-modal="true" aria-labelledby="notes-modal-title">
-            <div ref={notesModalRef} className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h2 id="notes-modal-title" className="modal-title">Notes and visit date — {locationForNotes.name}</h2>
-                <button type="button" className="modal-close" onClick={requestCloseNotesModal} aria-label="Close">×</button>
-              </div>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label htmlFor="notes-tags">Tags (separate with commas)</label>
-                  <input
-                    id="notes-tags"
-                    type="text"
-                    value={notesForm.tags}
-                    onChange={(e) => setNotesForm({ ...notesForm, tags: e.target.value })}
-                    placeholder="e.g. color, food, mountains"
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="notes-visited-at">Visited in (e.g. 2024, 2024-06, or March 2024)</label>
-                  <input
-                    id="notes-visited-at"
-                    type="text"
-                    value={notesForm.visitedAt}
-                    onChange={(e) => {
-                      setNotesForm({ ...notesForm, visitedAt: e.target.value });
-                      if (notesFormErrors.visitedAt) setNotesFormErrors((prev) => ({ ...prev, visitedAt: '' }));
-                    }}
-                    placeholder="e.g. March 2024"
-                    aria-invalid={!!notesFormErrors.visitedAt}
-                    aria-describedby={notesFormErrors.visitedAt ? 'notes-visited-at-error' : undefined}
-                  />
-                  {notesFormErrors.visitedAt && (
-                    <p id="notes-visited-at-error" className="form-error" role="alert">{notesFormErrors.visitedAt}</p>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label htmlFor="notes-text">Notes</label>
-                  <textarea
-                    id="notes-text"
-                    rows={4}
-                    value={notesForm.notes}
-                    onChange={(e) => setNotesForm({ ...notesForm, notes: e.target.value })}
-                    placeholder="Memories, places you visited, etc."
-                    className="form-textarea"
-                  />
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn-cancel" onClick={requestCloseNotesModal} disabled={isSavingNotes}>Cancel</button>
-                <button className="btn-submit" onClick={handleSaveNotes} disabled={isSavingNotes}>
-                  {isSavingNotes ? (
-                    <>
-                      <span className="btn-spinner" aria-hidden />
-                      <span>Saving...</span>
-                    </>
-                  ) : (
-                    'Save'
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <NotesModal
+          ref={notesModalRef}
+          open={showNotesModal && !!locationForNotes}
+          location={locationForNotes}
+          form={notesForm}
+          errors={notesFormErrors}
+          isSaving={isSavingNotes}
+          onClose={requestCloseNotesModal}
+          onFormChange={setNotesForm}
+          onSave={handleSaveNotes}
+          onClearError={(field) => setNotesFormErrors((prev) => ({ ...prev, [field]: '' }))}
+        />
 
         {/* Add Country Modal */}
-        {showAddModal && (
-          <div className="modal-overlay" onClick={requestCloseAddModal} role="dialog" aria-modal="true" aria-labelledby="add-modal-title">
-            <div ref={addModalRef} className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h2 id="add-modal-title" className="modal-title">Add new country</h2>
-                <button type="button" className="modal-close" onClick={requestCloseAddModal} aria-label="Close">×</button>
-              </div>
-              <div className="modal-body">
-                <div className="form-group">
-                  <label htmlFor="country-name">Country name *</label>
-                  <input
-                    id="country-name"
-                    type="text"
-                    value={newCountry.name}
-                    onChange={(e) => {
-                      setNewCountry({ ...newCountry, name: e.target.value });
-                      if (addCountryErrors.name) setAddCountryErrors((prev) => ({ ...prev, name: '' }));
-                    }}
-                    placeholder="Ex: France"
-                    aria-invalid={!!addCountryErrors.name}
-                    aria-describedby={addCountryErrors.name ? 'country-name-error' : undefined}
-                  />
-                  {addCountryErrors.name && (
-                    <p id="country-name-error" className="form-error" role="alert">{addCountryErrors.name}</p>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label htmlFor="country-code">Country code (ISO) *</label>
-                  <input
-                    id="country-code"
-                    type="text"
-                    value={newCountry.code}
-                    onChange={(e) => {
-                      setNewCountry({ ...newCountry, code: e.target.value.toUpperCase() });
-                      if (addCountryErrors.code) setAddCountryErrors((prev) => ({ ...prev, code: '' }));
-                    }}
-                    placeholder="Ex: FR"
-                    maxLength={2}
-                    aria-invalid={!!addCountryErrors.code}
-                    aria-describedby={addCountryErrors.code ? 'country-code-error' : undefined}
-                  />
-                  {addCountryErrors.code && (
-                    <p id="country-code-error" className="form-error" role="alert">{addCountryErrors.code}</p>
-                  )}
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="country-latitude">Latitude *</label>
-                    <input
-                      id="country-latitude"
-                      type="number"
-                      step="any"
-                      value={newCountry.latitude}
-                      onChange={(e) => {
-                        setNewCountry({ ...newCountry, latitude: e.target.value });
-                        if (addCountryErrors.latitude) setAddCountryErrors((prev) => ({ ...prev, latitude: '' }));
-                      }}
-                      placeholder="Ex: 46.2276"
-                      aria-invalid={!!addCountryErrors.latitude}
-                      aria-describedby={addCountryErrors.latitude ? 'country-latitude-error' : undefined}
-                    />
-                    {addCountryErrors.latitude && (
-                      <p id="country-latitude-error" className="form-error" role="alert">{addCountryErrors.latitude}</p>
-                    )}
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="country-longitude">Longitude *</label>
-                    <input
-                      id="country-longitude"
-                      type="number"
-                      step="any"
-                      value={newCountry.longitude}
-                      onChange={(e) => {
-                        setNewCountry({ ...newCountry, longitude: e.target.value });
-                        if (addCountryErrors.longitude) setAddCountryErrors((prev) => ({ ...prev, longitude: '' }));
-                      }}
-                      placeholder="Ex: 2.2137"
-                      aria-invalid={!!addCountryErrors.longitude}
-                      aria-describedby={addCountryErrors.longitude ? 'country-longitude-error' : undefined}
-                    />
-                    {addCountryErrors.longitude && (
-                      <p id="country-longitude-error" className="form-error" role="alert">{addCountryErrors.longitude}</p>
-                    )}
-                  </div>
-                </div>
-                <div className="form-group form-group-pick-map">
-                  <button type="button" className="btn-pick-from-map" onClick={startPickingFromMap} aria-label="Pick location from map">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                      <circle cx="12" cy="10" r="3" />
-                    </svg>
-                    <span>Pick from map</span>
-                  </button>
-                  <p className="form-help">Click to close this form and select a point on the map; latitude and longitude will be filled automatically.</p>
-                </div>
-                <div className="form-group">
-                  <label htmlFor="country-flag">Flag URL (optional)</label>
-                  <input
-                    id="country-flag"
-                    type="text"
-                    value={newCountry.flag}
-                    onChange={(e) => setNewCountry({ ...newCountry, flag: e.target.value })}
-                    placeholder="Leave empty to use flagcdn.com automatically"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Status: <strong>{targetStatus}</strong></label>
-                  <p className="form-help">This country will be added to the "{targetStatus}" column</p>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn-cancel" onClick={requestCloseAddModal}>
-                  Cancel
-                </button>
-                <button className="btn-submit" onClick={handleAddCountry} disabled={isAddingCountry}>
-                  {isAddingCountry ? (
-                    <>
-                      <span className="btn-spinner" aria-hidden />
-                      <span>Adding...</span>
-                    </>
-                  ) : (
-                    'Add country'
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <AddCountryModal
+          ref={addModalRef}
+          open={showAddModal}
+          form={newCountry}
+          errors={addCountryErrors}
+          targetStatus={targetStatus}
+          isAdding={isAddingCountry}
+          onClose={requestCloseAddModal}
+          onFormChange={setNewCountry}
+          onClearError={(field) => setAddCountryErrors((prev) => ({ ...prev, [field]: '' }))}
+          onPickFromMap={startPickingFromMap}
+          onSubmit={handleAddCountry}
+        />
         </>
         )}
       </div>

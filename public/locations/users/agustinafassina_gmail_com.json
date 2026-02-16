@@ -414,7 +414,7 @@
             "https://example.com/ireland-photo1.jpg",
             "https://example.com/ireland-photo2.jpg"
         ],
-        "status": "in review"
+        "status": "pending"
     },
     {
         "name": "Hungría",
