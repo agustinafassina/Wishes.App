@@ -25,7 +25,7 @@ interface MapProps {
 const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProps) => {
   const toast = useToast();
   const [mapCenter, setMapCenter] = useState({ lat: 20.0, lng: 0.0 });
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(2);
   const [columnSort, setColumnSort] = useState<Record<string, 'a-z' | 'z-a'>>({
     done: 'a-z',
     'in review': 'a-z',
@@ -39,7 +39,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     getColumnSort,
     onFirstLoad: (pos) => {
       setMapCenter(pos);
-      setZoom(1);
+      setZoom(2);
     },
   });
 

@@ -8,7 +8,7 @@
   --safe-area-inset-left: env(safe-area-inset-left, 0px);
 
   /* Fixed header height – used for main padding-top so content is not under header */
-  --header-height: 5.5rem;
+  --header-height: 3.75rem;
 
   /* Fixed bottom bar (Power Apps style) – used for main padding-bottom */
   --bottom-bar-height: 0;
