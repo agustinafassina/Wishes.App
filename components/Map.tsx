@@ -902,7 +902,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                 aria-selected={listTabBelow === 'done'}
                 onClick={() => { hapticLight(); setListTabBelow('done'); }}
               >
-                Complete
+                Complete ({doneLocations.length})
               </button>
               <button
                 type="button"
@@ -911,7 +911,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                 aria-selected={listTabBelow === 'in review'}
                 onClick={() => { hapticLight(); setListTabBelow('in review'); }}
               >
-                Review
+                Review ({inReviewLocations.length})
               </button>
               <button
                 type="button"
@@ -920,7 +920,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                 aria-selected={listTabBelow === 'pending'}
                 onClick={() => { hapticLight(); setListTabBelow('pending'); }}
               >
-                To Do
+                To Do ({pendingLocations.length})
               </button>
             </div>
             {listTabBelow === 'done' && (

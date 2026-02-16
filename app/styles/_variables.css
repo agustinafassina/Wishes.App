@@ -1,0 +1,146 @@
+/* Design tokens – single source of truth for colors, spacing, typography */
+
+:root {
+  /* Safe areas for PWA standalone (notch, gesture bar); 0 when not in standalone */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+
+  /* Fixed header height – used for main padding-top so content is not under header */
+  --header-height: 5.5rem;
+
+  /* Fixed bottom bar (Power Apps style) – used for main padding-bottom */
+  --bottom-bar-height: 0;
+
+  /* Modern Color Palette - Vibrant & Cohesive */
+  --primary-purple: #8b5cf6;
+  --primary-purple-light: #a78bfa;
+  --primary-purple-dark: #7c3aed;
+  --accent-pink: #ec4899;
+  --accent-pink-light: #f472b6;
+  --accent-blue: #3b82f6;
+  --accent-blue-light: #60a5fa;
+  
+  /* Background Colors - Rich dark tones */
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #1a1f35;
+  --bg-tertiary: #252b42;
+  --bg-card: #1e2339;
+  --bg-card-hover: #2a3049;
+  
+  /* Accent Colors - Vibrant & Modern */
+  --accent-primary: var(--primary-purple);
+  --accent-primary-light: var(--primary-purple-light);
+  --accent-secondary: var(--accent-pink);
+  --accent-secondary-light: var(--accent-pink-light);
+  --accent-tertiary: var(--accent-blue);
+  
+  /* Status Colors - Distinct & Beautiful */
+  --success: #10b981;
+  --success-light: #34d399;
+  --success-dark: #059669;
+  --warning: #f59e0b;
+  --warning-light: #fbbf24;
+  --warning-dark: #d97706;
+  --pending: #ef4444;
+  --pending-light: #f87171;
+  --pending-dark: #dc2626;
+  
+  /* Text Colors */
+  --text-primary: #ffffff;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  
+  /* Borders */
+  --border: rgba(139, 92, 246, 0.3);
+  --border-light: rgba(139, 92, 246, 0.2);
+
+  /* Accent button backgrounds/borders (icon buttons, quick actions) */
+  --accent-primary-bg-soft: rgba(139, 92, 246, 0.15);
+  --accent-primary-bg-hover: rgba(139, 92, 246, 0.25);
+  --accent-primary-border-strong: rgba(139, 92, 246, 0.4);
+  --accent-primary-focus-ring: rgba(139, 92, 246, 0.15);
+  --accent-blue-bg-soft: rgba(59, 130, 246, 0.15);
+  --accent-blue-bg-hover: rgba(59, 130, 246, 0.25);
+  --accent-blue-bg-hover-strong: rgba(59, 130, 246, 0.22);
+  --accent-blue-border-strong: rgba(59, 130, 246, 0.4);
+  --accent-primary-border-mid: rgba(139, 92, 246, 0.25);
+  --accent-primary-bg-hover-strong: rgba(139, 92, 246, 0.22);
+  --accent-blue-border-mid: rgba(59, 130, 246, 0.25);
+
+  /* Typography scale – 0.75 / 0.875 / 1 / 1.125 / 1.25 / 1.5 / 2 rem */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-md: 1.125rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.75rem;
+  --text-4xl: 2rem;
+  /* Font weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-light: 300;
+
+  /* Radius – unified corners */
+  --radius-sm: 6px;
+  --radius-8: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Touch target – minimum size for icon/action buttons (accessibility) */
+  --touch-target: 44px;
+
+  /* Spacing – consistent gaps and padding */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 0.75rem;
+  --space-lg: 1rem;
+  --space-xl: 1.25rem;
+  --space-2xl: 1.5rem;
+  --space-3xl: 2rem;
+  
+  /* Shadows - Enhanced glows */
+  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 8px 48px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 30px rgba(139, 92, 246, 0.4);
+  --shadow-glow-success: 0 0 30px rgba(16, 185, 129, 0.4);
+  --shadow-glow-warning: 0 0 30px rgba(245, 158, 11, 0.4);
+  --shadow-glow-pending: 0 0 30px rgba(239, 68, 68, 0.4);
+}
+
+/* Light theme – variable overrides only */
+html[data-theme="light"] {
+  --bg-primary: #f2f2f5;
+  --bg-secondary: #e8e8ec;
+  --bg-tertiary: #e0e0e5;
+  --bg-card: #fafafa;
+  --bg-card-hover: #f0f0f4;
+  --text-primary: #1a1a1e;
+  --text-secondary: #4c4c52;
+  --text-tertiary: #6e6e76;
+  --border: rgba(0, 0, 0, 0.1);
+  --border-light: rgba(0, 0, 0, 0.06);
+  /* Softer shadows so they don't look too strong or flat on light backgrounds */
+  --accent-on-light: #4c1d95;
+  --accent-on-light-soft: #5b21b6;
+  --accent-border-on-light: rgba(76, 29, 149, 0.45);
+  --accent-bg-on-light: rgba(76, 29, 149, 0.1);
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06), 0 8px 28px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.08), 0 16px 48px rgba(0, 0, 0, 0.04);
+  --shadow-glow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 12px rgba(0, 0, 0, 0.04);
+  --shadow-glow-success: 0 0 0 1px rgba(16, 185, 129, 0.16), 0 2px 10px rgba(16, 185, 129, 0.08);
+  --shadow-glow-warning: 0 0 0 1px rgba(245, 158, 11, 0.16), 0 2px 10px rgba(245, 158, 11, 0.06);
+  --shadow-glow-pending: 0 0 0 1px rgba(239, 68, 68, 0.16), 0 2px 10px rgba(239, 68, 68, 0.06);
+}
+
+html[data-theme="light"] body::after {
+  background: linear-gradient(165deg, #fafafa 0%, #f5f5f7 40%, #f0f0f4 100%);
+}
