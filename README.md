@@ -1,7 +1,7 @@
 # Wishes App 🗺️
-Este repositorio es personal, tiene los paises y los sueños por cumplir!
+Este repositorio es personal, tiene los paises y los sueños por cumplir! 🤩
 
-### Como funciona?
+### Como funciona?🚀
 En `public/locations` hay un JSON que es la base de datos de este proyecto; al ser personal y de prueba no usa una base de datos real (MongoDB, MySQL, etc.).
 
 #### Estructura del JSON (`public/locations/web_locations.json`)
