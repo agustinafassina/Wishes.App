@@ -2,7 +2,7 @@
 Este repositorio es personal, tiene los paises y los sueños por cumplir! 🤩
 
 ### Como funciona?🚀
-En `public/locations` hay un JSON que es la base de datos de este proyecto; al ser personal y de prueba no usa una base de datos real (MongoDB, MySQL, etc.).
+En `public/locations` hay un JSON que es la base de datos de este proyecto; al ser personal y de prueba no usa una base de datos real (MongoDB, MySQL, sql server, etc.).
 
 #### Estructura del JSON (`public/locations/web_locations.json`)
 
