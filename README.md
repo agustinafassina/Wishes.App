@@ -98,12 +98,12 @@ AUTH0_SECRET="una_cadena_aleatoria_larga_de_al_menos_32_caracteres"
 APP_BASE_URL="http://localhost:3000"
 ```
 
-### Install dependencies📝
+### Install dependencies 📝
 ```bash
 npm install
 ```
 
-### Run project🚀
+### Run project 🚀
 ```bash
 npm run dev
 # or
