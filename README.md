@@ -1,4 +1,4 @@
-# Wishes App 🗺️
+# Wishes App 😎🗺️
 Este repositorio es personal, tiene los paises y los sueños por cumplir! 🤩
 
 #### Como funciona?🚀
