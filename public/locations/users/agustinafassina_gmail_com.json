@@ -442,5 +442,14 @@
         "flag": "https://flagcdn.com/w40/me.png",
         "photos": [],
         "status": "pending"
+    },
+    {
+        "name": "Türkiye",
+        "code": "TR",
+        "latitude": 38.837768,
+        "longitude": 33.654125,
+        "flag": "https://flagcdn.com/w40/tr.png",
+        "photos": [],
+        "status": "in review"
     }
 ]
