@@ -5,7 +5,6 @@ Este repositorio es personal, tiene los paises y los sueños por cumplir! 🤩
 En `public/locations` hay un JSON que es la base de datos de este proyecto; al ser personal y de prueba no usa una base de datos real (MongoDB, MySQL, sql server, etc.).
 
 #### Estructura del JSON (`public/locations/web_locations.json`)
-
 El archivo es un **array de objetos**, uno por país. Cada objeto puede tener:
 
 | Campo      | Tipo           | Requerido | Descripción |
@@ -23,7 +22,6 @@ El archivo es un **array de objetos**, uno por país. Cada objeto puede tener:
 | `tag`     | string         | No        | **Legacy:** un solo tag; si existe `tags`, se ignora. |
 
 Ejemplo de objeto completo:
-
 ```json
 {
     "name": "Italia",
@@ -66,7 +64,6 @@ cp .env.example .env
 ```
 
 2. Fill in the variables in `.env`:
-
 | Variable | Descripción |
 |----------|-------------|
 | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | API key de Google Maps (para el mapa). |
