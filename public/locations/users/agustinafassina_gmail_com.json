@@ -451,5 +451,14 @@
         "flag": "https://flagcdn.com/w40/tr.png",
         "photos": [],
         "status": "in review"
+    },
+    {
+        "name": "Norway",
+        "code": "NO",
+        "latitude": 59.837363,
+        "longitude": 10.193432,
+        "flag": "https://flagcdn.com/w40/no.png",
+        "photos": [],
+        "status": "in review"
     }
 ]
