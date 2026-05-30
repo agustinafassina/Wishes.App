@@ -753,6 +753,7 @@ a.header-btn {
   grid-template-columns: minmax(0, 1fr);
   grid-auto-rows: min-content;
   grid-auto-flow: row;
+  row-gap: var(--space-2xl);
 }
 
 /* Stats bubbles – summary cards (Visited / In Review / To Visit) – mockup style */
@@ -760,7 +761,7 @@ a.header-btn {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0;
   width: 100%;
 }
 
@@ -817,6 +818,7 @@ html[data-theme="light"] .stats-bubble {
 /* Quick Actions – 3x2 grid, pastel buttons (mockup style) */
 .quick-actions {
   width: 100%;
+  margin-bottom: 0;
 }
 
 .quick-actions-title {
@@ -832,6 +834,7 @@ html[data-theme="light"] .stats-bubble {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.6rem;
+  margin-bottom: 1.5rem !important;
 }
 
 .quick-action-btn {
@@ -996,6 +999,7 @@ html[data-theme="light"] .quick-action-btn-pending {
     grid-template-columns: minmax(0, 1fr);
     grid-auto-rows: min-content;
     grid-auto-flow: row;
+    row-gap: var(--space-2xl);
     min-height: 0;
     width: 100%;
     min-width: 100%;
@@ -1019,7 +1023,6 @@ html[data-theme="light"] .quick-action-btn-pending {
   }
 }
 
-/* Travel Map header – ancho completo (sin margen a los costados), con borde */
 .map-header {
   margin-bottom: 0;
   margin-left: calc(-1 * var(--space-2xl));
@@ -1038,20 +1041,16 @@ html[data-theme="light"] .quick-action-btn-pending {
 
 .map-header-top {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-lg);
-  flex-wrap: wrap;
+  align-items: center;
   padding: var(--space-xl) var(--space-2xl) var(--space-lg);
   position: relative;
 }
 
-/* World Map row – mismo estilo que Quick Actions: título izquierda, Add country derecha */
+/* World Map row – título | filtros | Add country en una línea */
 .map-world-map-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-md) var(--space-lg);
   width: 100%;
   flex-wrap: wrap;
 }
@@ -1063,6 +1062,40 @@ html[data-theme="light"] .quick-action-btn-pending {
   color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.02em;
+  flex: 0 0 auto;
+}
+
+.map-world-map-row .map-header-toolbar--inline {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.map-world-map-row .map-header-toolbar--inline .map-header-toolbar-pills {
+  flex-wrap: nowrap;
+  justify-content: center;
+}
+
+.map-world-map-row .map-header-toolbar--inline .map-header-toolbar-pills--legend-style .filter-btn {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.map-world-map-row .btn-add-country-header--compact {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+@media (min-width: 769px) {
+  .map-world-map-row {
+    flex-wrap: nowrap;
+  }
 }
 
 .map-header-top::before {
@@ -1163,6 +1196,18 @@ html[data-theme="light"] .map-legend-item {
 
 /* List section below map – mismo ancho que Complete también en Review/To Do */
 /* List section – mismo diseño que mapa: ancho completo sin margen a los costados, contenido centrado */
+/* Map card + list card: sin borde ni hueco entre leyenda y tabs */
+.map-header + .list-section-below-map {
+  margin-top: calc(-1 * var(--space-2xl));
+  border-top: none;
+}
+
+.map-header:has(+ .list-section-below-map) {
+  border-bottom: none;
+  /* Sin anillo inferior: el listado cierra el contorno de la tarjeta unificada */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
 .list-section-below-map {
   width: calc(100% + 2 * var(--space-2xl));
   min-width: calc(100% + 2 * var(--space-2xl));
@@ -1191,29 +1236,132 @@ html[data-theme="light"] .map-legend-item {
   flex-shrink: 0;
 }
 
-/* Tabs – igual que mockup: ancho según texto, subrayado azul en activa, gris en el resto */
+/* Tabs + search – una fila: status a la izquierda, búsqueda a la derecha */
+.list-tabs-bar {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-md) var(--space-lg);
+  padding: 0.625rem var(--space-2xl) 0;
+  min-height: calc(var(--touch-target) + 0.75rem);
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+}
+
 .list-tabs-wrap {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 0.75rem;
-  padding: 0 var(--space-2xl) 1rem;
+  flex: 1 1 auto;
+  min-width: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   background: transparent;
-  min-height: var(--touch-target);
-  flex-shrink: 0;
   position: relative;
   z-index: 1;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  width: 100%;
-  min-width: 100%;
   box-sizing: border-box;
+}
+
+.list-search-wrap {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  padding-bottom: 0.7rem;
+  width: min(16rem, 38vw);
+  min-width: 9.5rem;
+}
+
+.list-search {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  min-height: 2.25rem;
+  padding: 0 0.65rem;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-md);
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.list-search:focus-within {
+  border-color: rgba(37, 99, 235, 0.45);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+}
+
+.list-search-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.list-search-icon {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  opacity: 0.85;
+}
+
+.list-search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  padding: 0.4rem 0;
+  outline: none;
+}
+
+.list-search-input::placeholder {
+  color: var(--text-tertiary);
+  opacity: 0.85;
+}
+
+.list-search-input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.list-search-clear {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.list-search-clear:hover {
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.list-search-clear:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.35);
 }
 
 .list-tab {
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
   min-width: max(min-content, 8.75em);
-  padding: 0.5rem 0.15rem 0.5rem 0;
+  padding: 0 0.15rem 0.7rem 0;
   font-family: 'Poppins', sans-serif;
   font-size: 0.9375rem;
   font-weight: 500;
@@ -1240,7 +1388,7 @@ html[data-theme="light"] .map-legend-item {
   position: absolute;
   left: -2px;
   right: -2px;
-  bottom: -1px;
+  bottom: 0;
   height: 2px;
   background: #2563eb;
 }
@@ -1263,8 +1411,22 @@ html[data-theme="light"] .map-legend-item {
 }
 
 /* Tema oscuro – tabs */
-html:not([data-theme="light"]) .list-tabs-wrap {
+html:not([data-theme="light"]) .list-tabs-bar {
   border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+html:not([data-theme="light"]) .list-search {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html:not([data-theme="light"]) .list-search:focus-within {
+  border-color: rgba(96, 165, 250, 0.5);
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.15);
+}
+
+html:not([data-theme="light"]) .list-search-clear:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 html:not([data-theme="light"]) .list-tab {
@@ -1286,9 +1448,18 @@ html:not([data-theme="light"]) .list-tab--active::after {
 }
 
 /* Tema claro – mockup: fondo blanco, texto gris, activa con subrayado azul */
-html[data-theme="light"] .list-tabs-wrap {
-  padding: 0 var(--space-2xl) 1rem;
+html[data-theme="light"] .list-tabs-bar {
   border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="light"] .list-search {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="light"] .list-search:focus-within {
+  border-color: rgba(37, 99, 235, 0.4);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
 html[data-theme="light"] .list-tab {
@@ -1669,23 +1840,37 @@ html[data-theme="light"] .country-list-card-more-btn--open {
 }
 
 @media (max-width: 768px) {
-  .list-section-below-map {
-    margin-top: 0;
+  .map-header + .list-section-below-map {
+    margin-top: calc(-1 * var(--space-2xl));
   }
 
   .list-section-below-map .progress-bar-standalone--below-map {
     padding: 0.85rem 1.5rem;
   }
 
+  .list-tabs-bar {
+    gap: 0.5rem 0.65rem;
+    padding: 0.55rem 1.5rem 0;
+    min-height: calc(var(--touch-target) + 0.65rem);
+  }
+
   .list-tabs-wrap {
     gap: 0.6rem;
-    padding: 0 1.5rem 0.85rem;
-    min-height: 42px;
+  }
+
+  .list-search-wrap {
+    width: min(10.5rem, 36vw);
+    min-width: 7.25rem;
+    padding-bottom: 0.65rem;
+  }
+
+  .list-search-input {
+    font-size: 0.8125rem;
   }
 
   .list-tab {
-    min-width: max(min-content, 8.5em);
-    padding: 0.45rem 0;
+    min-width: max(min-content, 7.25em);
+    padding: 0 0 0.65rem 0;
     font-size: 0.875rem;
     border: none !important;
   }
@@ -4916,9 +5101,19 @@ html[data-theme="light"] .country-lists-container {
 }
 
 html[data-theme="light"] .map-header {
-  background: rgba(59, 130, 246, 0.12);
+  background: var(--bg-card);
   border-color: rgba(0, 0, 0, 0.06);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+html[data-theme="light"] .map-header:has(+ .list-section-below-map) {
+  border-bottom: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+html[data-theme="light"] .map-header-top,
+html[data-theme="light"] .map-header .map-header-toolbar--inline {
+  background: transparent;
 }
 
 html[data-theme="light"] .map-header-icon {
@@ -4932,7 +5127,7 @@ html[data-theme="light"] .map-header .section-title {
 }
 
 html[data-theme="light"] .map-header-top::before {
-  opacity: 0.5;
+  display: none;
 }
 
 html[data-theme="light"] .map-header .section-subtitle {

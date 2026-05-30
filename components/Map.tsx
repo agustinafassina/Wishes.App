@@ -8,7 +8,7 @@ import { getApiErrorDisplay } from '@/lib/api-error-display';
 import { env } from '@/lib/env';
 import { hapticLight, hapticSuccess } from '@/lib/haptic';
 import type { CountryLocation } from '@/types/country';
-import { AddCountryModal, CountryListCard, MapPopup, normalizeTags, NotesModal, ShareModal, ViewModal } from '@/components/map/index';
+import { AddCountryModal, CountryListCard, MapPopup, matchesCountrySearch, normalizeTags, NotesModal, ShareModal, ViewModal } from '@/components/map/index';
 import { useLocations } from '@/hooks/useLocations';
 import { useCountryActions } from '@/hooks/useCountryActions';
 import ConfirmModal from './ConfirmModal';
@@ -67,6 +67,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
   const [mobileListTab, setMobileListTab] = useState<ListTabId>('done');
   type ListTabBelowId = 'all' | 'done' | 'in review' | 'pending';
   const [listTabBelow, setListTabBelow] = useState<ListTabBelowId>('all');
+  const [listSearchQuery, setListSearchQuery] = useState('');
   const [newCountry, setNewCountry] = useState({
     name: '',
     code: '',
@@ -432,14 +433,19 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     [locations, columnSort, reorderByColumnSort]
   );
 
-  const displayLocationsBelow =
-    listTabBelow === 'all'
-      ? sortedAllLocations
-      : listTabBelow === 'done'
-        ? doneLocations
-        : listTabBelow === 'in review'
-          ? inReviewLocations
-          : pendingLocations;
+  const locationsForListTab = useMemo(() => {
+    if (listTabBelow === 'all') return sortedAllLocations;
+    if (listTabBelow === 'done') return doneLocations;
+    if (listTabBelow === 'in review') return inReviewLocations;
+    return pendingLocations;
+  }, [listTabBelow, sortedAllLocations, doneLocations, inReviewLocations, pendingLocations]);
+
+  const listSearchTrimmed = listSearchQuery.trim();
+
+  const displayLocationsBelow = useMemo(() => {
+    if (!listSearchTrimmed) return locationsForListTab;
+    return locationsForListTab.filter((loc) => matchesCountrySearch(loc, listSearchTrimmed));
+  }, [locationsForListTab, listSearchTrimmed]);
 
   const handleColumnSort = (columnId: string) => {
     const nextOrder: 'a-z' | 'z-a' = columnSort[columnId] === 'a-z' ? 'z-a' : 'a-z';
@@ -747,6 +753,51 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
           <div className="map-header-top">
             <div className="map-world-map-row" role="group" aria-label="World map section">
               <h2 className="map-world-map-title">World Map</h2>
+              {locations.length > 0 && (
+                <div className="map-header-toolbar map-header-toolbar--inline" role="group" aria-label="Filter map by status">
+                  <div className="map-header-toolbar-pills map-header-toolbar-pills--legend-style" role="group" aria-label="Filter map and switch list column">
+                    <button
+                      type="button"
+                      className={`filter-btn filter-btn-done ${statusFilters.done ? 'active' : ''}`}
+                      onClick={() => handleFilterToggle('done')}
+                      aria-pressed={statusFilters.done}
+                      title={statusFilters.done ? 'Shown on map · View Complete list' : 'Show on map · View Complete list'}
+                    >
+                      <span className="filter-btn-dot" aria-hidden />
+                      <span className="filter-btn-label">Complete</span>
+                      {doneLocations.length > 0 && (
+                        <span className="filter-btn-count">{doneLocations.length}</span>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      className={`filter-btn filter-btn-in-review ${statusFilters['in review'] ? 'active' : ''}`}
+                      onClick={() => handleFilterToggle('in review')}
+                      aria-pressed={statusFilters['in review']}
+                      title={statusFilters['in review'] ? 'Shown on map · View Review list' : 'Show on map · View Review list'}
+                    >
+                      <span className="filter-btn-dot" aria-hidden />
+                      <span className="filter-btn-label">Review</span>
+                      {inReviewLocations.length > 0 && (
+                        <span className="filter-btn-count">{inReviewLocations.length}</span>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      className={`filter-btn filter-btn-pending ${statusFilters.pending ? 'active' : ''}`}
+                      onClick={() => handleFilterToggle('pending')}
+                      aria-pressed={statusFilters.pending}
+                      title={statusFilters.pending ? 'Shown on map · View To Do list' : 'Show on map · View To Do list'}
+                    >
+                      <span className="filter-btn-dot" aria-hidden />
+                      <span className="filter-btn-label">To Do</span>
+                      {pendingLocations.length > 0 && (
+                        <span className="filter-btn-count">{pendingLocations.length}</span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
               <button
                 type="button"
                 className="btn-add-country-header btn-add-country-header--compact"
@@ -772,51 +823,6 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
               </button>
             </div>
           </div>
-            {locations.length > 0 && (
-            <div className="map-header-toolbar" role="group" aria-label="Filter map by status">
-              <div className="map-header-toolbar-pills map-header-toolbar-pills--legend-style" role="group" aria-label="Filter map and switch list column">
-                <button
-                  type="button"
-                  className={`filter-btn filter-btn-done ${statusFilters.done ? 'active' : ''}`}
-                  onClick={() => handleFilterToggle('done')}
-                  aria-pressed={statusFilters.done}
-                  title={statusFilters.done ? 'Shown on map · View Complete list' : 'Show on map · View Complete list'}
-                >
-                  <span className="filter-btn-dot" aria-hidden />
-                  <span className="filter-btn-label">Complete</span>
-                  {doneLocations.length > 0 && (
-                    <span className="filter-btn-count">{doneLocations.length}</span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className={`filter-btn filter-btn-in-review ${statusFilters['in review'] ? 'active' : ''}`}
-                  onClick={() => handleFilterToggle('in review')}
-                  aria-pressed={statusFilters['in review']}
-                  title={statusFilters['in review'] ? 'Shown on map · View Review list' : 'Show on map · View Review list'}
-                >
-                  <span className="filter-btn-dot" aria-hidden />
-                  <span className="filter-btn-label">Review</span>
-                  {inReviewLocations.length > 0 && (
-                    <span className="filter-btn-count">{inReviewLocations.length}</span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className={`filter-btn filter-btn-pending ${statusFilters.pending ? 'active' : ''}`}
-                  onClick={() => handleFilterToggle('pending')}
-                  aria-pressed={statusFilters.pending}
-                  title={statusFilters.pending ? 'Shown on map · View To Do list' : 'Show on map · View To Do list'}
-                >
-                  <span className="filter-btn-dot" aria-hidden />
-                  <span className="filter-btn-label">To Do</span>
-                  {pendingLocations.length > 0 && (
-                    <span className="filter-btn-count">{pendingLocations.length}</span>
-                  )}
-                </button>
-              </div>
-            </div>
-            )}
             {locations.length > 0 && (
             <div className="map-section-map-wrap map-section-map-wrap--inside-header">
               <div
@@ -885,43 +891,78 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
 
         {locations.length > 0 && (
           <section id="country-list" className="list-section-below-map" aria-label="Country list">
-            <div className="list-tabs-wrap" role="tablist" aria-label="Filter list by status">
-              <button
-                type="button"
-                role="tab"
-                className={`list-tab ${listTabBelow === 'all' ? 'list-tab--active' : ''}`}
-                aria-selected={listTabBelow === 'all'}
-                onClick={() => { hapticLight(); setListTabBelow('all'); }}
-              >
-                All ({locations.length})
-              </button>
-              <button
-                type="button"
-                role="tab"
-                className={`list-tab ${listTabBelow === 'done' ? 'list-tab--active' : ''}`}
-                aria-selected={listTabBelow === 'done'}
-                onClick={() => { hapticLight(); setListTabBelow('done'); }}
-              >
-                Complete ({doneLocations.length})
-              </button>
-              <button
-                type="button"
-                role="tab"
-                className={`list-tab ${listTabBelow === 'in review' ? 'list-tab--active' : ''}`}
-                aria-selected={listTabBelow === 'in review'}
-                onClick={() => { hapticLight(); setListTabBelow('in review'); }}
-              >
-                Review ({inReviewLocations.length})
-              </button>
-              <button
-                type="button"
-                role="tab"
-                className={`list-tab ${listTabBelow === 'pending' ? 'list-tab--active' : ''}`}
-                aria-selected={listTabBelow === 'pending'}
-                onClick={() => { hapticLight(); setListTabBelow('pending'); }}
-              >
-                To Do ({pendingLocations.length})
-              </button>
+            <div className="list-tabs-bar">
+              <div className="list-tabs-wrap" role="tablist" aria-label="Filter list by status">
+                <button
+                  type="button"
+                  role="tab"
+                  className={`list-tab ${listTabBelow === 'all' ? 'list-tab--active' : ''}`}
+                  aria-selected={listTabBelow === 'all'}
+                  onClick={() => { hapticLight(); setListTabBelow('all'); }}
+                >
+                  All ({locations.length})
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  className={`list-tab ${listTabBelow === 'done' ? 'list-tab--active' : ''}`}
+                  aria-selected={listTabBelow === 'done'}
+                  onClick={() => { hapticLight(); setListTabBelow('done'); }}
+                >
+                  Complete ({doneLocations.length})
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  className={`list-tab ${listTabBelow === 'in review' ? 'list-tab--active' : ''}`}
+                  aria-selected={listTabBelow === 'in review'}
+                  onClick={() => { hapticLight(); setListTabBelow('in review'); }}
+                >
+                  Review ({inReviewLocations.length})
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  className={`list-tab ${listTabBelow === 'pending' ? 'list-tab--active' : ''}`}
+                  aria-selected={listTabBelow === 'pending'}
+                  onClick={() => { hapticLight(); setListTabBelow('pending'); }}
+                >
+                  To Do ({pendingLocations.length})
+                </button>
+              </div>
+              <div className="list-search-wrap">
+                <label className="list-search" htmlFor="country-list-search">
+                  <span className="list-search-label">Search countries</span>
+                  <svg className="list-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  <input
+                    id="country-list-search"
+                    type="search"
+                    className="list-search-input"
+                    placeholder="Search…"
+                    value={listSearchQuery}
+                    onChange={(e) => setListSearchQuery(e.target.value)}
+                    aria-label="Search countries in list"
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                  {listSearchQuery.length > 0 && (
+                    <button
+                      type="button"
+                      className="list-search-clear"
+                      onClick={() => setListSearchQuery('')}
+                      aria-label="Clear search"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  )}
+                </label>
+              </div>
             </div>
             {listTabBelow === 'done' && (
               <>
@@ -1004,7 +1045,15 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                 ) : (
                   <div className="list-empty-state">
                     <p className="list-empty-state-message">
-                      {listTabBelow === 'all' ? 'No countries yet' : listTabBelow === 'done' ? 'No countries completed yet' : listTabBelow === 'in review' ? 'No countries in review' : 'No countries to do'}
+                      {listSearchTrimmed
+                        ? `No countries match “${listSearchTrimmed}”`
+                        : listTabBelow === 'all'
+                          ? 'No countries yet'
+                          : listTabBelow === 'done'
+                            ? 'No countries completed yet'
+                            : listTabBelow === 'in review'
+                              ? 'No countries in review'
+                              : 'No countries to do'}
                     </p>
                     <button
                       type="button"

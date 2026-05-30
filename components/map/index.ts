@@ -7,4 +7,4 @@ export { default as NotesModal } from './NotesModal';
 export { default as ShareModal } from './ShareModal';
 export { default as AddCountryModal } from './AddCountryModal';
 export { IconDone, IconInReview, IconPending } from './MapStatusIcons';
-export { normalizeTags, STATUS_OPTIONS } from './utils';
+export { matchesCountrySearch, normalizeTags, STATUS_OPTIONS } from './utils';
