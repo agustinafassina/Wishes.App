@@ -1,282 +1,245 @@
-# Wishes App 😎🗺️
-Este repositorio es personal, tiene los paises y los sueños por cumplir! 🤩
+# ✈️ Wishes App — Personal Travel Bucket List
+A modern web app to track countries you want to visit, are planning, or have already explored — with an interactive world map, progress stats, and per-user storage.
 
-#### Como funciona?🚀
-En `public/locations` hay un JSON que es la base de datos de este proyecto; al ser personal y de prueba no usa una base de datos real (MongoDB, MySQL, sql server, etc.).
+**Español:** [README_ES.md](./README_ES.md)
 
-#### Estructura del JSON (`public/locations/web_locations.json`)
-El archivo es un **array de objetos**, uno por país. Cada objeto puede tener:
+<p align="center">
+  <img src="first-part.png" alt="Dashboard — stats, map, and list" width="480">
+  <img src="second-part.png" alt="Country cards and progress" width="480">
+</p>
 
-| Campo      | Tipo           | Requerido | Descripción |
-|-----------|----------------|-----------|-------------|
-| `name`    | string         | Sí        | Nombre del país (ej. `"Brasil"`, `"Escocia"`). |
-| `code`    | string         | Sí        | Código ISO de 2 letras (ej. `"BR"`, `"GB"`). Puede repetirse si hay varias entradas para el mismo código (ej. Inglaterra y Escocia ambos `"GB"`). |
-| `latitude`  | number       | Sí        | Latitud para el marcador en el mapa. |
-| `longitude` | number       | Sí        | Longitud para el marcador en el mapa. |
-| `status`  | string         | Sí        | Estado en la lista: `"done"`, `"in review"` o `"pending"`. |
-| `flag`    | string         | No        | URL de la bandera (si no se pone, se puede generar por código con flagcdn.com). |
-| `photos`  | string[]       | No        | Array de URLs de fotos. |
-| `notes`   | string         | No        | Notas del viaje (suele usarse cuando `status` es `"done"`). |
-| `visitedAt` | string       | No        | Fecha o período de visita (ej. `"2024"`, `"Abril 2024"`, `"2024-06"`). |
-| `tags`    | string[]       | No        | Varias etiquetas (ej. `["color", "food", "mountains"]`). |
-| `tag`     | string         | No        | **Legacy:** un solo tag; si existe `tags`, se ignora. |
+## ✨ What it does
+- **Stats** — counts for visited, in review, and to visit
+- **Quick actions** — add country, share progress, jump to the list
+- **World map** — Google Maps markers by status; filters synced with list tabs (**Complete**, **Review**, **To Do**)
+- **Country list** — tabbed grid (up to 3 columns), search within the active tab, progress bar on **Complete**
+- **Per country** — move status via **Move to**, view/edit notes (visited countries), delete with confirmation
+- **Share & export** — share link or progress image; PDF snapshot; full backup as JSON or CSV
+- **Themes** — light and dark mode
+- **Auth0** — each user has a private list
 
-Ejemplo de objeto completo:
+For step-by-step usage in Spanish, see [MANUAL_DE_USO.md](./MANUAL_DE_USO.md).
+
+## 💾 How data is stored
+There is no SQL/MongoDB database. After login, the app reads and writes a **JSON file per user** under `public/locations/users/` (filename derived from the Auth0 identity, e.g. `agustinafassina_gmail_com.json`).
+
+- Sample / legacy data: `public/locations/web_locations.json`
+- Details: [public/locations/users/README.md](./public/locations/users/README.md)
+
+API routes (`app/api/*`) handle create, update, delete, and loading locations for the signed-in user.
+
+## 🏳️ Country object
+Each entry in the user JSON array can include:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Country name (e.g. `"Italy"`). |
+| `code` | string | Yes | ISO 3166-1 alpha-2 (e.g. `"IT"`). Must be unique per user list. |
+| `latitude` | number | Yes | Map marker latitude. |
+| `longitude` | number | Yes | Map marker longitude. |
+| `status` | string | Yes | `"done"`, `"in review"`, or `"pending"`. |
+| `flag` | string | No | Flag image URL (defaults via [flagcdn.com](https://flagcdn.com) from `code`). |
+| `photos` | string[] | No | Photo URLs. |
+| `notes` | string | No | Travel notes (typically when `status` is `"done"`). |
+| `visitedAt` | string | No | Visit date or period (e.g. `"2024"`, `"April 2024"`). |
+| `tags` | string[] | No | Tags (e.g. `["food", "history"]`). |
+| `tag` | string | No | Legacy single tag; ignored if `tags` is set. |
+
+Example:
+
 ```json
 {
-    "name": "Italia",
-    "code": "IT",
-    "latitude": 41.8719,
-    "longitude": 12.5674,
-    "flag": "https://flagcdn.com/w40/it.png",
-    "photos": ["https://example.com/italy-photo1.jpg"],
-    "status": "done",
-    "notes": "Viaje increíble.",
-    "visitedAt": "Abril 2024",
-    "tags": ["comida", "historia"]
+  "name": "Italy",
+  "code": "IT",
+  "latitude": 41.8719,
+  "longitude": 12.5674,
+  "flag": "https://flagcdn.com/w40/it.png",
+  "status": "done",
+  "notes": "Amazing trip.",
+  "visitedAt": "April 2024",
+  "tags": ["food", "history"]
 }
 ```
 
-### Implementations
-- [x] Databases: json file (no recomendado si se va a usar para trabajar con datos realaes, ya que se puede perder).
-- [x] GoogleMaps: use key credential (.env file in the root)
-- [x] Country from checklist
-- [x] Change status with the scroll
-- [x] Export pdf button
-- [x] Filter by country status
-- [x] Order by a-z or z-a
-- [x] Light / dark theme
-- [x] Create, update and delete of countries
-- [x] Multitag by country
-- [x] Hide / show map (collapse map to save space)
-- [x] **Backup / export data** — Export full list as JSON or CSV (Import to restore: planned).
-- [x] **Auth0** — Login / logout; app requires an authenticated user to use the bucket list.
+## ✅ Features
+| Area | Status |
+|------|--------|
+| Google Maps + custom zoom | Done |
+| Map filters ↔ list tabs | Done |
+| Pick coordinates from map | Done |
+| Add / update / delete countries | Done |
+| Notes & tags (visited) | Done |
+| Light / dark theme | Done |
+| Export PDF | Done |
+| Export JSON / CSV backup | Done |
+| Auth0 login | Done |
+| Search (within active tab) | Done |
+| Import backup from UI | Planned |
 
-### Web review💻
-<img src="first-part.png" alt="First part of the web" width="500" height="450">
-<img src="second-part.png" alt="Second part of the web" width="500" height="450">
+## 📋 Requirements
+- Node.js 18+
+- Google Maps API key
+- Auth0 application (Regular Web Application)
 
-### Environment Setup⚙️
+## ⚙️ Environment setup
+1. Copy the example env file:
 
-1. Copy the `.env.example` file to `.env`:
 ```bash
 cp .env.example .env
 ```
 
-2. Fill in the variables in `.env`:
-| Variable | Descripción |
+2. Set variables:
+
+| Variable | Description |
 |----------|-------------|
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | API key de Google Maps (para el mapa). |
-| `AUTH0_DOMAIN` | Tu tenant de Auth0 (ej. `mi-app.us.auth0.com`). |
-| `AUTH0_CLIENT_ID` | Client ID de la aplicación en Auth0. |
-| `AUTH0_CLIENT_SECRET` | Client Secret de la aplicación en Auth0. |
-| `AUTH0_SECRET` | Una cadena aleatoria larga (≥ 32 caracteres) para firmar cookies de sesión. |
-| `APP_BASE_URL` | URL base de la app (desarrollo: `http://localhost:3000`). |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps API key (client). |
+| `AUTH0_DOMAIN` | Auth0 tenant domain. |
+| `AUTH0_CLIENT_ID` | Application Client ID. |
+| `AUTH0_CLIENT_SECRET` | Application Client Secret. |
+| `AUTH0_SECRET` | Random string ≥ 32 chars for session cookies (`openssl rand -hex 32`). |
+| `APP_BASE_URL` | App URL (dev: `http://localhost:3000`). |
 
-**Google Maps:** reemplazá `google_key_replace` por tu API key real.
+**Auth0 application URIs (development):**
 
-**Auth0:** para obtener las variables de Auth0:
+- Allowed Callback URLs: `http://localhost:3000/auth/callback`
+- Allowed Logout URLs: `http://localhost:3000`
 
-1. Creá una cuenta en [auth0.com](https://auth0.com) y creá un **Application** tipo **Regular Web Application**.
-2. En **Settings** de la aplicación copiá **Domain**, **Client ID** y **Client Secret** a `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID` y `AUTH0_CLIENT_SECRET`.
-3. En **Application URIs** configurá:
-   - **Allowed Callback URLs:** `http://localhost:3000/auth/callback` (y la URL de producción cuando la tengas).
-   - **Allowed Logout URLs:** `http://localhost:3000` (y la de producción).
-4. Para `AUTH0_SECRET` generá una cadena aleatoria segura (por ejemplo con `openssl rand -hex 32`).
-5. Dejá `APP_BASE_URL` en `http://localhost:3000` para desarrollo.
+Add the same URLs for production using your public host (see below).
 
-Ejemplo de `.env` (con valores de ejemplo):
-```
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="tu_google_maps_key"
-AUTH0_DOMAIN="tu-tenant.us.auth0.com"
-AUTH0_CLIENT_ID="tu_client_id"
-AUTH0_CLIENT_SECRET="tu_client_secret"
-AUTH0_SECRET="una_cadena_aleatoria_larga_de_al_menos_32_caracteres"
-APP_BASE_URL="http://localhost:3000"
+Example `.env`:
+
+```env
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
+AUTH0_DOMAIN=your-tenant.us.auth0.com
+AUTH0_CLIENT_ID=your_client_id
+AUTH0_CLIENT_SECRET=your_client_secret
+AUTH0_SECRET=your_long_random_secret_at_least_32_chars
+APP_BASE_URL=http://localhost:3000
 ```
 
-### Install dependencies 📝
+## 🚀 Install and run
 ```bash
 npm install
-```
-
-### Run project 🚀
-```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-### Docker 🐳
-El puerto es configurable (default **3000**). Podés definirlo al construir la imagen o al ejecutar el contenedor.
+Open [http://localhost:3000](http://localhost:3000).
 
-**Construir la imagen** (puerto por defecto 3000):
+Other package managers: `yarn dev`, `pnpm dev`, `bun dev`.
+
+```bash
+npm run build
+npm start
+```
+
+## 🐳 Docker
+Default port **3000** (override with build arg or `PORT` env).
+
+**Build:**
+
 ```bash
 docker build -t wishes-app .
 ```
 
-**Construir para otro puerto** (ej. 8080):
-```bash
-docker build --build-arg PORT=8080 -t wishes-app .
-```
+**Run:**
 
-**Ejecutar** (puerto 3000). Solo el nombre de la imagen al final; no agregues otro argumento:
-```bash
-docker run -p 3000:3000 wishes-app
-```
-
-**Ejecutar en otro puerto** (ej. 8080), sin rebuild:
-```bash
-docker run -p 8080:8080 -e PORT=8080 wishes-app
-```
-
-Si ves `Error: Cannot find module '/app/wishes-app'`, es porque se pasó el nombre de la imagen como comando. Usá solo `docker run -p 3000:3000 wishes-app`.
-
-Ejecutar con variables de entorno desde un archivo `.env`:
 ```bash
 docker run -p 3000:3000 --env-file .env wishes-app
 ```
 
-Ejecutar en segundo plano (detached):
+**Detached:**
+
 ```bash
-docker run -d -p 3000:3000 --name wishes-app wishes-app
+docker run -d -p 3000:3000 --env-file .env --name wishes-app wishes-app
 ```
 
-#### Publicar en Docker Hub
+If you see `Error: Cannot find module '/app/wishes-app'`, you passed the image name as a command. Use only `docker run -p 3000:3000 wishes-app`.
 
-Reemplazá `TU_USUARIO` por tu usuario de Docker Hub.
-
-1. **Build** de la imagen con el nombre que tendrá en Docker Hub:
-```bash
-docker build -t TU_USUARIO/wishes-app:latest .
-```
-
-2. **Login** en Docker Hub (te pide usuario y contraseña):
-```bash
-docker login
-```
-
-3. **Push** de la imagen:
-```bash
-docker push TU_USUARIO/wishes-app:latest
-```
-
-Opcional: etiquetar también una versión (ej. `v1.0.0`) y pushearla:
-```bash
-docker tag TU_USUARIO/wishes-app:latest TU_USUARIO/wishes-app:v1.0.0
-docker push TU_USUARIO/wishes-app:v1.0.0
-```
-
-Para correr la imagen desde Docker Hub en otra máquina (reemplazá el puerto si usás otro):
-```bash
-docker run -p 3000:3000 --env-file .env TU_USUARIO/wishes-app:latest
-```
-
-### Deploy en otro environment (producción) 🌐
-
-En el servidor donde vas a correr el Docker, creá un archivo `.env` con las mismas variables pero apuntando al **host público** de ese environment.
-
-**Ejemplo de `.env` para producción** (reemplazá con tu host real, ej. `https://tudominio.com` o `http://179.43.1.99:3000`):
-
-```env
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="tu_google_maps_key"
-AUTH0_DOMAIN="dev-fzmzwj3owyilh2cw.us.auth0.com"
-AUTH0_CLIENT_ID="tu_client_id"
-AUTH0_CLIENT_SECRET="tu_client_secret"
-AUTH0_SECRET="una_cadena_aleatoria_larga_de_al_menos_32_caracteres"
-APP_BASE_URL="https://tudominio.com"
-```
-
-**Importante:**
-
-| Variable | En producción |
-|----------|----------------|
-| `APP_BASE_URL` | **URL pública** por la que se accede a la app: `https://tudominio.com` o `http://IP:3000`. Debe ser la URL que el usuario ve en el navegador (sin barra final). Si usás IP: `http://192.43.1.00:3000`. |
-| `AUTH0_*` | Mismos valores que en desarrollo (mismo tenant de Auth0). |
-
-**En el dashboard de Auth0** tenés que agregar las URLs de producción en la aplicación:
-
-- **Allowed Callback URLs:**  
-  `https://tudominio.com/auth/callback` (o `http://IP:3000/auth/callback` si usás IP).
-- **Allowed Logout URLs:**  
-  `https://tudominio.com` (o `http://IP:3000`).
-
-Si usás **HTTPS** con dominio, `APP_BASE_URL` debe ser `https://...`. Si accedés por IP y puerto, `http://192.43.1.00:3000` (revisá que la IP sea correcta, sin `001` en el tercer octeto: suele ser `192.43.1.00`).
-
-### Persistencia de datos con Docker (no perder los JSON) 💾
-En Docker los datos se guardan dentro del contenedor. En un nuevo `build` o borrás el contenedor, **perdés los JSON** de cada usuario. Para evitarlo se puede usar un volumen.
-
-**Paso 1: Crear la carpeta del volumen (en tu máquina)**  
-Ahí es donde Docker leerá y guardará los JSON.
+### 📁 Persist user JSON with a volume
+Container filesystem is ephemeral. Mount host data so user lists survive rebuilds:
 
 ```bash
 mkdir -p ./data/locations-users
-```
-
-**Paso 2: Poblar la carpeta (una de estas opciones)**
-
-- **Opción A – Build y deploy en servidores distintos:** Si construís la imagen en un server y la deployás en otro, no tenés los JSON en la máquina de deploy. Podés **copiar desde la imagen** al host la primera vez (la imagen trae lo que haya en `public/locations/users/` al hacer build):
-
-```bash
-# En el servidor de deploy, con la imagen ya bajada (ej. docker pull ...)
-mkdir -p ./data/locations-users
-
-# Crear un contenedor temporal sin ejecutarlo y copiar su carpeta al host
-docker create --name wishes-app-seed TU_USUARIO/wishes-app:latest
-docker cp wishes-app-seed:/app/public/locations/users/. ./data/locations-users/
-docker rm wishes-app-seed
-```
-
-Después corrés el contenedor real con el volumen (Paso 3). La imagen solo trae JSON si en el **build** tenías archivos en `public/locations/users/` (si ese directorio estaba vacío o no en el repo, la carpeta en el deploy queda vacía y la app creará archivos cuando los usuarios agreguen países).
-
-- **Opción B – Tenés los JSON en la misma máquina:** Si en desarrollo tenés `public/locations/users/*.json`, copialos a la carpeta del volumen antes del primer `docker run`:
-
-```bash
-cp -r public/locations/users/* ./data/locations-users/
-```
-
-En Windows (PowerShell): `Copy-Item -Path .\public\locations\users\* -Destination .\data\locations-users\ -Force`
-
-Si **no** hacés ninguna de las dos, la carpeta queda vacía: la app arranca sin datos y creará un JSON cuando cada usuario agregue su primer país.
-
-**Paso 3: Ejecutar Docker con el volumen**  
-Docker monta `./data/locations-users` dentro del contenedor en `/app/public/locations/users`. Todo lo que la app lee o escribe va a esa carpeta de tu máquina. Al arrancar, el contenedor ajusta permisos de ese directorio para que la app pueda escribir (evita `EACCES` al agregar países).
-
-```bash
 docker run -d -p 3000:3000 --env-file .env \
   -v "$(pwd)/data/locations-users:/app/public/locations/users" \
   --name wishes-app wishes-app
 ```
 
-En Windows (PowerShell):
+Windows (PowerShell):
 
 ```powershell
 docker run -d -p 3000:3000 --env-file .env -v "${PWD}\data\locations-users:/app/public/locations/users" --name wishes-app wishes-app
 ```
 
-**2. Backup de los JSON**  
-- **Desde la app:** en el menú hamburger hay **Backup JSON**, que descarga tu lista completa. Conviene usarlo de vez en cuando.  
-- **Desde el servidor:** si usás volumen, los archivos están en `./data/locations-users/` (un `.json` por usuario). Podés copiarlos a otro lugar o comprimirlos:
+**Seed from image (first deploy on a new server):**
 
 ```bash
-# Ejemplo: copiar a una carpeta de backup con fecha
-cp -r ./data/locations-users ./backup/locations-$(date +%Y%m%d)
-# O comprimir
-tar -czvf backup-locations.tar.gz ./data/locations-users
+docker create --name wishes-app-seed YOUR_USER/wishes-app:latest
+docker cp wishes-app-seed:/app/public/locations/users/. ./data/locations-users/
+docker rm wishes-app-seed
 ```
 
-**3. Restaurar después**  
-- Si tenés un backup JSON descargado desde la app, por ahora no hay “Import” en la UI; guardá ese JSON y, si en el futuro agregás import, lo usás.  
-- Si usás volumen y tenés una copia de `data/locations-users`, volvé a montar esa carpeta al correr el contenedor y los datos vuelven a estar.
+**Backup:** use **Export data** in the app (JSON/CSV) or copy `./data/locations-users/` on the server.
 
-**Resumen:** (1) Crear `./data/locations-users`. (2) Primera vez en el servidor de deploy: copiar desde la imagen con `docker create` + `docker cp` + `docker rm`, o copiar tus JSON locales si los tenés. (3) Correr Docker con `-v ./data/locations-users:/app/public/locations/users` para que los datos persistan.
+### 🚢 Docker Hub
+```bash
+docker build -t YOUR_USER/wishes-app:latest .
+docker login
+docker push YOUR_USER/wishes-app:latest
+```
 
-### Test app ⌛
-Open [http://localhost:3000](http://localhost:3000) with the browser to see the result.
+## 🌐 Production deploy
+Use a public `APP_BASE_URL` (no trailing slash), e.g. `https://yourdomain.com` or `http://IP:3000`.
 
-### License
-By Agustina Fassina
+| Variable | Production |
+|----------|------------|
+| `APP_BASE_URL` | Public URL users open in the browser |
+| `AUTH0_*` | Same tenant; add production callback/logout URLs in Auth0 |
+
+**Auth0 (production):**
+
+- Allowed Callback URLs: `https://yourdomain.com/auth/callback`
+- Allowed Logout URLs: `https://yourdomain.com`
+
+Run with `--env-file .env` and the volume mount for `public/locations/users` if you need persistence.
+
+## 🛠️ Tech stack
+- **Next.js 16** (App Router) · **React 19** · **TypeScript**
+- **@react-google-maps/api** · **@auth0/nextjs-auth0**
+- **jspdf** · **html2canvas** (export / share)
+- **CSS** design tokens (`app/styles/_variables.css`, `_components.css`, `_responsive.css`) + Tailwind import in `globals.css`
+- **next/font** (Poppins)
+
+## 📂 Project structure
+```
+app/
+  api/              # add-country, delete-country, locations, update-country, …
+  styles/           # variables, components, responsive
+  layout.tsx, page.tsx, globals.css
+components/
+  Map.tsx, HomeClient.tsx, …
+  map/              # CountryListCard, modals, EmptyState, utils
+hooks/              # useLocations, useCountryActions, …
+lib/                # env, auth0, haptic, fonts
+public/locations/
+  web_locations.json    # sample / legacy
+  users/*.json          # one file per Auth0 user
+```
+
+## 📚 Related docs
+| File | Language | Purpose |
+|------|----------|---------|
+| [README_ES.md](./README_ES.md) | Spanish | This readme in Spanish |
+| [MANUAL_DE_USO.md](./MANUAL_DE_USO.md) | Spanish | End-user guide |
+| [MEDIUM.md](./MEDIUM.md) | English | Build story / Cursor notes |
+
+## 🔧 Troubleshooting
+| Issue | Check |
+|-------|--------|
+| Map blank | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, Maps API enabled in Google Cloud |
+| Auth errors | Auth0 domain, client id/secret, callback/logout URLs, `AUTH0_SECRET` length |
+| Data not saved | Write access to `public/locations/users/` (or Docker volume mount) |
+| 401 / not logged in | Log in via Auth0; app requires a session |
+
+## 📄 License
+By Agustina Fassina — personal project; use as reference for your own work.
