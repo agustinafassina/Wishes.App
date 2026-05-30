@@ -7,7 +7,9 @@
 
 
   --header-height: 3.75rem;
-
+  --shell-max-width: 1200px;
+  --shell-inset: 0;
+  --shell-radius: var(--radius-xl);
 
   --bottom-bar-height: 0;
 

@@ -20,7 +20,7 @@ html {
 
 #travel-map,
 #country-list {
-  scroll-margin-top: var(--header-height);
+  scroll-margin-top: calc(var(--header-height) + var(--shell-inset, 0px));
 }
 
 body {
