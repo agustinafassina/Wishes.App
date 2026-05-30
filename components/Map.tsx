@@ -8,13 +8,68 @@ import { getApiErrorDisplay } from '@/lib/api-error-display';
 import { env } from '@/lib/env';
 import { hapticLight, hapticSuccess } from '@/lib/haptic';
 import type { CountryLocation } from '@/types/country';
-import { AddCountryModal, CountryListCard, MapPopup, matchesCountrySearch, normalizeTags, NotesModal, ShareModal, ViewModal } from '@/components/map/index';
+import {
+  AddCountryModal,
+  CountryListCard,
+  EmptyState,
+  getEmptyStateCopy,
+  getListSearchResultsAnnouncement,
+  MapPopup,
+  matchesCountrySearch,
+  normalizeTags,
+  NotesModal,
+  ShareModal,
+  statusFiltersForListTab,
+  ViewModal,
+} from '@/components/map/index';
+import type { ListTabFilterId } from '@/components/map/index';
 import { useLocations } from '@/hooks/useLocations';
 import { useCountryActions } from '@/hooks/useCountryActions';
 import ConfirmModal from './ConfirmModal';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 
 const API_KEY = env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+const MAP_ZOOM_MIN = 1;
+const MAP_ZOOM_MAX = 18;
+
+function MapZoomControls({
+  onZoomIn,
+  onZoomOut,
+  zoom,
+}: {
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  zoom: number;
+}) {
+  return (
+    <div className="map-custom-controls" role="group" aria-label="Map zoom controls">
+      <button
+        type="button"
+        className="map-zoom-btn"
+        onClick={onZoomIn}
+        disabled={zoom >= MAP_ZOOM_MAX}
+        aria-label="Zoom in"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        className="map-zoom-btn"
+        onClick={onZoomOut}
+        disabled={zoom <= MAP_ZOOM_MIN}
+        aria-label="Zoom out"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </button>
+    </div>
+  );
+}
 
 interface MapProps {
   shareUserName?: string;
@@ -58,15 +113,9 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
   const [targetStatus, setTargetStatus] = useState<string>('pending');
   const [confirmDeleteLocation, setConfirmDeleteLocation] = useState<CountryLocation | null>(null);
   const [confirmLeaveModal, setConfirmLeaveModal] = useState<'add' | 'notes' | null>(null);
-  const [statusFilters, setStatusFilters] = useState({
-    done: true,
-    'in review': false,
-    pending: false,
-  });
-  type ListTabId = 'done' | 'in review' | 'pending';
-  const [mobileListTab, setMobileListTab] = useState<ListTabId>('done');
-  type ListTabBelowId = 'all' | 'done' | 'in review' | 'pending';
-  const [listTabBelow, setListTabBelow] = useState<ListTabBelowId>('all');
+  const [listTabBelow, setListTabBelow] = useState<ListTabFilterId>('all');
+
+  const statusFilters = useMemo(() => statusFiltersForListTab(listTabBelow), [listTabBelow]);
   const [listSearchQuery, setListSearchQuery] = useState('');
   const [newCountry, setNewCountry] = useState({
     name: '',
@@ -300,6 +349,29 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     mapInstanceRef.current = map;
   };
 
+  const handleMapZoomChanged = useCallback(() => {
+    const z = mapInstanceRef.current?.getZoom();
+    if (typeof z === 'number') setZoom(z);
+  }, []);
+
+  const handleZoomIn = useCallback(() => {
+    hapticLight();
+    const map = mapInstanceRef.current;
+    const current = map?.getZoom() ?? zoom;
+    const next = Math.min(current + 1, MAP_ZOOM_MAX);
+    map?.setZoom(next);
+    setZoom(next);
+  }, [zoom]);
+
+  const handleZoomOut = useCallback(() => {
+    hapticLight();
+    const map = mapInstanceRef.current;
+    const current = map?.getZoom() ?? zoom;
+    const next = Math.max(current - 1, MAP_ZOOM_MIN);
+    map?.setZoom(next);
+    setZoom(next);
+  }, [zoom]);
+
   const handleMapClick = useCallback((e: google.maps.MapMouseEvent) => {
     if (!pickingLocationFromMapRef.current || !e.latLng) return;
     const lat = e.latLng.lat();
@@ -447,6 +519,26 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     return locationsForListTab.filter((loc) => matchesCountrySearch(loc, listSearchTrimmed));
   }, [locationsForListTab, listSearchTrimmed]);
 
+  const listSearchAriaTarget = useMemo(
+    () =>
+      getListSearchResultsAnnouncement({
+        query: listSearchTrimmed,
+        resultCount: displayLocationsBelow.length,
+        tabTotalCount: locationsForListTab.length,
+        tab: listTabBelow,
+      }),
+    [listSearchTrimmed, displayLocationsBelow.length, locationsForListTab.length, listTabBelow]
+  );
+
+  const [listSearchAriaMessage, setListSearchAriaMessage] = useState('');
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setListSearchAriaMessage(listSearchAriaTarget);
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [listSearchAriaTarget]);
+
   const handleColumnSort = (columnId: string) => {
     const nextOrder: 'a-z' | 'z-a' = columnSort[columnId] === 'a-z' ? 'z-a' : 'a-z';
     const nextSort: Record<string, 'a-z' | 'z-a'> = { ...columnSort, [columnId]: nextOrder };
@@ -584,26 +676,28 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     return {
       styles: isLight ? lightStyles : darkStyles,
       disableDefaultUI: false,
-      zoomControl: true,
-      zoomControlOptions: { position: 7 },
+      zoomControl: false,
       streetViewControl: false,
       mapTypeControl: false,
-      fullscreenControl: true,
+      fullscreenControl: false,
+      scaleControl: false,
+      rotateControl: false,
       mapTypeId: "roadmap",
       backgroundColor: isLight ? "#f8fafc" : "#0a0e1a"
     };
   }, [mapTheme]);
 
-  const handleFilterToggle = (status: 'done' | 'in review' | 'pending') => {
+  const applyListTab = useCallback((tab: ListTabFilterId) => {
     hapticLight();
-    setStatusFilters(prev => {
-      const next = { ...prev, [status]: !prev[status] };
-      const anyOn = next.done || next['in review'] || next.pending;
-      if (!anyOn) return prev;
-      return next;
-    });
-    setMobileListTab(status);
-  };
+    setListTabBelow(tab);
+  }, []);
+
+  const handleMapStatusFilter = useCallback(
+    (status: 'done' | 'in review' | 'pending') => {
+      applyListTab(status);
+    },
+    [applyListTab]
+  );
 
   return (
     <LoadScript googleMapsApiKey={API_KEY}>
@@ -634,45 +728,6 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
           <div className="quick-actions-grid">
             <button
               type="button"
-              className="quick-action-btn quick-action-btn-map"
-              onClick={() => {
-                hapticLight();
-                setMapCollapsed(false);
-                document.getElementById('travel-map')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-              aria-label="Map view"
-            >
-              <span className="quick-action-icon" aria-hidden>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-              </span>
-              <span className="quick-action-label">Map View</span>
-            </button>
-            <button
-              type="button"
-              className="quick-action-btn quick-action-btn-list"
-              onClick={() => {
-                hapticLight();
-                document.getElementById('country-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-              aria-label="List view"
-            >
-              <span className="quick-action-icon" aria-hidden>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="8" y1="6" x2="21" y2="6" />
-                  <line x1="8" y1="12" x2="21" y2="12" />
-                  <line x1="8" y1="18" x2="21" y2="18" />
-                  <line x1="3" y1="6" x2="3.01" y2="6" />
-                  <line x1="3" y1="12" x2="3.01" y2="12" />
-                  <line x1="3" y1="18" x2="3.01" y2="18" />
-                </svg>
-              </span>
-              <span className="quick-action-label">List View</span>
-            </button>
-            <button
-              type="button"
               className="quick-action-btn quick-action-btn-add"
               onClick={() => {
                 hapticLight();
@@ -684,72 +739,68 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
             >
               <span className="quick-action-icon" aria-hidden>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="16" />
-                  <line x1="8" y1="12" x2="16" y2="12" />
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
               </span>
-              <span className="quick-action-label">Add New</span>
+              <span className="quick-action-label">Add country</span>
             </button>
             <button
               type="button"
-              className="quick-action-btn quick-action-btn-done"
+              className="quick-action-btn quick-action-btn-share"
               onClick={() => {
                 hapticLight();
-                setListTabBelow('done');
-                document.getElementById('country-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                setShowShareModal(true);
               }}
-              aria-label="View Complete list"
+              aria-label="Share travel progress"
             >
               <span className="quick-action-icon" aria-hidden>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
+                  <circle cx="18" cy="5" r="3" />
+                  <circle cx="6" cy="12" r="3" />
+                  <circle cx="18" cy="19" r="3" />
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                 </svg>
               </span>
-              <span className="quick-action-label">Complete</span>
+              <span className="quick-action-label">Share</span>
             </button>
             <button
               type="button"
-              className="quick-action-btn quick-action-btn-in-review"
+              className="quick-action-btn quick-action-btn-list"
               onClick={() => {
                 hapticLight();
-                setListTabBelow('in review');
                 document.getElementById('country-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
-              aria-label="View In Review list"
+              disabled={locations.length === 0}
+              aria-label={locations.length === 0 ? 'View list (add a country first)' : 'Go to country list'}
             >
               <span className="quick-action-icon" aria-hidden>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                  <line x1="3" y1="6" x2="3.01" y2="6" />
+                  <line x1="3" y1="12" x2="3.01" y2="12" />
+                  <line x1="3" y1="18" x2="3.01" y2="18" />
                 </svg>
               </span>
-              <span className="quick-action-label">In Review</span>
-            </button>
-            <button
-              type="button"
-              className="quick-action-btn quick-action-btn-pending"
-              onClick={() => {
-                hapticLight();
-                setListTabBelow('pending');
-                document.getElementById('country-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-              aria-label="View To Do list"
-            >
-              <span className="quick-action-icon" aria-hidden>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-              </span>
-              <span className="quick-action-label">To Do</span>
+              <span className="quick-action-label">View list</span>
             </button>
           </div>
         </section>
+        <ShareModal
+          open={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          onCopyLink={handleCopyShareLink}
+          onDownloadImage={handleDownloadShareImage}
+          shareLinkCopied={shareLinkCopied}
+          isSharingImage={isSharingImage}
+        />
 
-        <div id="travel-map" className={`map-header ${locations.length > 0 ? 'map-header--unified' : ''}`}>
+        {locations.length > 0 ? (
+        <div className="dashboard-map-panel">
+        <div id="travel-map" className="map-header map-header--unified">
           <div className="map-header-top">
             <div className="map-world-map-row" role="group" aria-label="World map section">
               <h2 className="map-world-map-title">World Map</h2>
@@ -758,10 +809,10 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                   <div className="map-header-toolbar-pills map-header-toolbar-pills--legend-style" role="group" aria-label="Filter map and switch list column">
                     <button
                       type="button"
-                      className={`filter-btn filter-btn-done ${statusFilters.done ? 'active' : ''}`}
-                      onClick={() => handleFilterToggle('done')}
-                      aria-pressed={statusFilters.done}
-                      title={statusFilters.done ? 'Shown on map · View Complete list' : 'Show on map · View Complete list'}
+                      className={`filter-btn filter-btn-done ${listTabBelow === 'done' || listTabBelow === 'all' ? 'active' : ''}`}
+                      onClick={() => handleMapStatusFilter('done')}
+                      aria-pressed={listTabBelow === 'done' || listTabBelow === 'all'}
+                      title="Show Complete on map and list"
                     >
                       <span className="filter-btn-dot" aria-hidden />
                       <span className="filter-btn-label">Complete</span>
@@ -771,10 +822,10 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                     </button>
                     <button
                       type="button"
-                      className={`filter-btn filter-btn-in-review ${statusFilters['in review'] ? 'active' : ''}`}
-                      onClick={() => handleFilterToggle('in review')}
-                      aria-pressed={statusFilters['in review']}
-                      title={statusFilters['in review'] ? 'Shown on map · View Review list' : 'Show on map · View Review list'}
+                      className={`filter-btn filter-btn-in-review ${listTabBelow === 'in review' || listTabBelow === 'all' ? 'active' : ''}`}
+                      onClick={() => handleMapStatusFilter('in review')}
+                      aria-pressed={listTabBelow === 'in review' || listTabBelow === 'all'}
+                      title="Show Review on map and list"
                     >
                       <span className="filter-btn-dot" aria-hidden />
                       <span className="filter-btn-label">Review</span>
@@ -784,10 +835,10 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                     </button>
                     <button
                       type="button"
-                      className={`filter-btn filter-btn-pending ${statusFilters.pending ? 'active' : ''}`}
-                      onClick={() => handleFilterToggle('pending')}
-                      aria-pressed={statusFilters.pending}
-                      title={statusFilters.pending ? 'Shown on map · View To Do list' : 'Show on map · View To Do list'}
+                      className={`filter-btn filter-btn-pending ${listTabBelow === 'pending' || listTabBelow === 'all' ? 'active' : ''}`}
+                      onClick={() => handleMapStatusFilter('pending')}
+                      aria-pressed={listTabBelow === 'pending' || listTabBelow === 'all'}
+                      title="Show To Do on map and list"
                     >
                       <span className="filter-btn-dot" aria-hidden />
                       <span className="filter-btn-label">To Do</span>
@@ -841,11 +892,12 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                 <GoogleMap
                   key={mapTheme}
                   mapContainerClassName="map-container"
-                  mapContainerStyle={{ height: '100%', width: '100%', borderRadius: '20px' }}
+                  mapContainerStyle={{ height: '100%', width: '100%', borderRadius: 0 }}
                   center={mapCenter}
                   zoom={zoom}
                   options={mapOptions}
                   onLoad={handleMapLoad}
+                  onZoomChanged={handleMapZoomChanged}
                   onClick={handleMapClick}
                 >
                 {filteredLocations.map((location) => {
@@ -869,6 +921,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                   </InfoWindow>
                 )}
                 </GoogleMap>
+                <MapZoomControls onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} zoom={zoom} />
                 </>
               </div>
               <div className="map-legend" role="group" aria-label="Map legend">
@@ -889,7 +942,6 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
             )}
         </div>
 
-        {locations.length > 0 && (
           <section id="country-list" className="list-section-below-map" aria-label="Country list">
             <div className="list-tabs-bar">
               <div className="list-tabs-wrap" role="tablist" aria-label="Filter list by status">
@@ -898,7 +950,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                   role="tab"
                   className={`list-tab ${listTabBelow === 'all' ? 'list-tab--active' : ''}`}
                   aria-selected={listTabBelow === 'all'}
-                  onClick={() => { hapticLight(); setListTabBelow('all'); }}
+                  onClick={() => applyListTab('all')}
                 >
                   All ({locations.length})
                 </button>
@@ -907,7 +959,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                   role="tab"
                   className={`list-tab ${listTabBelow === 'done' ? 'list-tab--active' : ''}`}
                   aria-selected={listTabBelow === 'done'}
-                  onClick={() => { hapticLight(); setListTabBelow('done'); }}
+                  onClick={() => applyListTab('done')}
                 >
                   Complete ({doneLocations.length})
                 </button>
@@ -916,7 +968,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                   role="tab"
                   className={`list-tab ${listTabBelow === 'in review' ? 'list-tab--active' : ''}`}
                   aria-selected={listTabBelow === 'in review'}
-                  onClick={() => { hapticLight(); setListTabBelow('in review'); }}
+                  onClick={() => applyListTab('in review')}
                 >
                   Review ({inReviewLocations.length})
                 </button>
@@ -925,7 +977,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                   role="tab"
                   className={`list-tab ${listTabBelow === 'pending' ? 'list-tab--active' : ''}`}
                   aria-selected={listTabBelow === 'pending'}
-                  onClick={() => { hapticLight(); setListTabBelow('pending'); }}
+                  onClick={() => applyListTab('pending')}
                 >
                   To Do ({pendingLocations.length})
                 </button>
@@ -945,6 +997,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                     value={listSearchQuery}
                     onChange={(e) => setListSearchQuery(e.target.value)}
                     aria-label="Search countries in list"
+                    aria-describedby="country-list-search-results"
                     autoComplete="off"
                     spellCheck={false}
                   />
@@ -962,11 +1015,19 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                     </button>
                   )}
                 </label>
+                <p
+                  id="country-list-search-results"
+                  className="sr-only"
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  {listSearchAriaMessage}
+                </p>
               </div>
             </div>
             {listTabBelow === 'done' && (
-              <>
-                <div className="progress-bar-standalone progress-bar-standalone--below-map" role="region" aria-label="Travel progress">
+            <div className="progress-bar-standalone progress-bar-standalone--below-map" role="region" aria-label="Travel progress">
                   {celebratingMilestone !== null && (
                     <div className="progress-bar-standalone-celebration" role="alert" aria-live="assertive">
                       <span className="progress-bar-standalone-celebration-emoji">🎉</span>
@@ -998,14 +1059,6 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                         </svg>
                         <span>Share</span>
                       </button>
-                      <ShareModal
-                        open={showShareModal}
-                        onClose={() => setShowShareModal(false)}
-                        onCopyLink={handleCopyShareLink}
-                        onDownloadImage={handleDownloadShareImage}
-                        shareLinkCopied={shareLinkCopied}
-                        isSharingImage={isSharingImage}
-                      />
                     </div>
                   </div>
                   {milestone && (
@@ -1014,19 +1067,18 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                       <span>{milestone.label}</span>
                     </p>
                   )}
-                </div>
-                <div ref={shareCardRef} className="share-card-for-image" aria-hidden>
-                  <div className="share-card-inner">
-                    <p className="share-card-name">{shareUserName}</p>
-                    <p className="share-card-stats">{visitedCount} / {TOTAL_COUNTRIES} countries visited</p>
-                    <div className="share-card-bar-wrap">
-                      <div className="share-card-bar-fill" style={{ width: `${progressPercentage}%` }} />
-                    </div>
-                    <p className="share-card-tagline">My travel bucket list</p>
-                  </div>
-                </div>
-              </>
+            </div>
             )}
+            <div ref={shareCardRef} className="share-card-for-image" aria-hidden>
+              <div className="share-card-inner">
+                <p className="share-card-name">{shareUserName}</p>
+                <p className="share-card-stats">{visitedCount} / {TOTAL_COUNTRIES} countries visited</p>
+                <div className="share-card-bar-wrap">
+                  <div className="share-card-bar-fill" style={{ width: `${progressPercentage}%` }} />
+                </div>
+                <p className="share-card-tagline">My travel bucket list</p>
+              </div>
+            </div>
             <div className="list-section-below-map-content">
               <div className="country-list-scroll country-list-scroll--standalone">
                 {displayLocationsBelow.length > 0 ? (
@@ -1043,30 +1095,53 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                     />
                   ))
                 ) : (
-                  <div className="list-empty-state">
-                    <p className="list-empty-state-message">
-                      {listSearchTrimmed
-                        ? `No countries match “${listSearchTrimmed}”`
-                        : listTabBelow === 'all'
-                          ? 'No countries yet'
-                          : listTabBelow === 'done'
-                            ? 'No countries completed yet'
-                            : listTabBelow === 'in review'
-                              ? 'No countries in review'
-                              : 'No countries to do'}
-                    </p>
-                    <button
-                      type="button"
-                      className="empty-state-cta"
-                      onClick={() => { hapticLight(); handleColumnDoubleClick('pending'); }}
-                    >
-                      Add country
-                    </button>
-                  </div>
+                  <EmptyState
+                    variant="inline"
+                    {...getEmptyStateCopy({
+                      search: listSearchTrimmed || undefined,
+                      tab: listTabBelow,
+                    })}
+                    onAddCountry={() => {
+                      hapticLight();
+                      handleColumnDoubleClick('pending');
+                    }}
+                  />
                 )}
               </div>
             </div>
           </section>
+        </div>
+        ) : (
+        <div id="travel-map" className="map-header">
+          <div className="map-header-top">
+            <div className="map-world-map-row" role="group" aria-label="World map section">
+              <h2 className="map-world-map-title">World Map</h2>
+              <button
+                type="button"
+                className="btn-add-country-header btn-add-country-header--compact"
+                onClick={() => handleColumnDoubleClick('pending')}
+                disabled={isAddingCountry}
+                aria-label={isAddingCountry ? 'Adding country…' : 'Add new country'}
+                aria-busy={isAddingCountry}
+              >
+                {isAddingCountry ? (
+                  <>
+                    <span className="btn-spinner" aria-hidden />
+                    <span>Adding…</span>
+                  </>
+                ) : (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    <span>Add country</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
         )}
 
         {isLoadingLocations ? (
@@ -1132,44 +1207,19 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                     zoom={zoom}
                     options={mapOptions}
                     onLoad={handleMapLoad}
+                    onZoomChanged={handleMapZoomChanged}
                     onClick={handleMapClick}
                   />
+                  <MapZoomControls onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} zoom={zoom} />
                 </div>
               </div>
             ) : (
-            <div className="map-empty-state" role="status" aria-live="polite">
-              <div className="map-empty-state-icon-wrap" aria-hidden>
-                <svg className="map-empty-state-icon-svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-              </div>
-              <p className="map-empty-state-title">Start your journey</p>
-              <p className="map-empty-state-hint">Add your first country to begin your travel bucket list. Use the button below or double-tap a column to add one.</p>
-              <button
-                type="button"
-                className="btn-add-country-header map-empty-state-cta"
-                onClick={() => handleColumnDoubleClick('pending')}
-                disabled={isAddingCountry}
-                aria-label={isAddingCountry ? 'Adding country…' : 'Add new country'}
-                aria-busy={isAddingCountry}
-              >
-                {isAddingCountry ? (
-                  <>
-                    <span className="btn-spinner" aria-hidden />
-                    <span>Adding…</span>
-                  </>
-                ) : (
-                  <>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <line x1="12" y1="5" x2="12" y2="19" />
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                    <span>Add country</span>
-                  </>
-                )}
-              </button>
-            </div>
+            <EmptyState
+              variant="hero"
+              {...getEmptyStateCopy({ tab: 'all' })}
+              onAddCountry={() => handleColumnDoubleClick('pending')}
+              isAdding={isAddingCountry}
+            />
             )
           ) : (
           <>

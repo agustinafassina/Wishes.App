@@ -1,7 +1,7 @@
 "use client";
 
 import type { CountryLocation } from '@/types/country';
-import { normalizeTags } from './utils';
+import { getStatusDisplayLabel, normalizeTags } from './utils';
 
 interface MapPopupProps {
   location: CountryLocation;
@@ -10,7 +10,7 @@ interface MapPopupProps {
 export default function MapPopup({ location }: MapPopupProps) {
   const tags = normalizeTags(location);
   const statusClass = location.status.replace(/\s+/g, '-');
-  const badgeLabel = location.status === 'done' ? 'Complete' : location.status === 'in review' ? 'Review' : 'To Do';
+  const badgeLabel = getStatusDisplayLabel(location.status);
   const hasDetails = !!(location.visitedAt || location.notes || tags.length > 0);
 
   return (

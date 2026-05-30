@@ -2,6 +2,7 @@
 
 import type { CountryLocation } from '@/types/country';
 import CountryItem from './CountryItem';
+import EmptyState from './EmptyState';
 
 interface CountryColumnProps {
   id: string;
@@ -75,26 +76,11 @@ export default function CountryColumn({
               />
             ))
           ) : (
-            <div className="empty-state" data-status={statusClass}>
-              <div className="empty-state-icon">{icon}</div>
-              <p className="empty-state-message">{emptyMessage}</p>
-              {status === 'pending' && onEmptyCtaClick && (
-                <p className="empty-state-hint">Or double-tap this card to add one.</p>
-              )}
-              {(status === 'in review' || status === 'done') && onEmptyCtaClick && (
-                <p className="empty-state-hint">Use the move icon to move items between columns or add below.</p>
-              )}
-              {onEmptyCtaClick && (
-                <button
-                  type="button"
-                  className="empty-state-cta"
-                  onClick={(e) => { e.stopPropagation(); onEmptyCtaClick(); }}
-                  onPointerDown={(e) => e.stopPropagation()}
-                >
-                  Add country
-                </button>
-              )}
-            </div>
+            <EmptyState
+              variant="inline"
+              message={emptyMessage}
+              onAddCountry={onEmptyCtaClick}
+            />
           )}
         </div>
       </div>

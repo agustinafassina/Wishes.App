@@ -39,19 +39,8 @@
   }
 
   .content-section {
-    padding: 1.25rem 1.25rem;
-  }
-
-  .map-header {
-    margin-left: -1.25rem;
-    margin-right: -1.25rem;
-    width: calc(100% + 2.5rem);
-  }
-
-  .list-section-below-map {
-    margin-left: -1.25rem;
-    margin-right: -1.25rem;
-    width: calc(100% + 2.5rem);
+    --dashboard-bleed: 1.25rem;
+    padding: var(--dashboard-stack-gap) 1.25rem;
   }
 
   .stats-bubbles {
@@ -74,7 +63,7 @@
   }
 
   .quick-actions {
-    margin-bottom: 5;
+    margin-bottom: 0;
   }
 
   .map-world-map-row .map-header-toolbar--inline .map-header-toolbar-pills--legend-style {
@@ -237,19 +226,8 @@
   }
 
   .content-section {
-    padding: 1.5rem 1.5rem;
-  }
-
-  .map-header {
-    margin-left: -1.5rem;
-    margin-right: -1.5rem;
-    width: calc(100% + 3rem);
-  }
-
-  .list-section-below-map {
-    margin-left: -1.5rem;
-    margin-right: -1.5rem;
-    width: calc(100% + 3rem);
+    --dashboard-bleed: 1.5rem;
+    padding: var(--dashboard-stack-gap) 1.5rem;
   }
 
   .map-wrapper {
@@ -630,11 +608,12 @@
 
   .list-tab:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+    box-shadow: var(--focus-ring);
+    border-radius: var(--radius-sm);
   }
 
   .list-tab-count {
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-ui);
     font-size: 1.125rem;
     font-weight: 700;
     line-height: 1;
@@ -653,7 +632,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-tertiary);
+    color: var(--tab-text);
     line-height: 1.2;
     transition: color 0.2s ease;
   }
@@ -1075,19 +1054,8 @@
   }
 
   .content-section {
-    padding: 1.25rem max(1rem, var(--safe-area-inset-right)) 1.25rem max(1rem, var(--safe-area-inset-left));
-  }
-
-  .map-header {
-    margin-left: -1.25rem;
-    margin-right: -1.25rem;
-    width: calc(100% + 2.5rem);
-  }
-
-  .list-section-below-map {
-    margin-left: -1.25rem;
-    margin-right: -1.25rem;
-    width: calc(100% + 2.5rem);
+    --dashboard-bleed: 1.25rem;
+    padding: var(--dashboard-stack-gap) max(1rem, var(--safe-area-inset-right)) var(--dashboard-stack-gap) max(1rem, var(--safe-area-inset-left));
   }
 
   .progress-timeline {
@@ -1306,19 +1274,8 @@
   }
 
   .content-section {
-    padding: 1rem 0.75rem;
-  }
-
-  .map-header {
-    margin-left: -0.75rem;
-    margin-right: -0.75rem;
-    width: calc(100% + 1.5rem);
-  }
-
-  .list-section-below-map {
-    margin-left: -0.75rem;
-    margin-right: -0.75rem;
-    width: calc(100% + 1.5rem);
+    --dashboard-bleed: 0.75rem;
+    padding: var(--dashboard-stack-gap) 0.75rem;
   }
 
   .progress-timeline {
@@ -1565,10 +1522,10 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.08);
   }
 
-  html[data-theme="light"] .map-header {
-    background: var(--bg-card);
+  html[data-theme="light"] .dashboard-map-panel,
+  html[data-theme="light"] .map-section > .map-header {
     border-color: rgba(0, 0, 0, 0.06);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    box-shadow: var(--dashboard-panel-shadow);
   }
 
   html[data-theme="light"] .map-filters {
@@ -1588,9 +1545,16 @@
 
 /* Light theme – World Map header: sin tinte azul (última capa; gana sobre reglas antiguas en caché) */
 html[data-theme="light"] #travel-map.map-header,
-html[data-theme="light"] .map-header {
+html[data-theme="light"] .map-header,
+html[data-theme="light"] .dashboard-map-panel {
   background: var(--bg-card);
   background-color: var(--bg-card);
+}
+
+html[data-theme="light"] .dashboard-map-panel .map-header,
+html[data-theme="light"] .dashboard-map-panel .list-section-below-map {
+  background: transparent;
+  background-color: transparent;
 }
 
 html[data-theme="light"] .map-header-top,
@@ -1604,3 +1568,4 @@ html[data-theme="light"] .map-header .map-header-toolbar--inline {
 html[data-theme="light"] .map-header-top::before {
   display: none;
 }
+

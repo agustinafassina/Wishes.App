@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const countries: Country[] = JSON.parse(fileContents);
 
     const countryIndex = countries.findIndex((c) => c.code === countryCode && c.name === countryName);
-    
+
     if (countryIndex === -1) {
       return NextResponse.json(
         { error: 'Country not found' },
@@ -48,14 +48,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update the status
     countries[countryIndex].status = newStatus;
 
-    // Write the updated data back to the file
     await fs.writeFile(filePath, JSON.stringify(countries, null, 4), 'utf8');
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: `Country ${countryCode} status updated to ${newStatus}`,
       country: countries[countryIndex]
     });
@@ -68,4 +66,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

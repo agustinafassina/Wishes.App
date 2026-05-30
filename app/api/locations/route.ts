@@ -18,7 +18,7 @@ export async function GET() {
       const fileContents = await fs.readFile(filePath, 'utf8');
       data = JSON.parse(fileContents);
     } catch {
-      // File not found or invalid JSON → return empty list
+
       data = [];
     }
 

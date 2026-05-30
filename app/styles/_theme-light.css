@@ -26,6 +26,8 @@ html[data-theme="light"] .header-travel-label {
   color: var(--text-tertiary);
 }
 
+html[data-theme="light"] .page-header > h1.header-title,
+html[data-theme="light"] .page-header h1.header-title,
 html[data-theme="light"] .header-title {
   color: var(--text-primary);
 }
@@ -193,7 +195,6 @@ html[data-theme="light"] .map-header-icon {
 }
 
 html[data-theme="light"] .map-header .section-title {
-  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
   color: var(--text-primary);
 }
 
@@ -431,14 +432,18 @@ html[data-theme="light"] .list-tabs {
 
 html[data-theme="light"] .list-tab {
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--tab-text);
   border: none;
 }
 
 html[data-theme="light"] .list-tab:hover {
   background: transparent;
   border-color: rgba(0, 0, 0, 0.16);
-  color: var(--text-primary);
+  color: var(--tab-text-hover);
+}
+
+html[data-theme="light"] .list-tab--active {
+  color: var(--tab-text-active);
 }
 
 html[data-theme="light"] .btn-submit {
@@ -524,21 +529,6 @@ html[data-theme="light"] .share-card-tagline {
   color: #64748b;
 }
 
-html[data-theme="light"] .country-card.done .empty-state-icon {
-  background: rgba(16, 185, 129, 0.15);
-  color: #047857;
-}
-
-html[data-theme="light"] .country-card.in-review .empty-state-icon {
-  background: rgba(245, 158, 11, 0.15);
-  color: #b45309;
-}
-
-html[data-theme="light"] .country-card.pending .empty-state-icon {
-  background: rgba(239, 68, 68, 0.15);
-  color: #b91c1c;
-}
-
 html[data-theme="light"] .country-list-scroll {
   scrollbar-color: rgba(0, 0, 0, 0.25) #e0e0e5;
 }
@@ -553,43 +543,6 @@ html[data-theme="light"] .country-list-scroll::-webkit-scrollbar-thumb {
 
 html[data-theme="light"] .country-list-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.35);
-}
-
-html[data-theme="light"] .empty-state-message {
-  color: var(--text-secondary);
-}
-
-html[data-theme="light"] .empty-state-hint {
-  color: var(--text-tertiary);
-}
-
-/* Light theme – contenedor y botón igual que la burbuja Add new (sin gris) */
-html[data-theme="light"] .list-empty-state {
-  background: rgba(139, 92, 246, 0.12);
-  border-color: rgba(139, 92, 246, 0.2);
-}
-
-html[data-theme="light"] .empty-state-cta,
-html[data-theme="light"] .list-empty-state .empty-state-cta {
-  background: rgba(139, 92, 246, 0.12);
-  border: 1px solid rgba(139, 92, 246, 0.25);
-  color: var(--primary-purple-dark, #5b21b6);
-  font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-html[data-theme="light"] .empty-state-cta:hover,
-html[data-theme="light"] .list-empty-state .empty-state-cta:hover {
-  background: rgba(139, 92, 246, 0.22);
-  border-color: rgba(139, 92, 246, 0.35);
-  color: var(--primary-purple-dark, #5b21b6);
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.15);
-}
-
-html[data-theme="light"] .empty-state-cta:active,
-html[data-theme="light"] .list-empty-state .empty-state-cta:active {
-  background: rgba(139, 92, 246, 0.18);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 html[data-theme="light"] .map-filters {

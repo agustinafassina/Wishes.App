@@ -68,6 +68,20 @@
   --accent-primary-border-mid: rgba(139, 92, 246, 0.25);
   --accent-primary-bg-hover-strong: rgba(139, 92, 246, 0.22);
   --accent-blue-border-mid: rgba(59, 130, 246, 0.25);
+  --chip-accent-bg: rgba(139, 92, 246, 0.28);
+  --chip-accent-border: rgba(139, 92, 246, 0.4);
+  --chip-accent-text: var(--text-primary);
+  --icon-accent-bg: rgba(139, 92, 246, 0.1);
+  --icon-accent-border: rgba(139, 92, 246, 0.2);
+  --banner-accent-bg: rgba(139, 92, 246, 0.15);
+  --banner-accent-border: rgba(139, 92, 246, 0.35);
+  --shadow-accent-cta: 0 2px 12px rgba(139, 92, 246, 0.35);
+  --shadow-accent-cta-hover: 0 4px 20px rgba(139, 92, 246, 0.45);
+  --shadow-accent-cta-active: 0 2px 10px rgba(139, 92, 246, 0.3);
+  --shadow-accent-glow-btn: 0 4px 16px rgba(139, 92, 246, 0.4);
+  --shadow-accent-subtle: 0 0 0 1px rgba(139, 92, 246, 0.1);
+  --shadow-accent-subtle-hover: 0 2px 12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(139, 92, 246, 0.2);
+  --scrollbar-accent: rgba(139, 92, 246, 0.4);
 
   /* Typography scale – 0.75 / 0.875 / 1 / 1.125 / 1.25 / 1.5 / 2 rem */
   --text-xs: 0.75rem;
@@ -85,6 +99,19 @@
   --font-semibold: 600;
   --font-bold: 700;
   --font-light: 300;
+
+  /* Font families – --font-poppins definido por next/font en <body> */
+  --font-ui: var(--font-poppins), 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* List / map tabs – inactive ≥ WCAG AA 4.5:1 on --bg-card */
+  --tab-text: var(--text-secondary);
+  --tab-text-hover: var(--text-primary);
+  --tab-text-active: #93c5fd;
+  --tab-indicator: #3b82f6;
+
+  /* Keyboard focus ring – filtros, tabs, cards, menú ⋮ (misma lógica que Quick Actions) */
+  --focus-ring-color: rgba(167, 139, 250, 0.95);
+  --focus-ring: 0 0 0 2px var(--focus-ring-color);
 
   /* Radius – unified corners */
   --radius-sm: 6px;
@@ -104,6 +131,14 @@
   --space-xl: 1.25rem;
   --space-2xl: 1.5rem;
   --space-3xl: 2rem;
+
+  /* Dashboard stack – Stats → Quick Actions → Map/List */
+  --dashboard-stack-gap: var(--space-xl);
+  --dashboard-inner-gap: var(--space-md);
+  --dashboard-bleed: var(--space-2xl);
+  --dashboard-panel-border: 1px solid var(--border-light);
+  --dashboard-panel-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
+  --dashboard-tile-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
   
   /* Shadows - Enhanced glows */
   --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.5);
@@ -125,6 +160,12 @@ html[data-theme="light"] {
   --text-primary: #1a1a1e;
   --text-secondary: #4c4c52;
   --text-tertiary: #6e6e76;
+  --tab-text: var(--text-secondary);
+  --tab-text-hover: var(--text-primary);
+  --tab-text-active: #1e40af;
+  --tab-indicator: #2563eb;
+  --focus-ring-color: rgba(76, 29, 149, 0.55);
+  --focus-ring: 0 0 0 2px var(--focus-ring-color);
   --border: rgba(0, 0, 0, 0.1);
   --border-light: rgba(0, 0, 0, 0.06);
   /* Softer shadows so they don't look too strong or flat on light backgrounds */
@@ -132,6 +173,26 @@ html[data-theme="light"] {
   --accent-on-light-soft: #5b21b6;
   --accent-border-on-light: rgba(76, 29, 149, 0.45);
   --accent-bg-on-light: rgba(76, 29, 149, 0.1);
+  --accent-primary-bg-soft: var(--accent-bg-on-light);
+  --accent-primary-bg-hover: rgba(76, 29, 149, 0.14);
+  --accent-primary-border-strong: rgba(76, 29, 149, 0.35);
+  --accent-primary-border-mid: rgba(76, 29, 149, 0.22);
+  --accent-primary-bg-hover-strong: rgba(76, 29, 149, 0.16);
+  --accent-primary-focus-ring: rgba(76, 29, 149, 0.18);
+  --chip-accent-bg: var(--accent-bg-on-light);
+  --chip-accent-border: rgba(76, 29, 149, 0.22);
+  --chip-accent-text: var(--accent-on-light);
+  --icon-accent-bg: rgba(124, 58, 237, 0.08);
+  --icon-accent-border: rgba(124, 58, 237, 0.18);
+  --banner-accent-bg: rgba(76, 29, 149, 0.08);
+  --banner-accent-border: rgba(76, 29, 149, 0.2);
+  --shadow-accent-cta: 0 2px 8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(76, 29, 149, 0.12);
+  --shadow-accent-cta-hover: 0 4px 12px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(76, 29, 149, 0.18);
+  --shadow-accent-cta-active: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --shadow-accent-glow-btn: 0 2px 10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(76, 29, 149, 0.12);
+  --shadow-accent-subtle: 0 0 0 1px rgba(0, 0, 0, 0.06);
+  --shadow-accent-subtle-hover: var(--shadow-sm);
+  --scrollbar-accent: rgba(0, 0, 0, 0.22);
   --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06), 0 8px 28px rgba(0, 0, 0, 0.03);
   --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.08), 0 16px 48px rgba(0, 0, 0, 0.04);
@@ -139,6 +200,8 @@ html[data-theme="light"] {
   --shadow-glow-success: 0 0 0 1px rgba(16, 185, 129, 0.16), 0 2px 10px rgba(16, 185, 129, 0.08);
   --shadow-glow-warning: 0 0 0 1px rgba(245, 158, 11, 0.16), 0 2px 10px rgba(245, 158, 11, 0.06);
   --shadow-glow-pending: 0 0 0 1px rgba(239, 68, 68, 0.16), 0 2px 10px rgba(239, 68, 68, 0.06);
+  --dashboard-panel-shadow: var(--shadow-sm);
+  --dashboard-tile-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 html[data-theme="light"] body::after {

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { poppins } from "@/lib/fonts";
 import "./globals.css";
 import BackgroundMosaic from "../components/BackgroundMosaic";
 import { ToastProvider } from "../components/ToastContext";
@@ -45,7 +46,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${poppins.className} antialiased`}
       >
         <script
           dangerouslySetInnerHTML={{

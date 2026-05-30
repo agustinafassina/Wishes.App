@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { CountryLocation } from '@/types/country';
-import { normalizeTags, STATUS_OPTIONS } from './utils';
+import { getStatusDisplayLabel, normalizeTags, STATUS_OPTIONS } from './utils';
 
 interface CountryListCardProps {
   location: CountryLocation;
@@ -68,45 +68,34 @@ export default function CountryListCard({
       ? 'Planned'
       : 'Not scheduled';
 
-  const statusLabel = status === 'done' ? 'Complete' : status === 'in review' ? 'In Review' : 'To Do';
+  const statusLabel = getStatusDisplayLabel(status);
   const statusClass = status.replace(/\s+/g, '-');
 
   return (
-    <div className={`country-list-card country-list-card--${statusClass} ${isDeleting ? 'country-list-card--deleting' : ''} ${moreOpen ? 'country-list-card--menu-open' : ''}`}>
+    <article
+      className={`country-list-card country-list-card--${statusClass} ${isDeleting ? 'country-list-card--deleting' : ''} ${moreOpen ? 'country-list-card--menu-open' : ''}`}
+      aria-label={`${location.name}, ${statusLabel}`}
+    >
       {isDeleting && (
         <div className="country-list-card-deleting" aria-hidden>
           <span className="country-list-card-deleting-spinner" />
           <span>Deleting...</span>
         </div>
       )}
-      {location.flag && (
-        <img src={location.flag} alt="" className="country-list-card-flag" />
-      )}
-      <div className="country-list-card-body">
-        <h3 className="country-list-card-name">{location.name}</h3>
-        <p className="country-list-card-meta">
-          <span className="country-list-card-meta-icon" aria-hidden>📅</span>
-          {dateLine}
-        </p>
-        {tags.length > 0 && (
-          <div className="country-list-card-tags">
-            {tags.map((t, i) => (
-              <span key={i} className="country-list-card-tag">{t}</span>
-            ))}
-          </div>
+      <div className="country-list-card-header">
+        {location.flag && (
+          <img src={location.flag} alt="" className="country-list-card-flag" />
         )}
-      </div>
-      <div className="country-list-card-right">
-        <span className={`country-list-card-badge country-list-card-badge--${statusClass}`}>
-          {statusLabel}
-        </span>
-        <div className="country-list-card-more-wrap" ref={moreRef}>
+        <div className="country-list-card-title-wrap">
+          <h3 className="country-list-card-name">{location.name}</h3>
+        </div>
+        <div className="country-list-card-actions" ref={moreRef}>
           <button
             ref={moreBtnRef}
             type="button"
             className={`country-list-card-more-btn ${moreOpen ? 'country-list-card-more-btn--open' : ''}`}
             onClick={(e) => { e.stopPropagation(); setMoreOpen((o) => !o); }}
-            aria-label="More actions"
+            aria-label={`More actions for ${location.name}`}
             aria-expanded={moreOpen}
             aria-haspopup="true"
           >
@@ -158,6 +147,19 @@ export default function CountryListCard({
           )}
         </div>
       </div>
-    </div>
+      <div className="country-list-card-details">
+        <p className="country-list-card-meta">
+          <span className="country-list-card-meta-icon" aria-hidden>📅</span>
+          {dateLine}
+        </p>
+        {tags.length > 0 && (
+          <div className="country-list-card-tags">
+            {tags.map((t, i) => (
+              <span key={i} className="country-list-card-tag">{t}</span>
+            ))}
+          </div>
+        )}
+      </div>
+    </article>
   );
 }

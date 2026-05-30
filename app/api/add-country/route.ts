@@ -60,15 +60,13 @@ export async function POST(request: NextRequest) {
       status,
     };
 
-    // Add the new country to the array
     countries.push(newCountry);
 
-    // Ensure directory exists (e.g. when using Docker with an empty volume)
     await ensureUserLocationsDir();
     await fs.writeFile(filePath, JSON.stringify(countries, null, 4), 'utf8');
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: `Country ${name} added successfully`,
       country: newCountry
     });
@@ -81,4 +79,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
