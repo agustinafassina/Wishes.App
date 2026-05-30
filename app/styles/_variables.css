@@ -1,19 +1,17 @@
-/* Design tokens – single source of truth for colors, spacing, typography */
-
 :root {
-  /* Safe areas for PWA standalone (notch, gesture bar); 0 when not in standalone */
+
   --safe-area-inset-top: env(safe-area-inset-top, 0px);
   --safe-area-inset-right: env(safe-area-inset-right, 0px);
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-inset-left: env(safe-area-inset-left, 0px);
 
-  /* Fixed header height – used for main padding-top so content is not under header */
+
   --header-height: 3.75rem;
 
-  /* Fixed bottom bar (Power Apps style) – used for main padding-bottom */
+
   --bottom-bar-height: 0;
 
-  /* Modern Color Palette - Vibrant & Cohesive */
+
   --primary-purple: #8b5cf6;
   --primary-purple-light: #a78bfa;
   --primary-purple-dark: #7c3aed;
@@ -21,22 +19,22 @@
   --accent-pink-light: #f472b6;
   --accent-blue: #3b82f6;
   --accent-blue-light: #60a5fa;
-  
-  /* Background Colors - Rich dark tones */
+
+
   --bg-primary: #0a0e1a;
   --bg-secondary: #1a1f35;
   --bg-tertiary: #252b42;
   --bg-card: #1e2339;
   --bg-card-hover: #2a3049;
-  
-  /* Accent Colors - Vibrant & Modern */
+
+
   --accent-primary: var(--primary-purple);
   --accent-primary-light: var(--primary-purple-light);
   --accent-secondary: var(--accent-pink);
   --accent-secondary-light: var(--accent-pink-light);
   --accent-tertiary: var(--accent-blue);
-  
-  /* Status Colors - Distinct & Beautiful */
+
+
   --success: #10b981;
   --success-light: #34d399;
   --success-dark: #059669;
@@ -46,17 +44,17 @@
   --pending: #ef4444;
   --pending-light: #f87171;
   --pending-dark: #dc2626;
-  
-  /* Text Colors */
+
+
   --text-primary: #ffffff;
   --text-secondary: #cbd5e1;
   --text-tertiary: #94a3b8;
-  
-  /* Borders */
+
+
   --border: rgba(139, 92, 246, 0.3);
   --border-light: rgba(139, 92, 246, 0.2);
 
-  /* Accent button backgrounds/borders (icon buttons, quick actions) */
+
   --accent-primary-bg-soft: rgba(139, 92, 246, 0.15);
   --accent-primary-bg-hover: rgba(139, 92, 246, 0.25);
   --accent-primary-border-strong: rgba(139, 92, 246, 0.4);
@@ -83,7 +81,7 @@
   --shadow-accent-subtle-hover: 0 2px 12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(139, 92, 246, 0.2);
   --scrollbar-accent: rgba(139, 92, 246, 0.4);
 
-  /* Typography scale – 0.75 / 0.875 / 1 / 1.125 / 1.25 / 1.5 / 2 rem */
+
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
@@ -93,37 +91,37 @@
   --text-2xl: 1.5rem;
   --text-3xl: 1.75rem;
   --text-4xl: 2rem;
-  /* Font weights */
+
   --font-normal: 400;
   --font-medium: 500;
   --font-semibold: 600;
   --font-bold: 700;
   --font-light: 300;
 
-  /* Font families – --font-poppins definido por next/font en <body> */
+
   --font-ui: var(--font-poppins), 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-  /* List / map tabs – inactive ≥ WCAG AA 4.5:1 on --bg-card */
+
   --tab-text: var(--text-secondary);
   --tab-text-hover: var(--text-primary);
   --tab-text-active: #93c5fd;
   --tab-indicator: #3b82f6;
 
-  /* Keyboard focus ring – filtros, tabs, cards, menú ⋮ (misma lógica que Quick Actions) */
+
   --focus-ring-color: rgba(167, 139, 250, 0.95);
   --focus-ring: 0 0 0 2px var(--focus-ring-color);
 
-  /* Radius – unified corners */
+
   --radius-sm: 6px;
   --radius-8: 8px;
   --radius-md: 10px;
   --radius-lg: 12px;
   --radius-xl: 16px;
 
-  /* Touch target – minimum size for icon/action buttons (accessibility) */
+
   --touch-target: 44px;
 
-  /* Spacing – consistent gaps and padding */
+
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
   --space-md: 0.75rem;
@@ -132,15 +130,15 @@
   --space-2xl: 1.5rem;
   --space-3xl: 2rem;
 
-  /* Dashboard stack – Stats → Quick Actions → Map/List */
+
   --dashboard-stack-gap: var(--space-xl);
   --dashboard-inner-gap: var(--space-md);
   --dashboard-bleed: var(--space-2xl);
   --dashboard-panel-border: 1px solid var(--border-light);
   --dashboard-panel-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
   --dashboard-tile-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
-  
-  /* Shadows - Enhanced glows */
+
+
   --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.5);
   --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.6);
   --shadow-lg: 0 8px 48px rgba(0, 0, 0, 0.7);
@@ -150,7 +148,7 @@
   --shadow-glow-pending: 0 0 30px rgba(239, 68, 68, 0.4);
 }
 
-/* Light theme – variable overrides only */
+
 html[data-theme="light"] {
   --bg-primary: #f2f2f5;
   --bg-secondary: #e8e8ec;
@@ -168,7 +166,7 @@ html[data-theme="light"] {
   --focus-ring: 0 0 0 2px var(--focus-ring-color);
   --border: rgba(0, 0, 0, 0.1);
   --border-light: rgba(0, 0, 0, 0.06);
-  /* Softer shadows so they don't look too strong or flat on light backgrounds */
+
   --accent-on-light: #4c1d95;
   --accent-on-light-soft: #5b21b6;
   --accent-border-on-light: rgba(76, 29, 149, 0.45);

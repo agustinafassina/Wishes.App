@@ -1,6 +1,4 @@
-/**
- * Country-related constants. Use these instead of hardcoding strings.
- */
+
 import { COUNTRY_STATUSES } from '@/types/country';
 
 export { COUNTRY_STATUSES };

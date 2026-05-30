@@ -1,6 +1,4 @@
-/**
- * Display name from user (Auth0 profile). Used in Server and Client components.
- */
+
 function beforeAt(value: string): string {
   const s = value.trim();
   return s.includes('@') ? s.split('@')[0].trim() : s;

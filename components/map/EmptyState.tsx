@@ -24,7 +24,7 @@ export interface EmptyStateProps {
   hint?: string;
   onAddCountry?: () => void;
   isAdding?: boolean;
-  /** inline = list grid; hero = full-width when no countries */
+
   variant?: "inline" | "hero";
   className?: string;
 }

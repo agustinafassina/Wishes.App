@@ -73,7 +73,7 @@ function MapZoomControls({
 
 interface MapProps {
   shareUserName?: string;
-  /** When this value changes (e.g. incremented from header), open the Add country modal. */
+
   triggerOpenAddModal?: number;
 }
 
@@ -546,13 +546,11 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     setLocations(prev => reorderByColumnSort(prev, nextSort));
   };
 
-  // Total countries in the world (UN recognized)
   const TOTAL_COUNTRIES = 195;
   const visitedCount = doneLocations.length;
   const remainingCount = TOTAL_COUNTRIES - visitedCount;
   const progressPercentage = (visitedCount / TOTAL_COUNTRIES) * 100;
 
-  // Animated progress: on first load bar fills from 0 to current % over ~800ms
   const [progressDisplay, setProgressDisplay] = useState(0);
   const hasAnimatedProgressRef = useRef(false);
   useEffect(() => {
@@ -576,12 +574,10 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     setProgressDisplay(pct);
   }, [isLoadingLocations, locations, TOTAL_COUNTRIES]);
 
-  // Milestone badge: muestra el número real; emoji según hito (10, 50, 100)
   const milestone = visitedCount >= 10
     ? { label: `${visitedCount} countries!`, emoji: visitedCount >= 100 ? '🎉' : visitedCount >= 50 ? '🌟' : '🌍' }
     : null;
 
-  // Mini celebration when crossing 10, 20 or 30 countries (trigger class for CSS animation)
   const [celebratingMilestone, setCelebratingMilestone] = useState<number | null>(null);
   const prevVisitedRef = useRef(visitedCount);
   useEffect(() => {
@@ -1224,7 +1220,6 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
           ) : (
           <>
 
-        {/* View notes modal (read-only) */}
         <ViewModal
           ref={viewModalRef}
           location={showViewModal ? locationForView : null}
@@ -1233,7 +1228,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
 
           </>
           )}
-        {/* Notes & visit date modal (Done countries) */}
+
         <NotesModal
           ref={notesModalRef}
           open={showNotesModal && !!locationForNotes}
@@ -1247,7 +1242,6 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
           onClearError={(field) => setNotesFormErrors((prev) => ({ ...prev, [field]: '' }))}
         />
 
-        {/* Add Country Modal */}
         <AddCountryModal
           ref={addModalRef}
           open={showAddModal}

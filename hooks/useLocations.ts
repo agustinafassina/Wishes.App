@@ -93,7 +93,7 @@ export function useLocations({ getColumnSort, onFirstLoad }: UseLocationsOptions
         if (!cancelled) setIsLoadingLocations(false);
       });
     return () => { cancelled = true; };
-    // Run only on mount; onFirstLoad is read via ref to avoid re-fetching every render
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

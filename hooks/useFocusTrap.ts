@@ -11,10 +11,7 @@ function getFocusableElements(container: HTMLElement): HTMLElement[] {
   );
 }
 
-/**
- * Traps focus inside the given container when active, and restores focus to the
- * element that had focus when the trap was activated (e.g. the button that opened the modal).
- */
+
 export function useFocusTrap(
   containerRef: RefObject<HTMLElement | null>,
   isActive: boolean,

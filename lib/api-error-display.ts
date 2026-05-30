@@ -1,10 +1,7 @@
-/** Mensaje sugerido cuando el error parece de red (5xx, timeout, sin conexión). */
+
 export const CONNECTION_ERROR_MSG = 'Revisá tu conexión e intentá de nuevo.';
 
-/**
- * Devuelve un mensaje amigable para mostrar al usuario.
- * En errores 5xx, timeout o de red usa CONNECTION_ERROR_MSG; en el resto el mensaje del error o el fallback.
- */
+
 export function getApiErrorDisplay(error: unknown, fallback: string): string {
   if (error instanceof Error) {
     const msg = error.message;

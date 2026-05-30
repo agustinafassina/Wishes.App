@@ -38,7 +38,7 @@ export default function CountryListCard({
     if (!moreOpen || !moreBtnRef.current || typeof document === 'undefined') return;
     const rect = moreBtnRef.current.getBoundingClientRect();
     const viewportW = window.innerWidth;
-    // If menu would overflow right, anchor its right edge to the button so it opens left
+
     if (rect.left + MENU_MIN_WIDTH > viewportW - 8) {
       setMenuPosition({ top: rect.top - 8, right: viewportW - rect.right });
     } else {
