@@ -330,7 +330,7 @@
     border: 1px solid var(--border);
     border-bottom: 1px solid var(--border-light);
     border-radius: var(--shell-radius) var(--shell-radius) 0 0;
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
   }
 
   .main-content {
@@ -345,11 +345,7 @@
   }
 
   html[data-theme="light"] .page-header {
-    box-shadow: var(--shadow-sm);
-  }
-
-  html[data-theme="light"] .main-content {
-    box-shadow: var(--shadow-md);
+    box-shadow: none;
   }
 }
 
@@ -5099,7 +5095,7 @@ html[data-theme="light"] .header-btn-logout:hover {
 }
 
 html[data-theme="light"] .main-content {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 html[data-theme="light"] .content-section {
