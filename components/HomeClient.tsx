@@ -75,7 +75,7 @@ export default function HomeClient() {
               aria-haspopup="true"
             >
               {user?.picture ? (
-                <img src={user.picture} alt="" className="header-avatar" width={52} height={52} />
+                <img src={user.picture} alt="" className="header-avatar" width={44} height={44} />
               ) : (
                 <svg className="header-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <line x1="3" y1="6" x2="21" y2="6" />

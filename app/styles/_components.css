@@ -250,8 +250,8 @@
 }
 
 .header-avatar {
-  width: 52px;
-  height: 52px;
+  width: var(--touch-target);
+  height: var(--touch-target);
   border-radius: 50%;
   object-fit: cover;
   display: block;
@@ -259,15 +259,17 @@
 
 .header-icon-btn--avatar {
   padding: 0;
-  min-width: 52px;
-  min-height: 52px;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
 }
 
 .header-icon-btn--avatar .header-avatar {
   width: 100%;
   height: 100%;
-  max-width: 52px;
-  max-height: 52px;
+  max-width: var(--touch-target);
+  max-height: var(--touch-target);
 }
 
 .header-travel-badge {
