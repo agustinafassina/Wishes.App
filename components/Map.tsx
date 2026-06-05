@@ -205,6 +205,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     setIsSavingStatus(true);
     try {
       await moveToStatus(location, newStatus);
+      hapticSuccess();
     } finally {
       setIsSavingStatus(false);
     }

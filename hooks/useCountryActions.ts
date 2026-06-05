@@ -1,12 +1,13 @@
 "use client";
 
 import type { CountryLocation, CountryStatus } from '@/types/country';
+import { getStatusDisplayLabel } from '@/components/map/utils';
 import { getApiErrorDisplay } from '@/lib/api-error-display';
 
 interface UseCountryActionsOptions {
   setLocations: React.Dispatch<React.SetStateAction<CountryLocation[]>>;
   refetchLocations: () => Promise<CountryLocation[]>;
-  toast: { error: (msg: string) => void; success?: (msg: string) => void };
+  toast: { error: (msg: string) => void; success: (msg: string) => void };
 }
 
 export function useCountryActions({
@@ -25,7 +26,7 @@ export function useCountryActions({
       throw new Error(typeof data?.error === 'string' ? data.error : `Error (${response.status})`);
     }
     await refetchLocations();
-    toast.success?.('Country removed.');
+    toast.success('Country removed.');
   };
 
   const moveToStatus = async (location: CountryLocation, newStatus: string) => {
@@ -50,6 +51,7 @@ export function useCountryActions({
         const data = await response.json().catch(() => ({}));
         throw new Error(typeof data?.error === 'string' ? data.error : `Error (${response.status})`);
       }
+      toast.success(`${location.name} moved to ${getStatusDisplayLabel(newStatus)}`);
     } catch (error) {
       console.error('Error updating country status:', error);
       setLocations((prev) =>
