@@ -3,6 +3,13 @@ import type { CountryLocation } from '@/types/country';
 export type ListTabFilterId = 'all' | 'done' | 'in review' | 'pending';
 export type StatusFilterMap = Record<'done' | 'in review' | 'pending', boolean>;
 
+/** User-facing status labels — use everywhere (stats, tabs, filters, cards, Move to). */
+export const STATUS_LABEL = {
+  done: 'Complete',
+  'in review': 'Review',
+  pending: 'To Do',
+} as const;
+
 export function statusFiltersForListTab(tab: ListTabFilterId): StatusFilterMap {
   if (tab === 'all') {
     return { done: true, 'in review': true, pending: true };
@@ -15,9 +22,9 @@ export function statusFiltersForListTab(tab: ListTabFilterId): StatusFilterMap {
 }
 
 export function getStatusDisplayLabel(status: string): string {
-  if (status === 'done') return 'Complete';
-  if (status === 'in review') return 'Review';
-  return 'To Do';
+  if (status === 'done') return STATUS_LABEL.done;
+  if (status === 'in review') return STATUS_LABEL['in review'];
+  return STATUS_LABEL.pending;
 }
 
 export function normalizeTags(c: { tag?: string; tags?: string[] }): string[] {
@@ -53,19 +60,19 @@ export function matchesCountrySearch(location: CountryLocation, query: string): 
 }
 
 export const STATUS_OPTIONS: { id: string; label: string }[] = [
-  { id: 'done', label: 'Completed' },
-  { id: 'in review', label: 'In Review' },
-  { id: 'pending', label: 'Pending' },
+  { id: 'done', label: STATUS_LABEL.done },
+  { id: 'in review', label: STATUS_LABEL['in review'] },
+  { id: 'pending', label: STATUS_LABEL.pending },
 ];
 
 export function getListTabLabel(tab: ListTabFilterId): string {
   switch (tab) {
     case 'done':
-      return 'Complete';
+      return STATUS_LABEL.done;
     case 'in review':
-      return 'Review';
+      return STATUS_LABEL['in review'];
     case 'pending':
-      return 'To Do';
+      return STATUS_LABEL.pending;
     default:
       return 'All';
   }
@@ -100,6 +107,13 @@ export function getListSearchResultsAnnouncement(options: {
   return `${resultCount} countries found for “${q}” in ${tab}. ${resultCount} of ${tabTotalCount}.`;
 }
 
+export function getFirstUseEmptyStateCopy(): { message: string; hint: string } {
+  return {
+    message: 'Start your travel bucket list',
+    hint: 'Add your first country to see it on the map.',
+  };
+}
+
 export function getEmptyStateCopy(options: {
   search?: string;
   tab?: ListTabFilterId;
@@ -114,17 +128,17 @@ export function getEmptyStateCopy(options: {
   switch (options.tab ?? 'all') {
     case 'done':
       return {
-        message: 'No completed countries yet',
-        hint: 'Mark countries as complete or add a new one.',
+        message: `No ${STATUS_LABEL.done} countries yet`,
+        hint: `Mark countries as ${STATUS_LABEL.done.toLowerCase()} or add a new one.`,
       };
     case 'in review':
       return {
-        message: 'No countries in review yet',
-        hint: 'Move countries to Review or add a new one.',
+        message: `No ${STATUS_LABEL['in review']} countries yet`,
+        hint: `Move countries to ${STATUS_LABEL['in review']} or add a new one.`,
       };
     case 'pending':
       return {
-        message: 'No countries to do yet',
+        message: `No ${STATUS_LABEL.pending} countries yet`,
         hint: 'Add a country to your bucket list.',
       };
     default:

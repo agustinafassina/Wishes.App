@@ -13,7 +13,9 @@ import {
   CountryListCard,
   EmptyState,
   getEmptyStateCopy,
+  getFirstUseEmptyStateCopy,
   getListSearchResultsAnnouncement,
+  getStatusDisplayLabel,
   MapPopup,
   matchesCountrySearch,
   normalizeTags,
@@ -161,7 +163,18 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
   }, []);
 
   useEffect(() => {
-    if (triggerOpenAddModal > 0) setShowAddModal(true);
+    if (triggerOpenAddModal <= 0) return;
+    setTargetStatus('pending');
+    setNewCountry({
+      name: '',
+      code: '',
+      latitude: '',
+      longitude: '',
+      flag: '',
+      photos: [],
+    });
+    setAddCountryErrors({});
+    setShowAddModal(true);
   }, [triggerOpenAddModal]);
 
   const filteredLocations = locations.filter(location => {
@@ -695,52 +708,56 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     [applyListTab]
   );
 
+  const isFirstUse = locations.length === 0 && !pickingLocationFromMap && !isLoadingLocations;
+
   return (
     <LoadScript googleMapsApiKey={API_KEY}>
-      <div className="map-section">
+      <div className={`map-section${isFirstUse ? ' map-section--first-use' : ''}`}>
         {isSavingStatus && (
           <div className="saving-status-banner" role="status" aria-live="polite">
             <span className="saving-status-spinner" aria-hidden />
             <span>Saving...</span>
           </div>
         )}
-        <div className="stats-bubbles" role="region" aria-label="Travel summary">
-          <div className="stats-bubble stats-bubble-done">
+        {locations.length > 0 && (
+        <div className="stats-bubbles" role="group" aria-label="Filter by status">
+          <button
+            type="button"
+            className={`stats-bubble stats-bubble-done ${listTabBelow === 'done' || listTabBelow === 'all' ? 'stats-bubble--active' : ''}`}
+            onClick={() => handleMapStatusFilter('done')}
+            aria-pressed={listTabBelow === 'done' || listTabBelow === 'all'}
+            title="Show Complete on map and list"
+          >
             <span className="stats-bubble-number">{doneLocations.length}</span>
-            <span className="stats-bubble-label">Visited</span>
-          </div>
-          <div className="stats-bubble stats-bubble-in-review">
+            <span className="stats-bubble-label">{getStatusDisplayLabel('done')}</span>
+          </button>
+          <button
+            type="button"
+            className={`stats-bubble stats-bubble-in-review ${listTabBelow === 'in review' || listTabBelow === 'all' ? 'stats-bubble--active' : ''}`}
+            onClick={() => handleMapStatusFilter('in review')}
+            aria-pressed={listTabBelow === 'in review' || listTabBelow === 'all'}
+            title="Show Review on map and list"
+          >
             <span className="stats-bubble-number">{inReviewLocations.length}</span>
-            <span className="stats-bubble-label">In Review</span>
-          </div>
-          <div className="stats-bubble stats-bubble-pending">
+            <span className="stats-bubble-label">{getStatusDisplayLabel('in review')}</span>
+          </button>
+          <button
+            type="button"
+            className={`stats-bubble stats-bubble-pending ${listTabBelow === 'pending' || listTabBelow === 'all' ? 'stats-bubble--active' : ''}`}
+            onClick={() => handleMapStatusFilter('pending')}
+            aria-pressed={listTabBelow === 'pending' || listTabBelow === 'all'}
+            title="Show To Do on map and list"
+          >
             <span className="stats-bubble-number">{pendingLocations.length}</span>
-            <span className="stats-bubble-label">To Visit</span>
-          </div>
+            <span className="stats-bubble-label">{getStatusDisplayLabel('pending')}</span>
+          </button>
         </div>
+        )}
 
+        {locations.length > 0 && (
         <section className="quick-actions" aria-label="Quick actions">
           <h2 className="quick-actions-title">Quick Actions</h2>
           <div className="quick-actions-grid">
-            <button
-              type="button"
-              className="quick-action-btn quick-action-btn-add"
-              onClick={() => {
-                hapticLight();
-                handleColumnDoubleClick('pending');
-              }}
-              disabled={isAddingCountry}
-              aria-label="Add new country"
-              aria-busy={isAddingCountry}
-            >
-              <span className="quick-action-icon" aria-hidden>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-              </span>
-              <span className="quick-action-label">Add country</span>
-            </button>
             <button
               type="button"
               className="quick-action-btn quick-action-btn-share"
@@ -785,6 +802,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
             </button>
           </div>
         </section>
+        )}
         <ShareModal
           open={showShareModal}
           onClose={() => setShowShareModal(false)}
@@ -1107,38 +1125,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
             </div>
           </section>
         </div>
-        ) : (
-        <div id="travel-map" className="map-header">
-          <div className="map-header-top">
-            <div className="map-world-map-row" role="group" aria-label="World map section">
-              <h2 className="map-world-map-title">World Map</h2>
-              <button
-                type="button"
-                className="btn-add-country-header btn-add-country-header--compact"
-                onClick={() => handleColumnDoubleClick('pending')}
-                disabled={isAddingCountry}
-                aria-label={isAddingCountry ? 'Adding country…' : 'Add new country'}
-                aria-busy={isAddingCountry}
-              >
-                {isAddingCountry ? (
-                  <>
-                    <span className="btn-spinner" aria-hidden />
-                    <span>Adding…</span>
-                  </>
-                ) : (
-                  <>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <line x1="12" y1="5" x2="12" y2="19" />
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                    <span>Add country</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-        )}
+        ) : null}
 
         {isLoadingLocations ? (
           <div className="loading-skeleton" aria-busy="true" aria-label="Loading locations">
@@ -1212,7 +1199,8 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
             ) : (
             <EmptyState
               variant="hero"
-              {...getEmptyStateCopy({ tab: 'all' })}
+              primaryCta
+              {...getFirstUseEmptyStateCopy()}
               onAddCountry={() => handleColumnDoubleClick('pending')}
               isAdding={isAddingCountry}
             />

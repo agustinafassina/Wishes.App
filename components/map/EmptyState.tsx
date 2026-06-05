@@ -26,6 +26,7 @@ export interface EmptyStateProps {
   isAdding?: boolean;
 
   variant?: "inline" | "hero";
+  primaryCta?: boolean;
   className?: string;
 }
 
@@ -35,11 +36,13 @@ export default function EmptyState({
   onAddCountry,
   isAdding = false,
   variant = "hero",
+  primaryCta = false,
   className,
 }: EmptyStateProps) {
   const rootClass = [
     "app-empty-state",
     variant === "inline" ? "app-empty-state--inline" : "app-empty-state--hero",
+    primaryCta ? "app-empty-state--first-use" : null,
     className,
   ]
     .filter(Boolean)
@@ -47,15 +50,17 @@ export default function EmptyState({
 
   return (
     <div className={rootClass} role="status" aria-live="polite">
-      <div className="app-empty-state-icon" aria-hidden>
-        <EmptyStateMapIcon size={variant === "inline" ? 40 : 48} />
-      </div>
+      {!primaryCta ? (
+        <div className="app-empty-state-icon" aria-hidden>
+          <EmptyStateMapIcon size={variant === "inline" ? 40 : 48} />
+        </div>
+      ) : null}
       <p className="app-empty-state-message">{message}</p>
       {hint ? <p className="app-empty-state-hint">{hint}</p> : null}
       {onAddCountry ? (
         <button
           type="button"
-          className="empty-state-cta"
+          className={`empty-state-cta${primaryCta ? " empty-state-cta--primary" : ""}`}
           onClick={(e) => {
             e.stopPropagation();
             onAddCountry();
@@ -70,6 +75,8 @@ export default function EmptyState({
               <span className="btn-spinner" aria-hidden />
               <span>Adding…</span>
             </>
+          ) : primaryCta ? (
+            <span>Add country</span>
           ) : (
             <>
               <svg

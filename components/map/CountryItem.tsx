@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { CountryLocation } from '@/types/country';
-import { normalizeTags, STATUS_OPTIONS } from './utils';
+import { getStatusDisplayLabel, normalizeTags, STATUS_OPTIONS } from './utils';
 
 interface CountryItemProps {
   location: CountryLocation;
@@ -106,7 +106,7 @@ export default function CountryItem({
     if (notesPreview) tooltipLines.push({ text: notesPreview, className: 'country-item-tooltip-notes' });
     if (tooltipLines.length === 0 && locationTags.length === 0) tooltipLines.push({ text: 'No notes yet' });
   } else {
-    tooltipLines.push({ text: status === 'in review' ? 'In review' : 'Pending' });
+    tooltipLines.push({ text: getStatusDisplayLabel(status) });
   }
 
   return (

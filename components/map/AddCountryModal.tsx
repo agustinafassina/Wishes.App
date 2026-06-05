@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef } from 'react';
+import { getStatusDisplayLabel } from './utils';
 
 export interface AddCountryFormState {
   name: string;
@@ -183,9 +184,11 @@ const AddCountryModal = forwardRef<HTMLDivElement, AddCountryModalProps>(functio
           </div>
           <div className="form-group">
             <label>
-              Status: <strong>{targetStatus}</strong>
+              Status: <strong>{getStatusDisplayLabel(targetStatus)}</strong>
             </label>
-            <p className="form-help">This country will be added to the &quot;{targetStatus}&quot; column</p>
+            <p className="form-help">
+              This country will be added to {getStatusDisplayLabel(targetStatus)}.
+            </p>
           </div>
         </div>
         <div className="modal-footer">

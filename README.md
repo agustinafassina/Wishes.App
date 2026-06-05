@@ -10,7 +10,7 @@ A modern web app to track countries you want to visit, are planning, or have alr
 
 ## ✨ What it does
 - **Stats** — counts for visited, in review, and to visit
-- **Quick actions** — add country, share progress, jump to the list
+- **Quick actions** — share progress, jump to the list
 - **World map** — Google Maps markers by status; filters synced with list tabs (**Complete**, **Review**, **To Do**)
 - **Country list** — tabbed grid (up to 3 columns), search within the active tab, progress bar on **Complete**
 - **Per country** — move status via **Move to**, view/edit notes (visited countries), delete with confirmation
