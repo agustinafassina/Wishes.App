@@ -721,9 +721,20 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     };
   }, [mapTheme]);
 
+  const listScrollRef = useRef<HTMLDivElement>(null);
+
   const applyListTab = useCallback((tab: ListTabFilterId) => {
     hapticLight();
-    setListTabBelow(tab);
+    setListTabBelow((prev) => {
+      if (prev !== tab) {
+        const prefersReduced =
+          typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        requestAnimationFrame(() => {
+          listScrollRef.current?.scrollTo({ top: 0, behavior: prefersReduced ? 'auto' : 'smooth' });
+        });
+      }
+      return tab;
+    });
   }, []);
 
   const handleMapStatusFilter = useCallback(
@@ -1134,7 +1145,8 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
               </div>
             </div>
             <div className="list-section-below-map-content">
-              <div className="country-list-scroll country-list-scroll--standalone">
+              <div ref={listScrollRef} className="country-list-scroll country-list-scroll--standalone">
+                <div key={listTabBelow} className="country-list-panel">
                 {displayLocationsBelow.length > 0 ? (
                   displayLocationsBelow.map((loc) => (
                     <CountryListCard
@@ -1161,6 +1173,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                     }}
                   />
                 )}
+                </div>
               </div>
             </div>
           </section>
