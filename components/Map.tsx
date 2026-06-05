@@ -11,6 +11,7 @@ import type { CountryLocation } from '@/types/country';
 import {
   AddCountryModal,
   CountryListCard,
+  DashboardSkeleton,
   EmptyState,
   getEmptyStateCopy,
   getFirstUseEmptyStateCopy,
@@ -552,12 +553,35 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     return () => window.clearTimeout(timer);
   }, [listSearchAriaTarget]);
 
-  const handleColumnSort = (columnId: string) => {
-    const nextOrder: 'a-z' | 'z-a' = columnSort[columnId] === 'a-z' ? 'z-a' : 'a-z';
-    const nextSort: Record<string, 'a-z' | 'z-a'> = { ...columnSort, [columnId]: nextOrder };
+  const handleListSort = useCallback(() => {
+    hapticLight();
+    if (listTabBelow === 'all') {
+      const current =
+        columnSort.done === columnSort['in review'] && columnSort.done === columnSort.pending
+          ? columnSort.done
+          : 'a-z';
+      const nextOrder: 'a-z' | 'z-a' = current === 'a-z' ? 'z-a' : 'a-z';
+      const nextSort = { done: nextOrder, 'in review': nextOrder, pending: nextOrder };
+      setColumnSort(nextSort);
+      setLocations((prev) => reorderByColumnSort(prev, nextSort));
+      return;
+    }
+    const nextOrder: 'a-z' | 'z-a' = columnSort[listTabBelow] === 'a-z' ? 'z-a' : 'a-z';
+    const nextSort = { ...columnSort, [listTabBelow]: nextOrder };
     setColumnSort(nextSort);
-    setLocations(prev => reorderByColumnSort(prev, nextSort));
-  };
+    setLocations((prev) => reorderByColumnSort(prev, nextSort));
+  }, [listTabBelow, columnSort, reorderByColumnSort, setLocations]);
+
+  const listSortOrder = useMemo((): 'a-z' | 'z-a' => {
+    if (listTabBelow === 'all') {
+      const { done, 'in review': inReview, pending } = columnSort;
+      if (done === inReview && done === pending) return done;
+      return 'a-z';
+    }
+    return columnSort[listTabBelow];
+  }, [listTabBelow, columnSort]);
+
+  const showListSort = locationsForListTab.length > 1;
 
   const TOTAL_COUNTRIES = 195;
   const visitedCount = doneLocations.length;
@@ -719,6 +743,10 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
             <span>Saving...</span>
           </div>
         )}
+        {isLoadingLocations ? (
+          <DashboardSkeleton />
+        ) : (
+        <>
         {locations.length > 0 && (
         <div className="stats-bubbles" role="group" aria-label="Filter by status">
           <button
@@ -997,6 +1025,17 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                 </button>
               </div>
               <div className="list-search-wrap">
+                {showListSort && (
+                  <button
+                    type="button"
+                    className="list-sort-btn"
+                    onClick={handleListSort}
+                    title={listSortOrder === 'z-a' ? 'Sort A–Z' : 'Sort Z–A'}
+                    aria-label={listSortOrder === 'z-a' ? 'Sort A–Z' : 'Sort Z–A'}
+                  >
+                    {listSortOrder === 'z-a' ? 'Z–A' : 'A–Z'}
+                  </button>
+                )}
                 <label className="list-search" htmlFor="country-list-search">
                   <span className="list-search-label">Search countries</span>
                   <svg className="list-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -1127,23 +1166,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
         </div>
         ) : null}
 
-        {isLoadingLocations ? (
-          <div className="loading-skeleton" aria-busy="true" aria-label="Loading locations">
-            <div className="skeleton-map" />
-            <div className="skeleton-progress">
-              <div className="skeleton-line skeleton-title" />
-              <div className="skeleton-line skeleton-stats" />
-              <div className="skeleton-bar" />
-            </div>
-            <div className="skeleton-cards">
-              <div className="skeleton-card" />
-              <div className="skeleton-card" />
-              <div className="skeleton-card" />
-            </div>
-          </div>
-        ) : (
-        <>
-          <ConfirmModal
+        <ConfirmModal
             open={confirmDeleteLocation !== null}
             title="Delete country"
             message={confirmDeleteLocation ? `Delete "${confirmDeleteLocation.name}" from the list?` : ''}

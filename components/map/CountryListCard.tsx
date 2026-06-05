@@ -62,11 +62,12 @@ export default function CountryListCard({
     };
   }, [moreOpen]);
 
-  const dateLine = isDone && location.visitedAt?.trim()
-    ? `Visited: ${location.visitedAt.trim()}`
-    : status === 'in review'
-      ? 'Planned'
-      : 'Not scheduled';
+  const metaKind =
+    isDone && location.visitedAt?.trim()
+      ? 'visited'
+      : status === 'in review'
+        ? 'planned'
+        : 'unscheduled';
 
   const statusLabel = getStatusDisplayLabel(status);
   const statusClass = status.replace(/\s+/g, '-');
@@ -148,9 +149,17 @@ export default function CountryListCard({
         </div>
       </div>
       <div className="country-list-card-details">
-        <p className="country-list-card-meta">
-          <span className="country-list-card-meta-icon" aria-hidden>📅</span>
-          {dateLine}
+        <p className={`country-list-card-meta country-list-card-meta--${metaKind}`}>
+          {metaKind === 'visited' ? (
+            <>
+              <span className="country-list-card-meta-label">Visited</span>
+              <span className="country-list-card-meta-value">{location.visitedAt!.trim()}</span>
+            </>
+          ) : metaKind === 'planned' ? (
+            <span className="country-list-card-meta-value">Planned</span>
+          ) : (
+            <span className="country-list-card-meta-value country-list-card-meta-value--muted">Not scheduled</span>
+          )}
         </p>
         {tags.length > 0 && (
           <div className="country-list-card-tags">

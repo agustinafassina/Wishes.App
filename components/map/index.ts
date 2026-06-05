@@ -1,3 +1,4 @@
+export { default as DashboardSkeleton } from './DashboardSkeleton';
 export { default as CountryColumn } from './CountryColumn';
 export { default as EmptyState } from './EmptyState';
 export { default as CountryItem } from './CountryItem';
