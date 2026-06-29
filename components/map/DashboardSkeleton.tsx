@@ -9,14 +9,6 @@ export default function DashboardSkeleton() {
         <div className="skeleton-stats-bubble" />
       </div>
 
-      <section className="skeleton-quick-actions" aria-hidden>
-        <div className="skeleton-block skeleton-quick-actions-title" />
-        <div className="skeleton-quick-actions-grid">
-          <div className="skeleton-block skeleton-quick-action" />
-          <div className="skeleton-block skeleton-quick-action" />
-        </div>
-      </section>
-
       <div className="dashboard-map-panel skeleton-dashboard-panel" aria-hidden>
         <div className="skeleton-map-header">
           <div className="skeleton-map-header-row">
@@ -25,6 +17,8 @@ export default function DashboardSkeleton() {
               <div className="skeleton-block skeleton-map-pill" />
               <div className="skeleton-block skeleton-map-pill" />
               <div className="skeleton-block skeleton-map-pill" />
+              <div className="skeleton-block skeleton-map-utility" />
+              <div className="skeleton-block skeleton-map-utility" />
               <div className="skeleton-block skeleton-map-add-btn" />
             </div>
           </div>

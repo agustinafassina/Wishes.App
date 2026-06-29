@@ -59,36 +59,12 @@
     font-size: 0.6875rem;
   }
 
-  .quick-actions {
-    margin-bottom: 0;
-  }
-
   .map-world-map-row .map-header-toolbar--inline .map-header-toolbar-pills--legend-style {
     gap: 0.5rem 0.85rem;
   }
 
-  .quick-actions-title {
-    font-size: 1rem;
-    margin-bottom: 0.6rem;
-  }
-
   .map-world-map-title {
     font-size: 1rem;
-  }
-
-  .quick-actions-grid {
-    gap: 0.5rem;
-  }
-
-  .quick-action-btn {
-    padding: 0.7rem 0.4rem;
-    min-height: 64px;
-    font-size: 0.75rem;
-  }
-
-  .quick-action-icon svg {
-    width: 20px;
-    height: 20px;
   }
 
   .map-header-top {
@@ -1230,36 +1206,12 @@
     font-size: 0.625rem;
   }
 
-  .quick-actions {
-    margin-bottom: 0;
-  }
-
   .map-world-map-row .map-header-toolbar--inline .map-header-toolbar-pills--legend-style {
     gap: 0.35rem 0.55rem;
   }
 
-  .quick-actions-title {
-    font-size: 0.9375rem;
-    margin-bottom: 0.5rem;
-  }
-
   .map-world-map-title {
     font-size: 0.9375rem;
-  }
-
-  .quick-actions-grid {
-    gap: 0.4rem;
-  }
-
-  .quick-action-btn {
-    padding: 0.6rem 0.35rem;
-    min-height: 58px;
-    font-size: 0.6875rem;
-  }
-
-  .quick-action-icon svg {
-    width: 18px;
-    height: 18px;
   }
 
   .content-section {

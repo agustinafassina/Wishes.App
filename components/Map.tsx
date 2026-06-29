@@ -794,55 +794,6 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
         </div>
         )}
 
-        {locations.length > 0 && (
-        <section className="quick-actions" aria-label="Quick actions">
-          <h2 className="quick-actions-title">Quick Actions</h2>
-          <div className="quick-actions-grid">
-            <button
-              type="button"
-              className="quick-action-btn quick-action-btn-share"
-              onClick={() => {
-                hapticLight();
-                setShowShareModal(true);
-              }}
-              aria-label="Share travel progress"
-            >
-              <span className="quick-action-icon" aria-hidden>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="18" cy="5" r="3" />
-                  <circle cx="6" cy="12" r="3" />
-                  <circle cx="18" cy="19" r="3" />
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                </svg>
-              </span>
-              <span className="quick-action-label">Share</span>
-            </button>
-            <button
-              type="button"
-              className="quick-action-btn quick-action-btn-list"
-              onClick={() => {
-                hapticLight();
-                document.getElementById('country-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-              disabled={locations.length === 0}
-              aria-label={locations.length === 0 ? 'View list (add a country first)' : 'Go to country list'}
-            >
-              <span className="quick-action-icon" aria-hidden>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="8" y1="6" x2="21" y2="6" />
-                  <line x1="8" y1="12" x2="21" y2="12" />
-                  <line x1="8" y1="18" x2="21" y2="18" />
-                  <line x1="3" y1="6" x2="3.01" y2="6" />
-                  <line x1="3" y1="12" x2="3.01" y2="12" />
-                  <line x1="3" y1="18" x2="3.01" y2="18" />
-                </svg>
-              </span>
-              <span className="quick-action-label">View list</span>
-            </button>
-          </div>
-        </section>
-        )}
         <ShareModal
           open={showShareModal}
           onClose={() => setShowShareModal(false)}
@@ -903,29 +854,70 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                   </div>
                 </div>
               )}
-              <button
-                type="button"
-                className="btn-add-country-header btn-add-country-header--compact"
-                onClick={() => handleColumnDoubleClick('pending')}
-                disabled={isAddingCountry}
-                aria-label={isAddingCountry ? 'Adding country…' : 'Add new country'}
-                aria-busy={isAddingCountry}
-              >
-                {isAddingCountry ? (
-                  <>
-                    <span className="btn-spinner" aria-hidden />
-                    <span>Adding…</span>
-                  </>
-                ) : (
-                  <>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <line x1="12" y1="5" x2="12" y2="19" />
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                    <span>Add country</span>
-                  </>
-                )}
-              </button>
+              <div className="map-header-actions" role="group" aria-label="Map actions">
+                <button
+                  type="button"
+                  className="map-header-action map-header-action--share"
+                  onClick={() => {
+                    hapticLight();
+                    setShowShareModal(true);
+                  }}
+                  aria-label="Share travel progress"
+                  title="Share"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                  </svg>
+                  <span className="map-header-action-label">Share</span>
+                </button>
+                <button
+                  type="button"
+                  className="map-header-action map-header-action--list"
+                  onClick={() => {
+                    hapticLight();
+                    document.getElementById('country-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                  aria-label="Go to country list"
+                  title="View list"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <line x1="8" y1="6" x2="21" y2="6" />
+                    <line x1="8" y1="12" x2="21" y2="12" />
+                    <line x1="8" y1="18" x2="21" y2="18" />
+                    <line x1="3" y1="6" x2="3.01" y2="6" />
+                    <line x1="3" y1="12" x2="3.01" y2="12" />
+                    <line x1="3" y1="18" x2="3.01" y2="18" />
+                  </svg>
+                  <span className="map-header-action-label">View list</span>
+                </button>
+                <button
+                  type="button"
+                  className="map-header-action map-header-action--add"
+                  onClick={() => handleColumnDoubleClick('pending')}
+                  disabled={isAddingCountry}
+                  aria-label={isAddingCountry ? 'Adding country…' : 'Add new country'}
+                  aria-busy={isAddingCountry}
+                >
+                  {isAddingCountry ? (
+                    <>
+                      <span className="btn-spinner" aria-hidden />
+                      <span className="map-header-action-label">Adding…</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                      </svg>
+                      <span className="map-header-action-label">Add country</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
             {locations.length > 0 && (
