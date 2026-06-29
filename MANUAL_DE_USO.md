@@ -4,32 +4,35 @@ Guía para usar tu lista de viajes (travel bucket list) en Wishes.
 ## 1. 🔐 Entrar a la app
 - 🌐 Abrí la aplicación en el navegador.
 - 👤 Si no estás logueado, verás un botón **Log in**. Hacé clic para iniciar sesión (con Google, email u otro método configurado).
-- ✅ Una vez dentro, verás tu nombre en la parte superior y el botón **Log out** para cerrar sesión.
+- ✅ Una vez dentro, verás tu nombre o avatar en la parte superior y el botón **Log out** para cerrar sesión.
 
 > ⚠️ **Importante:** Cada usuario tiene su propia lista. Tus países se guardan en tu cuenta y no se mezclan con los de otros usuarios.
 
 ## 2. 🏠 Pantalla principal
 Después de iniciar sesión verás:
 
-- 📌 **Header:** tu nombre o avatar y los botones de tema (🌞/🌙 claro/oscuro) y **Log out**.
-- 🗺️ **Travel Map:** el bloque principal con el mapa y las listas de países.
+- 📌 **Header:** tu nombre o avatar, el botón de tema (🌞/🌙 claro/oscuro), **Log out** y el botón **+** para agregar un país.
+- 📊 **Stats:** tres tarjetas con el conteo de países por estado (**Complete**, **Review**, **To Do**). Son clicables: al tocar una, el mapa y el listado se filtran por ese estado.
+- 🗺️ **World Map:** el mapa con tus países. En su barra superior están los filtros por estado y los botones de acción **Share**, **View list** y **Add country**.
+- 📋 **Listado:** debajo del mapa, las tarjetas de países organizadas en tabs.
 
-Si todavía no tenés países cargados, verás el mensaje **"No results"** y un botón **➕ Add country** para agregar el primero.
+Si todavía no tenés países cargados, verás un mensaje de bienvenida con **Add country** como acción principal (también podés usar el **+** del header).
 
-## 3. 📊 Las tres listas (estados)
-Cada país está en una de estas columnas:
+## 3. 📊 Los tres estados (tabs)
+Cada país está en uno de estos estados. En el listado los cambiás con los tabs **All**, **Complete**, **Review** y **To Do**:
 
-| Lista | Significado |
+| Estado | Significado |
 |-------|-------------|
-| ✅ **Completed** | Países que ya visitaste. Podés agregar notas, fecha de visita y etiquetas. |
-| 🔍 **In Review** | Países que estás considerando o planificando. |
-| 📋 **Pending** | Países que querés visitar en el futuro. |
+| ✅ **Complete** | Países que ya visitaste. Podés agregar notas, fecha de visita y etiquetas. |
+| 🔍 **Review** | Países que estás considerando o planificando. |
+| 📋 **To Do** | Países que querés visitar en el futuro. |
 
-- ↔️ En **cualquier dispositivo**, para cambiar un país de lista usá el botón con icono de flechas en cada país. Al tocarlo se abre el menú **"Move to"** con las otras dos listas; elegí a cuál moverlo.
-- 🔤 También podés **ordenar** cada columna por nombre (A–Z o Z–A) con el botón que aparece en el título de la columna.
+- ↔️ **Cambiar de estado:** abrí el menú **⋯** en la tarjeta del país → **Move to** → elegí el destino. Aparece una confirmación breve al moverlo.
+- 🔤 **Orden A–Z / Z–A:** botón junto al buscador del listado (visible si hay 2 o más países en el tab activo). En **All**, ordena los tres grupos a la vez.
+- 🔎 **Buscar:** el campo de búsqueda filtra los países del tab por nombre.
 
 ## 4. ➕ Agregar un país
-1. 👆 Tocá o hacé clic en **Add country** (arriba del mapa o en el mensaje "No results").
+1. 👆 Tocá **Add country** (en la barra del mapa, en la pantalla de bienvenida, o el **+** del header).
 2. 📝 Se abre un formulario. Completá:
    - **Country name** (obligatorio), ej.: Francia.
    - **Country code** (obligatorio), dos letras en inglés, ej.: FR.
@@ -37,13 +40,13 @@ Cada país está en una de estas columnas:
      - ✍️ Escribirlas a mano, o
      - 📍 Usar **Pick from map**: cerrás el formulario, tocás en el mapa y se rellenan solas.
    - 🏳️ **Flag URL** (opcional). Si lo dejás vacío, se usa una bandera automática según el código.
-3. 📋 El país se agrega al estado que figure en el formulario (por defecto **Pending**).
+3. 📋 El país se agrega al estado que figure en el formulario (por defecto **To Do**).
 4. 💾 Tocá **Add country** (o **Cancel** para cerrar sin guardar).
 
 > ❌ No se pueden repetir códigos de país en tu lista (por ejemplo, no dos "FR"). Si intentás agregar uno que ya existe, verás un mensaje de error.
 
-## 5. 👁️ Ver y editar notas (países Completed)
-En los países de la lista **Completed** tenés:
+## 5. 👁️ Ver y editar notas (países Complete)
+En los países en **Complete** tenés:
 
 - 👁️ **Ver notas:** botón con icono de ojo. Abre una ventana con tags, fecha de visita y notas.
 - ✏️ **Editar notas:** botón con icono de lápiz. Abre un formulario donde podés cambiar:
@@ -54,41 +57,31 @@ En los países de la lista **Completed** tenés:
 💾 Guardá los cambios con **Save** o cerrá con **Cancel**.
 
 ## 6. 🗑️ Eliminar un país
-En cada tarjeta de país hay un botón con icono de papelera. Al tocarlo aparece un mensaje de confirmación. Confirmá solo si realmente querés borrar ese país de tu lista.
+En cada tarjeta de país, dentro del menú **⋯**, hay una opción para eliminar. Al tocarla aparece un mensaje de confirmación. Confirmá solo si realmente querés borrar ese país de tu lista.
 
 ## 7. 🗺️ El mapa
-- 👁️‍🗨️ **Mostrar / ocultar:** el botón **Show map** o **Hide map** despliega o pliega el mapa para ganar espacio.
-- 🎛️ **Filtros:** los botones **Done**, **In Review** y **Pending** permiten elegir qué países se ven en el mapa (podés activar uno, dos o los tres).
-- 📍 **Marcadores:** cada país aparece como un pin. Tocando o haciendo clic en un pin se abre una ventanita con nombre, estado y, si es Completed, notas o fecha de visita.
+- 🎛️ **Filtros (Complete / Review / To Do):** los pills de la barra del mapa eligen qué países se ven. Están sincronizados con los tabs del listado y con las tarjetas de Stats: al filtrar el mapa también cambia el tab del listado.
+- 📍 **Marcadores:** cada país aparece como un pin. Tocando o haciendo clic en un pin se abre una ventanita con nombre, estado y, si está en Complete, notas o fecha de visita.
+- 📋 **View list:** salta directamente al listado de países debajo del mapa.
+- 🔗 **Share:** abre el menú para compartir tu progreso (ver sección 8).
 
-## 8. 📈 World Travel Progress
-En esta sección ves:
-
-- 🌍 **Cuántos países visitaste** sobre el total (ej.: 12 / 195 countries visited).
-- 📊 Una **barra de progreso** con el porcentaje.
-- 🔗 **Share:** abre un menú para:
+## 8. 📈 Progreso y compartir
+- 📊 **Barra de progreso:** en el tab **Complete**, debajo del mapa, ves cuántos países visitaste sobre el total (ej.: 12 / 195), el porcentaje y cuántos te faltan. Al cruzar ciertos hitos (10 / 25 / 50…) aparece una celebración. 🎉
+- 🔗 **Share:** disponible en la barra del mapa y en la barra de progreso. Abre un menú con:
   - 📋 **Copy link:** copiar el enlace de tu lista para compartir.
   - 🖼️ **Download image:** descargar una imagen con tu progreso para redes o mensajes.
 
-## 9. 💾 Exportar y respaldo
-- 📄 **Export to PDF:** genera un PDF de la pantalla actual (según cómo esté configurado en la app).
-- 📥 **Export data:** descarga tu lista completa:
-  - 📦 **JSON** (para respaldo o uso técnico).
-  - 📊 **CSV** (para abrir en Excel o Google Sheets).
-
-> 💡 Recomendación: exportar de vez en cuando para tener una copia de tu lista.
-
-## 10. 🌞 Tema claro y oscuro
-En la esquina superior podés cambiar entre tema **claro** 🌞 y **oscuro** 🌙. La preferencia suele guardarse en el navegador para la próxima vez que entres.
+## 9. 🌞 Tema claro y oscuro
+En el header podés cambiar entre tema **claro** 🌞 y **oscuro** 🌙. La preferencia se guarda en el navegador para la próxima vez que entres.
 
 ## ⚡ Resumen rápido
 | Quiero… | Cómo hacerlo |
 |---------|----------------|
-| ➕ Agregar un país | **Add country** → completar formulario (o **Pick from map** para coordenadas). |
-| ↔️ Cambiar de lista | Arrastrar (PC) o botón de flechas → **Move to** (móvil). |
-| 👁️ Ver notas | En un país **Completed** → botón con icono de ojo. |
-| ✏️ Editar notas | En un país **Completed** → botón con icono de lápiz. |
-| 🗑️ Borrar un país | Botón papelera → confirmar. |
-| 🎛️ Filtrar el mapa | Botones Done / In Review / Pending arriba del mapa. |
-| 🔗 Compartir progreso | En **World Travel Progress** → **Share** → Copy link o Download image. |
-| 📥 Descargar mi lista | **Export data** → elegir JSON o CSV. |
+| ➕ Agregar un país | **Add country** (barra del mapa, estado vacío o **+** del header) → formulario (o **Pick from map**). |
+| ↔️ Cambiar de estado | Menú **⋯** de la tarjeta → **Move to** → elegir destino. |
+| 🔤 Ordenar A–Z / Z–A | Botón de orden junto al buscador del listado. |
+| 👁️ Ver notas | En un país **Complete** → botón con icono de ojo. |
+| ✏️ Editar notas | En un país **Complete** → botón con icono de lápiz. |
+| 🗑️ Borrar un país | Menú **⋯** → eliminar → confirmar. |
+| 🎛️ Filtrar el mapa | Pills Complete / Review / To Do en la barra del mapa (o las tarjetas de Stats). |
+| 🔗 Compartir progreso | **Share** (barra del mapa o barra de progreso) → Copy link o Download image. |
