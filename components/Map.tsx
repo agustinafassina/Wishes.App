@@ -16,7 +16,6 @@ import {
   getEmptyStateCopy,
   getFirstUseEmptyStateCopy,
   getListSearchResultsAnnouncement,
-  getStatusDisplayLabel,
   MapPopup,
   matchesCountrySearch,
   normalizeTags,
@@ -35,6 +34,9 @@ const API_KEY = env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 const MAP_ZOOM_MIN = 1;
 const MAP_ZOOM_MAX = 18;
+
+const PROGRESS_MILESTONES = [10, 25, 50, 100, 150] as const;
+const milestoneEmoji = (m: number) => (m >= 100 ? '🏆' : m >= 50 ? '🌟' : m >= 25 ? '✨' : '🌍');
 
 function MapZoomControls({
   onZoomIn,
@@ -612,9 +614,8 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     setProgressDisplay(pct);
   }, [isLoadingLocations, locations, TOTAL_COUNTRIES]);
 
-  const milestone = visitedCount >= 10
-    ? { label: `${visitedCount} countries!`, emoji: visitedCount >= 100 ? '🎉' : visitedCount >= 50 ? '🌟' : '🌍' }
-    : null;
+  const nextMilestone = PROGRESS_MILESTONES.find((m) => visitedCount < m) ?? null;
+  const reachedMilestone = [...PROGRESS_MILESTONES].reverse().find((m) => visitedCount >= m) ?? null;
 
   const [celebratingMilestone, setCelebratingMilestone] = useState<number | null>(null);
   const prevVisitedRef = useRef(visitedCount);
@@ -622,12 +623,10 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     if (isLoadingLocations) return;
     const prev = prevVisitedRef.current;
     prevVisitedRef.current = visitedCount;
-    const justHit10 = visitedCount === 10 && prev < 10;
-    const justHit20 = visitedCount === 20 && prev < 20;
-    const justHit30 = visitedCount === 30 && prev < 30;
-    if (justHit10 || justHit20 || justHit30) {
-      setCelebratingMilestone(visitedCount);
-      const t = setTimeout(() => setCelebratingMilestone(null), 2600);
+    const justCrossed = PROGRESS_MILESTONES.find((m) => visitedCount >= m && prev < m);
+    if (justCrossed !== undefined) {
+      setCelebratingMilestone(justCrossed);
+      const t = setTimeout(() => setCelebratingMilestone(null), 3200);
       return () => clearTimeout(t);
     }
   }, [isLoadingLocations, visitedCount]);
@@ -759,41 +758,6 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
           <DashboardSkeleton />
         ) : (
         <>
-        {locations.length > 0 && (
-        <div className="stats-bubbles" role="group" aria-label="Filter by status">
-          <button
-            type="button"
-            className={`stats-bubble stats-bubble-done ${listTabBelow === 'done' || listTabBelow === 'all' ? 'stats-bubble--active' : ''}`}
-            onClick={() => handleMapStatusFilter('done')}
-            aria-pressed={listTabBelow === 'done' || listTabBelow === 'all'}
-            title="Show Complete on map and list"
-          >
-            <span className="stats-bubble-number">{doneLocations.length}</span>
-            <span className="stats-bubble-label">{getStatusDisplayLabel('done')}</span>
-          </button>
-          <button
-            type="button"
-            className={`stats-bubble stats-bubble-in-review ${listTabBelow === 'in review' || listTabBelow === 'all' ? 'stats-bubble--active' : ''}`}
-            onClick={() => handleMapStatusFilter('in review')}
-            aria-pressed={listTabBelow === 'in review' || listTabBelow === 'all'}
-            title="Show Review on map and list"
-          >
-            <span className="stats-bubble-number">{inReviewLocations.length}</span>
-            <span className="stats-bubble-label">{getStatusDisplayLabel('in review')}</span>
-          </button>
-          <button
-            type="button"
-            className={`stats-bubble stats-bubble-pending ${listTabBelow === 'pending' || listTabBelow === 'all' ? 'stats-bubble--active' : ''}`}
-            onClick={() => handleMapStatusFilter('pending')}
-            aria-pressed={listTabBelow === 'pending' || listTabBelow === 'all'}
-            title="Show To Do on map and list"
-          >
-            <span className="stats-bubble-number">{pendingLocations.length}</span>
-            <span className="stats-bubble-label">{getStatusDisplayLabel('pending')}</span>
-          </button>
-        </div>
-        )}
-
         <ShareModal
           open={showShareModal}
           onClose={() => setShowShareModal(false)}
@@ -970,20 +934,6 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                 <MapZoomControls onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} zoom={zoom} />
                 </>
               </div>
-              <div className="map-legend" role="group" aria-label="Map legend">
-                  <span className="map-legend-item map-legend-item--done">
-                    <span className="map-legend-dot" aria-hidden />
-                    <span className="map-legend-label">Complete</span>
-                  </span>
-                  <span className="map-legend-item map-legend-item--in-review">
-                    <span className="map-legend-dot" aria-hidden />
-                    <span className="map-legend-label">Review</span>
-                  </span>
-                  <span className="map-legend-item map-legend-item--pending">
-                    <span className="map-legend-dot" aria-hidden />
-                    <span className="map-legend-label">To Do</span>
-                  </span>
-                </div>
             </div>
             )}
         </div>
@@ -1087,8 +1037,8 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
             <div className="progress-bar-standalone progress-bar-standalone--below-map" role="region" aria-label="Travel progress">
                   {celebratingMilestone !== null && (
                     <div className="progress-bar-standalone-celebration" role="alert" aria-live="assertive">
-                      <span className="progress-bar-standalone-celebration-emoji">🎉</span>
-                      <span>You reached {celebratingMilestone} countries!</span>
+                      <span className="progress-bar-standalone-celebration-emoji">{milestoneEmoji(celebratingMilestone)}</span>
+                      <span>Milestone unlocked: {celebratingMilestone} countries!</span>
                     </div>
                   )}
                   <div className="progress-bar-standalone-inner">
@@ -1098,6 +1048,15 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                         <span className="progress-bar-standalone-pct">{progressPercentage.toFixed(1)}%</span>
                       </div>
                       <span className="progress-bar-standalone-remaining" aria-hidden>{remainingCount} left</span>
+                      {PROGRESS_MILESTONES.map((m) => (
+                        <span
+                          key={m}
+                          className={`progress-milestone-tick ${visitedCount >= m ? 'is-reached' : ''}`}
+                          style={{ left: `${(m / TOTAL_COUNTRIES) * 100}%` }}
+                          title={`${m} countries`}
+                          aria-hidden
+                        />
+                      ))}
                     </div>
                     <div className="progress-bar-standalone-actions">
                       <button
@@ -1118,10 +1077,23 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                       </button>
                     </div>
                   </div>
-                  {milestone && (
+                  {nextMilestone !== null ? (
                     <p className="progress-bar-standalone-milestone" role="status" aria-live="polite">
-                      <span className="progress-bar-standalone-milestone-emoji">{milestone.emoji}</span>
-                      <span>{milestone.label}</span>
+                      <span className="progress-bar-standalone-milestone-emoji">{milestoneEmoji(nextMilestone)}</span>
+                      <span>
+                        {reachedMilestone !== null && (
+                          <strong className="progress-bar-standalone-milestone-reached">{reachedMilestone} reached</strong>
+                        )}
+                        <span className="progress-bar-standalone-milestone-next">
+                          {reachedMilestone !== null ? ' · ' : ''}
+                          <strong>{nextMilestone - visitedCount}</strong> to your {nextMilestone}-country milestone
+                        </span>
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="progress-bar-standalone-milestone" role="status" aria-live="polite">
+                      <span className="progress-bar-standalone-milestone-emoji">🏆</span>
+                      <span>All milestones reached — legendary traveler!</span>
                     </p>
                   )}
             </div>

@@ -335,10 +335,7 @@
   }
 
   .main-content {
-    max-width: min(
-      var(--shell-max-width),
-      calc(100% - 2 * var(--shell-inset) - var(--safe-area-inset-left) - var(--safe-area-inset-right))
-    );
+    max-width: var(--shell-max-width);
     border: 1px solid var(--shell-border);
     border-top: none;
     border-radius: 0 0 var(--shell-radius) var(--shell-radius);
@@ -351,6 +348,13 @@
 
   html[data-theme="light"] .main-content {
     box-shadow: var(--shell-shadow);
+  }
+
+  .main-content > .content-section:first-child .dashboard-map-panel,
+  .main-content > .content-section:first-child .map-section > .map-header {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
   }
 }
 
@@ -858,155 +862,6 @@ a.header-btn {
   box-shadow: var(--shadow-sm), var(--shadow-accent-subtle);
 }
 
-.stats-bubbles {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--dashboard-inner-gap);
-  margin-bottom: 0;
-  width: 100%;
-}
-
-.stats-bubble {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem 0.75rem;
-  border-radius: 16px;
-  min-height: 72px;
-  width: 100%;
-  color: #fff;
-  text-align: center;
-  border: none;
-  box-shadow: var(--dashboard-tile-shadow);
-  cursor: pointer;
-  font: inherit;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.stats-bubble:hover {
-  transform: translateY(-1px);
-}
-
-.stats-bubble:active {
-  transform: translateY(0);
-}
-
-.stats-bubble:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.9);
-  outline-offset: 2px;
-}
-
-.stats-bubble--active {
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.95), var(--dashboard-tile-shadow);
-}
-
-.stats-bubble-done {
-  background: linear-gradient(135deg, #0d9488 0%, #059669 50%, #047857 100%);
-}
-
-.stats-bubble-in-review {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
-}
-
-.stats-bubble-in-review.stats-bubble--active {
-  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.95), var(--dashboard-tile-shadow);
-}
-
-.stats-bubble-pending {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%);
-}
-
-.stats-bubble-number {
-  display: block;
-  font-family: var(--font-ui);
-  font-size: 1.75rem;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.03em;
-  margin-bottom: 0.2rem;
-}
-
-.stats-bubble-label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  opacity: 0.95;
-}
-
-html[data-theme="light"] .stats-bubble {
-  color: var(--text-primary);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: var(--dashboard-tile-shadow);
-}
-
-html[data-theme="light"] .stats-bubble-done {
-  background: linear-gradient(180deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.07) 100%);
-  border-color: rgba(16, 185, 129, 0.22);
-}
-
-html[data-theme="light"] .stats-bubble-done .stats-bubble-number {
-  color: #047857;
-}
-
-html[data-theme="light"] .stats-bubble-done .stats-bubble-label {
-  color: #059669;
-  opacity: 1;
-}
-
-html[data-theme="light"] .stats-bubble-in-review {
-  background: linear-gradient(180deg, rgba(245, 158, 11, 0.18) 0%, rgba(245, 158, 11, 0.08) 100%);
-  border-color: rgba(245, 158, 11, 0.24);
-}
-
-html[data-theme="light"] .stats-bubble-in-review .stats-bubble-number {
-  color: #b45309;
-}
-
-html[data-theme="light"] .stats-bubble-in-review .stats-bubble-label {
-  color: #c2410c;
-  opacity: 1;
-}
-
-html[data-theme="light"] .stats-bubble-pending {
-  background: linear-gradient(180deg, rgba(59, 130, 246, 0.14) 0%, rgba(59, 130, 246, 0.06) 100%);
-  border-color: rgba(59, 130, 246, 0.2);
-}
-
-html[data-theme="light"] .stats-bubble-pending .stats-bubble-number {
-  color: #1d4ed8;
-}
-
-html[data-theme="light"] .stats-bubble-pending .stats-bubble-label {
-  color: #2563eb;
-  opacity: 1;
-}
-
-html[data-theme="light"] .stats-bubble-label {
-  text-transform: none;
-  letter-spacing: 0.02em;
-  font-weight: 600;
-}
-
-html[data-theme="light"] .stats-bubble:focus-visible {
-  outline-color: var(--accent-primary);
-}
-
-html[data-theme="light"] .stats-bubble-done.stats-bubble--active {
-  box-shadow: 0 0 0 2px #059669, var(--dashboard-tile-shadow);
-}
-
-html[data-theme="light"] .stats-bubble-in-review.stats-bubble--active {
-  box-shadow: 0 0 0 2px #d97706, var(--dashboard-tile-shadow);
-}
-
-html[data-theme="light"] .stats-bubble-pending.stats-bubble--active {
-  box-shadow: 0 0 0 2px #2563eb, var(--dashboard-tile-shadow);
-}
-
 @media (max-width: 768px) {
   .page-container {
     display: flex;
@@ -1354,40 +1209,6 @@ html[data-theme="light"] .map-header-action--add:hover svg {
   font-family: var(--font-ui);
 }
 
-.map-legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem 1.5rem;
-  padding: 0.75rem 0 var(--space-md);
-  margin-top: 0.25rem;
-}
-
-.map-legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-.map-legend-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.map-legend-item--done .map-legend-dot { background: #059669; }
-.map-legend-item--in-review .map-legend-dot { background: #d97706; }
-.map-legend-item--pending .map-legend-dot { background: #dc2626; }
-
-html[data-theme="light"] .map-legend-item {
-  color: var(--text-secondary);
-}
-
 .list-section-below-map {
   padding: 0;
   overflow: hidden;
@@ -1704,6 +1525,14 @@ html[data-theme="light"] .list-sort-btn:hover {
 
   .country-list-scroll--standalone > .country-list-panel {
     animation: none;
+  }
+
+  .progress-bar-standalone-celebration {
+    animation: none;
+  }
+
+  .progress-bar-standalone-fill {
+    transition: none;
   }
 }
 
@@ -2581,21 +2410,6 @@ html[data-theme="light"] .btn-add-country-header--compact:focus-visible {
   padding: 0;
 }
 
-.skeleton-stats-bubbles {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--dashboard-inner-gap);
-  width: 100%;
-}
-
-.skeleton-stats-bubble {
-  min-height: 72px;
-  border-radius: 16px;
-  background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-card) 50%, var(--bg-tertiary) 75%);
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s ease-in-out infinite;
-}
-
 .skeleton-dashboard-panel {
   pointer-events: none;
 }
@@ -3069,8 +2883,8 @@ html[data-theme="light"] .btn-add-country-header--compact:focus-visible {
   border-radius: 0;
   box-shadow: none;
   overflow: hidden;
-  height: min(52vh, 600px);
-  min-height: 360px;
+  height: min(58vh, 640px);
+  min-height: 380px;
 }
 
 .map-section-map-wrap--inside-header .map-wrapper::before {
@@ -3087,15 +2901,15 @@ html[data-theme="light"] .btn-add-country-header--compact:focus-visible {
 
 @media (min-width: 769px) {
   .map-section-map-wrap--inside-header .map-wrapper {
-    height: min(56vh, 680px);
-    min-height: 420px;
+    height: min(64vh, 760px);
+    min-height: 460px;
   }
 }
 
 @media (min-width: 1200px) {
   .map-section-map-wrap--inside-header .map-wrapper {
-    height: min(60vh, 760px);
-    min-height: 480px;
+    height: min(68vh, 820px);
+    min-height: 520px;
   }
 }
 
@@ -3256,6 +3070,39 @@ html[data-theme="light"] .btn-add-country-header--compact:focus-visible {
 
 .progress-bar-standalone-milestone-emoji {
   font-size: 0.875rem;
+}
+
+.progress-bar-standalone-milestone-reached {
+  font-weight: 700;
+}
+
+.progress-bar-standalone-milestone-next {
+  font-weight: 600;
+  opacity: 0.95;
+}
+
+.progress-milestone-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  border-radius: 2px;
+  transform: translateX(-1px);
+  background: var(--border-light);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.progress-milestone-tick.is-reached {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+html[data-theme="light"] .progress-milestone-tick {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+html[data-theme="light"] .progress-milestone-tick.is-reached {
+  background: rgba(255, 255, 255, 0.75);
 }
 
 html[data-theme="light"] .progress-bar-standalone {
@@ -6091,7 +5938,6 @@ html[data-theme="light"] .theme-toggle:hover {
 }
 
 html[data-theme="light"] .skeleton-block,
-html[data-theme="light"] .skeleton-stats-bubble,
 html[data-theme="light"] .skeleton-line {
   background: linear-gradient(90deg, #e2e8f0 25%, #ede9fe 50%, #e2e8f0 75%);
   background-size: 200% 100%;

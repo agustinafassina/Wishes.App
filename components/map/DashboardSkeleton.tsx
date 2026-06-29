@@ -3,12 +3,6 @@
 export default function DashboardSkeleton() {
   return (
     <div className="loading-skeleton loading-skeleton--dashboard" aria-busy="true" aria-label="Loading dashboard">
-      <div className="skeleton-stats-bubbles" aria-hidden>
-        <div className="skeleton-stats-bubble" />
-        <div className="skeleton-stats-bubble" />
-        <div className="skeleton-stats-bubble" />
-      </div>
-
       <div className="dashboard-map-panel skeleton-dashboard-panel" aria-hidden>
         <div className="skeleton-map-header">
           <div className="skeleton-map-header-row">

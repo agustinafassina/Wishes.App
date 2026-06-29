@@ -40,25 +40,6 @@
     padding: var(--dashboard-stack-gap) 1.25rem;
   }
 
-  .stats-bubbles {
-    gap: 0.5rem;
-    margin-bottom: 0;
-  }
-
-  .stats-bubble {
-    padding: 0.85rem 0.5rem;
-    min-height: 64px;
-    border-radius: 14px;
-  }
-
-  .stats-bubble-number {
-    font-size: 1.5rem;
-  }
-
-  .stats-bubble-label {
-    font-size: 0.6875rem;
-  }
-
   .map-world-map-row .map-header-toolbar--inline .map-header-toolbar-pills--legend-style {
     gap: 0.5rem 0.85rem;
   }
@@ -1185,25 +1166,6 @@
   .header-tagline {
     font-size: 0.6875rem;
     padding: 0.15rem 0.35rem 0.15rem 0.3rem;
-  }
-
-  .stats-bubbles {
-    gap: 0.4rem;
-    margin-bottom: 0;
-  }
-
-  .stats-bubble {
-    padding: 0.75rem 0.4rem;
-    min-height: 58px;
-    border-radius: var(--radius-lg);
-  }
-
-  .stats-bubble-number {
-    font-size: 1.35rem;
-  }
-
-  .stats-bubble-label {
-    font-size: 0.625rem;
   }
 
   .map-world-map-row .map-header-toolbar--inline .map-header-toolbar-pills--legend-style {
