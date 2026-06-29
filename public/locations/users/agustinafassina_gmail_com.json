@@ -330,7 +330,13 @@
             "https://example.com/germany-photo1.jpg",
             "https://example.com/germany-photo2.jpg"
         ],
-        "status": "done"
+        "status": "done",
+        "visitedAt": "Junio 2026",
+        "tags": [
+            "Museos",
+            "Calor",
+            "Comida rica"
+        ]
     },
     {
         "name": "Croacia",

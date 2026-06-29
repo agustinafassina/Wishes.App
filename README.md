@@ -206,7 +206,7 @@ Run with `--env-file .env` and the volume mount for `public/locations/users` if 
 ## 🛠️ Tech stack
 - **Next.js 16** (App Router) · **React 19** · **TypeScript**
 - **@react-google-maps/api** · **@auth0/nextjs-auth0**
-- **jspdf** · **html2canvas** (export / share)
+- **html2canvas** (share image)
 - **CSS** design tokens (`app/styles/_variables.css`, `_components.css`, `_responsive.css`) + Tailwind import in `globals.css`
 - **next/font** (Poppins)
 

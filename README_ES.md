@@ -238,7 +238,7 @@ Corré con `--env-file .env` y el volumen en `public/locations/users` si necesit
 ## 🛠️ Stack tecnológico
 - **Next.js 16** (App Router) · **React 19** · **TypeScript**
 - **@react-google-maps/api** · **@auth0/nextjs-auth0**
-- **jspdf** · **html2canvas** (exportar / compartir)
+- **html2canvas** (imagen para compartir)
 - **CSS** con tokens en `app/styles/` + import de Tailwind en `globals.css`
 - **next/font** (Poppins)
 
