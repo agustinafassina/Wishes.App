@@ -737,7 +737,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
   }, []);
 
   const handleMapStatusFilter = useCallback(
-    (status: 'done' | 'in review' | 'pending') => {
+    (status: 'all' | 'done' | 'in review' | 'pending') => {
       applyListTab(status);
     },
     [applyListTab]
@@ -778,10 +778,22 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                   <div className="map-header-toolbar-pills map-header-toolbar-pills--legend-style" role="group" aria-label="Filter map and switch list column">
                     <button
                       type="button"
-                      className={`filter-btn filter-btn-done ${listTabBelow === 'done' || listTabBelow === 'all' ? 'active' : ''}`}
+                      className={`filter-btn filter-btn-all ${listTabBelow === 'all' ? 'active' : ''}`}
+                      onClick={() => handleMapStatusFilter('all')}
+                      aria-pressed={listTabBelow === 'all'}
+                      title="Show all statuses"
+                    >
+                      <span className="filter-btn-label">All</span>
+                      {locations.length > 0 && (
+                        <span className="filter-btn-count">{locations.length}</span>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      className={`filter-btn filter-btn-done ${listTabBelow === 'done' ? 'active' : ''}`}
                       onClick={() => handleMapStatusFilter('done')}
-                      aria-pressed={listTabBelow === 'done' || listTabBelow === 'all'}
-                      title="Show Complete on map and list"
+                      aria-pressed={listTabBelow === 'done'}
+                      title="Show only Complete"
                     >
                       <span className="filter-btn-dot" aria-hidden />
                       <span className="filter-btn-label">Complete</span>
@@ -791,10 +803,10 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                     </button>
                     <button
                       type="button"
-                      className={`filter-btn filter-btn-in-review ${listTabBelow === 'in review' || listTabBelow === 'all' ? 'active' : ''}`}
+                      className={`filter-btn filter-btn-in-review ${listTabBelow === 'in review' ? 'active' : ''}`}
                       onClick={() => handleMapStatusFilter('in review')}
-                      aria-pressed={listTabBelow === 'in review' || listTabBelow === 'all'}
-                      title="Show Review on map and list"
+                      aria-pressed={listTabBelow === 'in review'}
+                      title="Show only Review"
                     >
                       <span className="filter-btn-dot" aria-hidden />
                       <span className="filter-btn-label">Review</span>
@@ -804,10 +816,10 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                     </button>
                     <button
                       type="button"
-                      className={`filter-btn filter-btn-pending ${listTabBelow === 'pending' || listTabBelow === 'all' ? 'active' : ''}`}
+                      className={`filter-btn filter-btn-pending ${listTabBelow === 'pending' ? 'active' : ''}`}
                       onClick={() => handleMapStatusFilter('pending')}
-                      aria-pressed={listTabBelow === 'pending' || listTabBelow === 'all'}
-                      title="Show To Do on map and list"
+                      aria-pressed={listTabBelow === 'pending'}
+                      title="Show only To Do"
                     >
                       <span className="filter-btn-dot" aria-hidden />
                       <span className="filter-btn-label">To Do</span>

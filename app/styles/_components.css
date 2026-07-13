@@ -2131,6 +2131,12 @@ html[data-theme="light"] .country-list-card--pending .country-list-card-meta-val
   font-weight: 600;
 }
 
+.map-header-toolbar-pills--legend-style .filter-btn-all.active {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
 .map-header-toolbar-pills--legend-style .filter-btn-done.active {
   background: rgba(16, 185, 129, 0.22);
   border: 1px solid rgba(16, 185, 129, 0.5);
@@ -5397,6 +5403,7 @@ html[data-theme="light"] .map-header .map-header-toolbar-pills:not(.map-header-t
   border-color: rgba(0, 0, 0, 0.07);
 }
 
+html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-all.active,
 html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-done.active,
 html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-in-review.active,
 html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-pending.active {
