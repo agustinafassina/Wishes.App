@@ -466,5 +466,14 @@
         "flag": "https://flagcdn.com/w40/no.png",
         "photos": [],
         "status": "in review"
+    },
+    {
+        "name": "Denmark",
+        "code": "DK",
+        "latitude": 55.565562,
+        "longitude": 9.198512,
+        "flag": "https://flagcdn.com/w40/dk.png",
+        "photos": [],
+        "status": "in review"
     }
 ]
