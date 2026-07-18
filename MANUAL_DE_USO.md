@@ -12,8 +12,7 @@ Guía para usar tu lista de viajes (travel bucket list) en Wishes.
 Después de iniciar sesión verás:
 
 - 📌 **Header:** tu nombre o avatar, el botón de tema (🌞/🌙 claro/oscuro), **Log out** y el botón **+** para agregar un país.
-- 📊 **Stats:** tres tarjetas con el conteo de países por estado (**Complete**, **Review**, **To Do**). Son clicables: al tocar una, el mapa y el listado se filtran por ese estado.
-- 🗺️ **World Map:** el mapa con tus países. En su barra superior están los filtros por estado y los botones de acción **Share**, **View list** y **Add country**.
+- 🗺️ **World Map:** el mapa con tus países. En su barra superior están los filtros por estado (**Complete · Review · To Do**, con el conteo de cada uno) y los botones de acción **Share**, **View list** y **Add country**.
 - 📋 **Listado:** debajo del mapa, las tarjetas de países organizadas en tabs.
 
 Si todavía no tenés países cargados, verás un mensaje de bienvenida con **Add country** como acción principal (también podés usar el **+** del header).
@@ -60,7 +59,7 @@ En los países en **Complete** tenés:
 En cada tarjeta de país, dentro del menú **⋯**, hay una opción para eliminar. Al tocarla aparece un mensaje de confirmación. Confirmá solo si realmente querés borrar ese país de tu lista.
 
 ## 7. 🗺️ El mapa
-- 🎛️ **Filtros (Complete / Review / To Do):** los pills de la barra del mapa eligen qué países se ven. Están sincronizados con los tabs del listado y con las tarjetas de Stats: al filtrar el mapa también cambia el tab del listado.
+- 🎛️ **Filtros (Complete / Review / To Do):** los pills de la barra del mapa eligen qué países se ven y muestran el conteo de cada estado. Están sincronizados con los tabs del listado: al filtrar el mapa también cambia el tab del listado.
 - 📍 **Marcadores:** cada país aparece como un pin. Tocando o haciendo clic en un pin se abre una ventanita con nombre, estado y, si está en Complete, notas o fecha de visita.
 - 📋 **View list:** salta directamente al listado de países debajo del mapa.
 - 🔗 **Share:** abre el menú para compartir tu progreso (ver sección 8).
@@ -83,5 +82,5 @@ En el header podés cambiar entre tema **claro** 🌞 y **oscuro** 🌙. La pref
 | 👁️ Ver notas | En un país **Complete** → botón con icono de ojo. |
 | ✏️ Editar notas | En un país **Complete** → botón con icono de lápiz. |
 | 🗑️ Borrar un país | Menú **⋯** → eliminar → confirmar. |
-| 🎛️ Filtrar el mapa | Pills Complete / Review / To Do en la barra del mapa (o las tarjetas de Stats). |
+| 🎛️ Filtrar el mapa | Pills Complete / Review / To Do en la barra del mapa. |
 | 🔗 Compartir progreso | **Share** (barra del mapa o barra de progreso) → Copy link o Download image. |
