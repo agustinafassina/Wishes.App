@@ -771,8 +771,8 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
         <div className="dashboard-map-panel">
         <div id="travel-map" className="map-header map-header--unified">
           <div className="map-header-top">
-            <div className="map-world-map-row" role="group" aria-label="World map section">
-              <h2 className="map-world-map-title">World Map</h2>
+            <div className="map-world-map-row" role="group" aria-label="Map filters and actions">
+              <div className="map-world-map-spacer" aria-hidden="true" />
               {locations.length > 0 && (
                 <div className="map-header-toolbar map-header-toolbar--inline" role="group" aria-label="Filter map by status">
                   <div className="map-header-toolbar-pills map-header-toolbar-pills--legend-style" role="group" aria-label="Filter map and switch list column">

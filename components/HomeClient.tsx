@@ -16,7 +16,6 @@ export default function HomeClient() {
   const menuPortalRef = useRef<HTMLDivElement>(null);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
-  const [addModalTrigger, setAddModalTrigger] = useState(0);
   const displayName = user ? getDisplayName(user) : null;
 
   const scrollToSection = (id: string) => {
@@ -146,28 +145,12 @@ export default function HomeClient() {
           </div>
         </div>
         <h1 className="header-title">My Travel Track</h1>
-        <div className="header-nav-right">
-          <button
-            type="button"
-            className="header-icon-btn"
-            onClick={() => {
-              hapticLight();
-              setAddModalTrigger((t) => t + 1);
-            }}
-            title="Add country"
-            aria-label="Add country"
-          >
-            <svg className="header-icon header-icon-plus" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </button>
-        </div>
+        <div className="header-nav-right" aria-hidden="true" />
       </header>
 
       <main id="main-content" className="main-content" ref={contentRef} tabIndex={-1}>
         <div className="content-section">
-          <Map shareUserName={displayName ?? "User"} triggerOpenAddModal={addModalTrigger} />
+          <Map shareUserName={displayName ?? "User"} />
         </div>
       </main>
     </>

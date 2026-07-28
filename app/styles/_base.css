@@ -57,9 +57,9 @@ body::after {
   height: 100%;
   background: linear-gradient(
     135deg,
-    rgba(10, 14, 26, 0.50) 0%,
-    rgba(26, 31, 53, 0.45) 50%,
-    rgba(10, 14, 26, 0.50) 100%
+    rgba(10, 14, 26, 0.78) 0%,
+    rgba(14, 18, 32, 0.72) 45%,
+    rgba(10, 14, 26, 0.8) 100%
   );
   z-index: -1;
   pointer-events: none;

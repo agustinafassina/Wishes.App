@@ -96,8 +96,8 @@ export default function BackgroundMosaic() {
             backgroundImage: `url(${img.url})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
-            opacity: 0.5,
-            filter: "blur(2px)",
+            opacity: 0.38,
+            filter: "blur(4px)",
           }}
         />
       ))}
