@@ -1066,12 +1066,15 @@ a.header-btn {
   color: var(--accent-tertiary);
 }
 
-.map-header-action--list:hover svg {
-  color: #10b981;
+.map-header-action--icon-only {
+  width: 32px;
+  min-width: 32px;
+  padding: 0;
+  gap: 0;
 }
 
-html[data-theme="light"] .map-header-action--list:hover svg {
-  color: #059669;
+.map-header-action--icon-only svg {
+  color: var(--text-secondary);
 }
 
 .map-header-action--add {
@@ -1140,11 +1143,17 @@ html[data-theme="light"] .map-header-action--add:hover svg {
   .map-header-actions {
     width: 100%;
     margin-left: 0;
-    justify-content: space-between;
+    justify-content: flex-end;
+    gap: 0.5rem;
   }
 
-  .map-header-action {
-    flex: 1;
+  .map-header-action--icon-only {
+    flex: 0 0 auto;
+  }
+
+  .map-header-action--add {
+    flex: 1 1 auto;
+    max-width: 12rem;
   }
 }
 
@@ -1237,6 +1246,22 @@ html[data-theme="light"] .map-header-action--add:hover svg {
   flex-shrink: 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   box-sizing: border-box;
+}
+
+.list-tabs-bar--toolbar-only {
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 0.55rem;
+  min-height: auto;
+}
+
+.list-tabs-bar--toolbar-only .list-search-wrap {
+  width: min(22rem, 100%);
+  min-width: 12rem;
+  padding-bottom: 0;
+  flex: 1 1 auto;
+  max-width: 22rem;
+  justify-content: flex-end;
 }
 
 .list-tabs-wrap {
@@ -1989,6 +2014,16 @@ html[data-theme="light"] .country-list-card--pending .country-list-card-meta-val
     min-height: calc(var(--touch-target) + 0.65rem);
   }
 
+  .list-tabs-bar--toolbar-only {
+    padding: 0.55rem 1.5rem 0.55rem;
+  }
+
+  .list-tabs-bar--toolbar-only .list-search-wrap {
+    max-width: none;
+    width: 100%;
+    min-width: 0;
+  }
+
   .list-tabs-wrap {
     gap: 0.6rem;
   }
@@ -2462,6 +2497,11 @@ html[data-theme="light"] .btn-add-country-header--compact:focus-visible {
   border-radius: 999px;
 }
 
+.skeleton-map-utility--icon {
+  width: 2rem;
+  min-width: 2rem;
+}
+
 .skeleton-map-add-btn {
   width: 6.25rem;
   height: 2rem;
@@ -2487,6 +2527,13 @@ html[data-theme="light"] .btn-add-country-header--compact:focus-visible {
   min-height: calc(var(--touch-target) + 0.75rem);
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   box-sizing: border-box;
+}
+
+.skeleton-list-tabs-bar--toolbar-only {
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 0.55rem;
+  min-height: auto;
 }
 
 .skeleton-list-tabs {

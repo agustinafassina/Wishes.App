@@ -11,8 +11,8 @@ export default function DashboardSkeleton() {
               <div className="skeleton-block skeleton-map-pill" />
               <div className="skeleton-block skeleton-map-pill" />
               <div className="skeleton-block skeleton-map-pill" />
-              <div className="skeleton-block skeleton-map-utility" />
-              <div className="skeleton-block skeleton-map-utility" />
+              <div className="skeleton-block skeleton-map-pill" />
+              <div className="skeleton-block skeleton-map-utility skeleton-map-utility--icon" />
               <div className="skeleton-block skeleton-map-add-btn" />
             </div>
           </div>
@@ -20,13 +20,7 @@ export default function DashboardSkeleton() {
         </div>
 
         <section className="skeleton-list-section">
-          <div className="skeleton-list-tabs-bar">
-            <div className="skeleton-list-tabs">
-              <div className="skeleton-block skeleton-list-tab" />
-              <div className="skeleton-block skeleton-list-tab" />
-              <div className="skeleton-block skeleton-list-tab" />
-              <div className="skeleton-block skeleton-list-tab" />
-            </div>
+          <div className="skeleton-list-tabs-bar skeleton-list-tabs-bar--toolbar-only">
             <div className="skeleton-list-toolbar">
               <div className="skeleton-block skeleton-list-sort" />
               <div className="skeleton-block skeleton-list-search" />

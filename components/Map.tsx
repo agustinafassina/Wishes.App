@@ -833,7 +833,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
               <div className="map-header-actions" role="group" aria-label="Map actions">
                 <button
                   type="button"
-                  className="map-header-action map-header-action--share"
+                  className="map-header-action map-header-action--share map-header-action--icon-only"
                   onClick={() => {
                     hapticLight();
                     setShowShareModal(true);
@@ -848,27 +848,6 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                     <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
                     <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                   </svg>
-                  <span className="map-header-action-label">Share</span>
-                </button>
-                <button
-                  type="button"
-                  className="map-header-action map-header-action--list"
-                  onClick={() => {
-                    hapticLight();
-                    document.getElementById('country-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }}
-                  aria-label="Go to country list"
-                  title="View list"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <line x1="8" y1="6" x2="21" y2="6" />
-                    <line x1="8" y1="12" x2="21" y2="12" />
-                    <line x1="8" y1="18" x2="21" y2="18" />
-                    <line x1="3" y1="6" x2="3.01" y2="6" />
-                    <line x1="3" y1="12" x2="3.01" y2="12" />
-                    <line x1="3" y1="18" x2="3.01" y2="18" />
-                  </svg>
-                  <span className="map-header-action-label">View list</span>
                 </button>
                 <button
                   type="button"
@@ -951,45 +930,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
         </div>
 
           <section id="country-list" className="list-section-below-map" aria-label="Country list">
-            <div className="list-tabs-bar">
-              <div className="list-tabs-wrap" role="tablist" aria-label="Filter list by status">
-                <button
-                  type="button"
-                  role="tab"
-                  className={`list-tab ${listTabBelow === 'all' ? 'list-tab--active' : ''}`}
-                  aria-selected={listTabBelow === 'all'}
-                  onClick={() => applyListTab('all')}
-                >
-                  All ({locations.length})
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  className={`list-tab ${listTabBelow === 'done' ? 'list-tab--active' : ''}`}
-                  aria-selected={listTabBelow === 'done'}
-                  onClick={() => applyListTab('done')}
-                >
-                  Complete ({doneLocations.length})
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  className={`list-tab ${listTabBelow === 'in review' ? 'list-tab--active' : ''}`}
-                  aria-selected={listTabBelow === 'in review'}
-                  onClick={() => applyListTab('in review')}
-                >
-                  Review ({inReviewLocations.length})
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  className={`list-tab ${listTabBelow === 'pending' ? 'list-tab--active' : ''}`}
-                  aria-selected={listTabBelow === 'pending'}
-                  onClick={() => applyListTab('pending')}
-                >
-                  To Do ({pendingLocations.length})
-                </button>
-              </div>
+            <div className="list-tabs-bar list-tabs-bar--toolbar-only">
               <div className="list-search-wrap">
                 {showListSort && (
                   <button
