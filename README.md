@@ -9,12 +9,12 @@ A modern web app to track countries you want to visit, are planning, or have alr
 </p>
 
 ## ✨ What it does
-- **Stats** — counts for visited, in review, and to visit
-- **Quick actions** — share progress, jump to the list
-- **World map** — Google Maps markers by status; filters synced with list tabs (**Complete**, **Review**, **To Do**)
-- **Country list** — tabbed grid (up to 3 columns), search within the active tab, progress bar on **Complete**
-- **Per country** — move status via **Move to**, view/edit notes (visited countries), delete with confirmation
-- **Share & export** — share link or progress image; PDF snapshot; full backup as JSON or CSV
+- **Interactive map** — Google Maps markers by status (**Complete**, **Review**, **To Do**)
+- **Unified filters** — pills above the map (**All · Complete · Review · To Do**) filter both map and country list
+- **Country list** — card grid (up to 3 columns), A–Z / Z–A sort, search
+- **Progress** — bar and milestones when filtering **Complete** (share link or progress image)
+- **Per country** — change status via **Move to**, view/edit notes (visited), delete with confirmation
+- **Add country** — from the map toolbar (or empty-state CTA on first use); optional **Pick from map** for coordinates
 - **Themes** — light and dark mode
 - **Auth0** — each user has a private list
 
@@ -65,16 +65,16 @@ Example:
 | Area | Status |
 |------|--------|
 | Google Maps + custom zoom | Done |
-| Map filters ↔ list tabs | Done |
+| Map pills filter map + list | Done |
 | Pick coordinates from map | Done |
 | Add / update / delete countries | Done |
 | Notes & tags (visited) | Done |
 | Light / dark theme | Done |
-| Export PDF | Done |
-| Export JSON / CSV backup | Done |
+| Share link / progress image | Done |
 | Auth0 login | Done |
-| Search (within active tab) | Done |
-| Import backup from UI | Planned |
+| Search + A–Z sort | Done |
+| Progress milestones (10 / 25 / 50…) | Done |
+| Export / import backup (JSON/CSV) | Planned |
 
 ## 📋 Requirements
 - Node.js 18+
@@ -179,7 +179,7 @@ docker cp wishes-app-seed:/app/public/locations/users/. ./data/locations-users/
 docker rm wishes-app-seed
 ```
 
-**Backup:** use **Export data** in the app (JSON/CSV) or copy `./data/locations-users/` on the server.
+**Backup:** copy `./data/locations-users/` on the server (or the files under `public/locations/users/`). In-app export/import is planned.
 
 ### 🚢 Docker Hub
 ```bash
