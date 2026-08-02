@@ -226,7 +226,7 @@ public/locations/
   users/*.json          # one file per Auth0 user
 ```
 
-## 📚 Related docs
+## 📚 Related documentations
 | File | Language | Purpose |
 |------|----------|---------|
 | [README_ES.md](./README_ES.md) | Spanish | This readme in Spanish |
