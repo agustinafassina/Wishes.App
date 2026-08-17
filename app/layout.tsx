@@ -1,20 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { poppins } from "@/lib/fonts";
 import "./globals.css";
 import BackgroundMosaic from "../components/BackgroundMosaic";
 import { ToastProvider } from "../components/ToastContext";
 import Auth0ProviderWrapper from "../components/Auth0ProviderWrapper";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "TravelTrack App",
@@ -46,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${poppins.className} antialiased`}
+        className={`${poppins.variable} ${poppins.className} antialiased`}
       >
         <script
           dangerouslySetInnerHTML={{

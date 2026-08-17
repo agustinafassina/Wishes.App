@@ -38,14 +38,6 @@ export function filterBySection(
   return locations.filter(isCountryPlace);
 }
 
-export function filterCountries(locations: CountryLocation[]): CountryLocation[] {
-  return filterBySection(locations, 'countries');
-}
-
-export function filterCities(locations: CountryLocation[]): CountryLocation[] {
-  return filterBySection(locations, 'cities');
-}
-
 export function withDerivedCountryStatuses(
   locations: CountryLocation[]
 ): CountryLocation[] {
