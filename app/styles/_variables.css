@@ -5,12 +5,12 @@
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-inset-left: env(safe-area-inset-left, 0px);
 
-  --shell-max-width: 1200px;
+  --shell-max-width: none;
   --shell-inset: 0;
-  --shell-radius: var(--radius-xl);
+  --shell-radius: 0;
   --shell-border: transparent;
   --shell-divider: rgba(255, 255, 255, 0.04);
-  --shell-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 4px 14px rgba(0, 0, 0, 0.28);
+  --shell-shadow: none;
 
   --bottom-bar-height: 0;
 
@@ -170,9 +170,9 @@ html[data-theme="light"] {
   --focus-ring: 0 0 0 2px var(--focus-ring-color);
   --border: rgba(0, 0, 0, 0.1);
   --border-light: rgba(0, 0, 0, 0.06);
-  --shell-border: rgba(0, 0, 0, 0.08);
+  --shell-border: transparent;
   --shell-divider: rgba(0, 0, 0, 0.06);
-  --shell-shadow: 0 12px 40px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shell-shadow: none;
 
   --accent-on-light: #4c1d95;
   --accent-on-light-soft: #5b21b6;

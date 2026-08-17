@@ -32,6 +32,12 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env
+.env.*
+!.env.example
+
+# private per-user location data (never serve as static / never commit PII)
+/data/locations/users/*.json
+!/data/locations/users/.gitkeep
 
 # vercel
 .vercel

@@ -156,33 +156,11 @@ export default function HomeClient() {
 
       <main id="main-content" className="main-content" ref={contentRef} tabIndex={-1}>
         <div className="content-section">
-          <div className="travel-section-switch" role="tablist" aria-label="Travel section">
-            <button
-              type="button"
-              role="tab"
-              className={`travel-section-switch-btn${section === "countries" ? " is-active" : ""}`}
-              aria-selected={section === "countries"}
-              onClick={() => {
-                hapticLight();
-                setSection("countries");
-              }}
-            >
-              Countries
-            </button>
-            <button
-              type="button"
-              role="tab"
-              className={`travel-section-switch-btn${section === "cities" ? " is-active" : ""}`}
-              aria-selected={section === "cities"}
-              onClick={() => {
-                hapticLight();
-                setSection("cities");
-              }}
-            >
-              Cities
-            </button>
-          </div>
-          <Map section={section} shareUserName={displayName ?? "User"} />
+          <Map
+            section={section}
+            onSectionChange={setSection}
+            shareUserName={displayName ?? "User"}
+          />
         </div>
       </main>
     </>

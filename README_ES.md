@@ -9,7 +9,7 @@ Aplicación web para registrar países que querés visitar, los que estás plani
 </p>
 
 ## ✨ Qué hace la app
-- **Mapa interactivo** — marcadores por estado (**Complete**, **Review**, **To Do**)
+- **Mapa interactivo** — Leaflet + tiles CARTO, marcadores por estado (**Complete**, **Review**, **To Do**)
 - **Filtros unificados** — pills arriba del mapa (**All · Complete · Review · To Do**) filtran mapa y listado
 - **Listado** — grilla de tarjetas (hasta 3 columnas), orden A–Z / Z–A y búsqueda
 - **Progreso** — barra e hitos al filtrar **Complete** (compartir enlace o imagen)
@@ -21,10 +21,10 @@ Aplicación web para registrar países que querés visitar, los que estás plani
 Guía de uso paso a paso: [MANUAL_DE_USO.md](./MANUAL_DE_USO.md).
 
 ## 💾 Cómo se guardan los datos
-No hay base SQL ni MongoDB. Tras iniciar sesión, la app lee y escribe un **archivo JSON por usuario** en `public/locations/users/` (el nombre sale de la identidad Auth0, ej. `agustinafassina_gmail_com.json`).
+No hay base SQL ni MongoDB. Tras iniciar sesión, la app lee y escribe un **archivo JSON por usuario** en `data/locations/users/` (el nombre sale de la identidad Auth0). Esa carpeta está **fuera** de `public/`, así que los archivos no se sirven como URLs estáticas: solo las APIs autenticadas pueden leerlos/escribirlos.
 
 - Datos de ejemplo / legacy: `public/locations/web_locations.json`
-- Convención de archivos: [public/locations/users/README.md](./public/locations/users/README.md)
+- Convención de archivos: [data/locations/users/README.md](./data/locations/users/README.md)
 
 Las rutas en `app/api/*` crean, actualizan, eliminan y cargan países del usuario logueado.
 
@@ -64,7 +64,7 @@ Ejemplo:
 ## ✅ Funcionalidades
 | Área | Estado |
 |------|--------|
-| Google Maps + zoom personalizado | Hecho |
+| Leaflet + CARTO + zoom personalizado | Hecho |
 | Pills del mapa filtran mapa + listado | Hecho |
 | Elegir coordenadas en el mapa | Hecho |
 | Alta / edición / baja de países | Hecho |
@@ -78,7 +78,6 @@ Ejemplo:
 
 ## 📋 Requisitos
 - Node.js 18+
-- API key de Google Maps
 - Aplicación Auth0 (Regular Web Application)
 
 ## ⚙️ Configuración del entorno
@@ -92,12 +91,11 @@ cp .env.example .env
 
 | Variable | Descripción |
 |----------|-------------|
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | API key de Google Maps (cliente). |
 | `AUTH0_DOMAIN` | Dominio del tenant Auth0. |
 | `AUTH0_CLIENT_ID` | Client ID de la aplicación. |
 | `AUTH0_CLIENT_SECRET` | Client Secret. |
 | `AUTH0_SECRET` | Cadena aleatoria ≥ 32 caracteres (`openssl rand -hex 32`). |
-| `APP_BASE_URL` | URL de la app (dev: `http://localhost:3000`). |
+| `APP_BASE_URL` | URL de la app (dev: `http://localhost:3000`; prod: `https://…`). |
 
 **URIs en Auth0 (desarrollo):**
 
@@ -109,7 +107,6 @@ En producción agregá las mismas URLs con tu host público (más abajo).
 Ejemplo `.env`:
 
 ```env
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=tu_google_maps_key
 AUTH0_DOMAIN=tu-tenant.us.auth0.com
 AUTH0_CLIENT_ID=tu_client_id
 AUTH0_CLIENT_SECRET=tu_client_secret
@@ -117,10 +114,8 @@ AUTH0_SECRET=cadena_aleatoria_larga_minimo_32_caracteres
 APP_BASE_URL=http://localhost:3000
 ```
 
-### 🗺️ Google Maps
-1. [Google Cloud Console](https://console.cloud.google.com)
-2. Habilitá Maps JavaScript API (y lo que use tu key)
-3. Creá una API key y pegala en `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
+### 🗺️ Mapa (Leaflet + CARTO)
+No hace falta API key. El mapa usa tiles CARTO (`light_all` / `dark_all`) y reverse-geocode opcional vía Nominatim al usar **Pick from map**.
 
 ### 🔐 Auth0
 1. Cuenta en [auth0.com](https://auth0.com)
@@ -177,35 +172,21 @@ docker run -p 8080:8080 -e PORT=8080 wishes-app
 Dentro del contenedor los datos son efímeros. Montá un volumen para no perder listas al reconstruir:
 
 ```bash
-mkdir -p ./data/locations-users
+mkdir -p ./data/locations/users
 docker run -d -p 3000:3000 --env-file .env \
-  -v "$(pwd)/data/locations-users:/app/public/locations/users" \
+  -v "$(pwd)/data/locations/users:/app/data/locations/users" \
   --name wishes-app wishes-app
 ```
 
 Windows (PowerShell):
 
 ```powershell
-docker run -d -p 3000:3000 --env-file .env -v "${PWD}\data\locations-users:/app/public/locations/users" --name wishes-app wishes-app
+docker run -d -p 3000:3000 --env-file .env -v "${PWD}\data\locations\users:/app/data\locations\users" --name wishes-app wishes-app
 ```
 
-**Primera vez en un servidor nuevo (copiar desde la imagen):**
+**Primera vez / migración:** copiá tus JSON de respaldo a `./data/locations/users/` en el host antes de levantar el contenedor.
 
-```bash
-docker create --name wishes-app-seed TU_USUARIO/wishes-app:latest
-docker cp wishes-app-seed:/app/public/locations/users/. ./data/locations-users/
-docker rm wishes-app-seed
-```
-
-**Desde tu máquina local:**
-
-```bash
-cp -r public/locations/users/* ./data/locations-users/
-```
-
-PowerShell: `Copy-Item -Path .\public\locations\users\* -Destination .\data\locations-users\ -Force`
-
-**Respaldo:** copiá `./data/locations-users/` en el servidor (o los archivos en `public/locations/users/`). Exportar/importar desde la app está planificado.
+**Respaldo:** copiá `./data/locations/users/` en el servidor. Exportar/importar desde la app está planificado.
 
 ### 🚢 Publicar en Docker Hub
 ```bash
@@ -233,11 +214,11 @@ docker run -p 3000:3000 --env-file .env TU_USUARIO/wishes-app:latest
 - Allowed Callback URLs: `https://tudominio.com/auth/callback`
 - Allowed Logout URLs: `https://tudominio.com`
 
-Corré con `--env-file .env` y el volumen en `public/locations/users` si necesitás persistencia.
+Corré con `--env-file .env` y el volumen en `data/locations/users` si necesitás persistencia.
 
 ## 🛠️ Stack tecnológico
 - **Next.js 16** (App Router) · **React 19** · **TypeScript**
-- **@react-google-maps/api** · **@auth0/nextjs-auth0**
+- **leaflet** / **react-leaflet** · **@auth0/nextjs-auth0**
 - **html2canvas** (imagen para compartir)
 - **CSS** con tokens en `app/styles/` + import de Tailwind en `globals.css`
 - **next/font** (Poppins)
@@ -252,10 +233,10 @@ components/
   Map.tsx, HomeClient.tsx, …
   map/              # CountryListCard, modales, EmptyState, utils
 hooks/              # useLocations, useCountryActions, …
-lib/                # env, auth0, haptic, fonts
+lib/                # env, auth0, haptic, fonts, user-locations
+data/locations/users/   # JSON privado por usuario (*.json en gitignore)
 public/locations/
   web_locations.json    # ejemplo / legacy
-  users/*.json          # un archivo por usuario Auth0
 ```
 
 ## 📚 Documentación relacionada
@@ -268,9 +249,9 @@ public/locations/
 ## 🔧 Solución de problemas
 | Problema | Revisar |
 |----------|---------|
-| Mapa en blanco | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, API habilitada en Google Cloud |
+| Mapa en blanco | Red / CSP permitiendo tiles CARTO (`*.basemaps.cartocdn.com`) |
 | Error de login | Dominio Auth0, client id/secret, URLs de callback/logout, largo de `AUTH0_SECRET` |
-| No guarda cambios | Permisos de escritura en `public/locations/users/` (o volumen Docker) |
+| No guarda cambios | Permisos de escritura en `data/locations/users/` (o volumen Docker) |
 | 401 / sin sesión | Iniciar sesión con Auth0 |
 
 ## 👣 Próximos pasos (usuarios)
@@ -278,7 +259,7 @@ public/locations/
 2. Iniciá sesión
 3. Agregá países con **Add country** (o **Pick from map** para coordenadas)
 4. Mové estados con **Move to** y completá notas en países visitados
-5. Hacé backup copiando `public/locations/users/` (export desde la UI está planificado)
+5. Hacé backup copiando `data/locations/users/` (export desde la UI está planificado)
 
 ## 📄 Licencia
 Proyecto personal — Agustina Fassina. Podés usar el código como referencia para tus propios proyectos.

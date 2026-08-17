@@ -29,8 +29,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Ensure locations dir exists and is writable by nextjs (and by entrypoint when volume is mounted)
-RUN mkdir -p /app/public/locations/users && chown -R nextjs:nodejs /app/public/locations
+RUN mkdir -p /app/data/locations/users && chown -R nextjs:nodejs /app/data
 
 COPY docker-entrypoint.sh .
 RUN sed -i 's/\r$//' docker-entrypoint.sh && chmod +x docker-entrypoint.sh

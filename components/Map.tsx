@@ -1,12 +1,14 @@
 "use client";
 
+import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
+import type { Map as LeafletMap } from 'leaflet';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useToast } from './ToastContext';
 import { getApiErrorDisplay } from '@/lib/api-error-display';
-import { env } from '@/lib/env';
 import { hapticLight, hapticSuccess } from '@/lib/haptic';
+import { reverseGeocodeCountry } from '@/lib/reverse-geocode';
 import type { CountryLocation, TravelSection } from '@/types/country';
 import { isCity } from '@/types/country';
 import {
@@ -22,7 +24,6 @@ import {
   getEmptyStateCopy,
   getFirstUseEmptyStateCopy,
   getListSearchResultsAnnouncement,
-  MapPopup,
   matchesCountrySearch,
   normalizeTags,
   NotesModal,
@@ -34,9 +35,11 @@ import type { ListTabFilterId } from '@/components/map/index';
 import { useLocations } from '@/hooks/useLocations';
 import { useCountryActions } from '@/hooks/useCountryActions';
 import ConfirmModal from './ConfirmModal';
-import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 
-const API_KEY = env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+const TravelLeafletMap = dynamic(() => import('@/components/map/TravelLeafletMap'), {
+  ssr: false,
+  loading: () => <div className="map-container map-container--loading" aria-hidden />,
+});
 
 const MAP_ZOOM_MIN = 1;
 const MAP_ZOOM_MAX = 18;
@@ -85,12 +88,14 @@ function MapZoomControls({
 interface MapProps {
   shareUserName?: string;
   section?: TravelSection;
+  onSectionChange?: (section: TravelSection) => void;
   triggerOpenAddModal?: number;
 }
 
 const Map = ({
   shareUserName = 'My progress',
   section = 'countries',
+  onSectionChange,
   triggerOpenAddModal = 0,
 }: MapProps) => {
   const toast = useToast();
@@ -124,7 +129,7 @@ const Map = ({
   const [pickingLocationFromMap, setPickingLocationFromMap] = useState(false);
   const pickingLocationFromMapRef = useRef(false);
   pickingLocationFromMapRef.current = pickingLocationFromMap;
-  const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const mapInstanceRef = useRef<LeafletMap | null>(null);
   const [targetStatus, setTargetStatus] = useState<string>('pending');
   const [confirmDeleteLocation, setConfirmDeleteLocation] = useState<CountryLocation | null>(null);
   const [confirmLeaveModal, setConfirmLeaveModal] = useState<'add' | 'notes' | null>(null);
@@ -216,21 +221,6 @@ const Map = ({
   const handleMarkerClick = (countryLocation: CountryLocation): void => {
     setSelectedLocation(countryLocation);
   };
-
-  const getMarkerIcon = useCallback((status: string) => {
-    if (typeof window === 'undefined') return undefined;
-    const g = (window as unknown as { google?: { maps?: { SymbolPath?: { CIRCLE: number } } } }).google;
-    if (!g?.maps?.SymbolPath) return undefined;
-    const colors: Record<string, string> = { done: '#059669', 'in review': '#d97706', pending: '#dc2626' };
-    return {
-      path: g.maps.SymbolPath.CIRCLE,
-      fillColor: colors[status] || colors.pending,
-      fillOpacity: 1,
-      strokeColor: '#ffffff',
-      strokeWeight: 2,
-      scale: 10,
-    };
-  }, []);
 
   const handleMoveToStatus = async (location: CountryLocation, newStatus: string) => {
     setIsSavingStatus(true);
@@ -380,25 +370,8 @@ const Map = ({
     setPickingLocationFromMap(false);
   };
 
-  const applyPickedLocation = (lat: number, lng: number) => {
-    setNewCountry((prev) => ({
-      ...prev,
-      latitude: String(Number(lat.toFixed(6))),
-      longitude: String(Number(lng.toFixed(6))),
-    }));
-    setMapCenter({ lat, lng });
-    setZoom(10);
-    setPickingLocationFromMap(false);
-    setShowAddModal(true);
-  };
-
-  const handleMapLoad = (map: google.maps.Map) => {
-    mapInstanceRef.current = map;
-  };
-
-  const handleMapZoomChanged = useCallback(() => {
-    const z = mapInstanceRef.current?.getZoom();
-    if (typeof z === 'number') setZoom(z);
+  const handleMapZoomChange = useCallback((z: number) => {
+    setZoom(z);
   }, []);
 
   const handleZoomIn = useCallback(() => {
@@ -419,42 +392,24 @@ const Map = ({
     setZoom(next);
   }, [zoom]);
 
-  const handleMapClick = useCallback((e: google.maps.MapMouseEvent) => {
-    if (!pickingLocationFromMapRef.current || !e.latLng) return;
-    const lat = e.latLng.lat();
-    const lng = e.latLng.lng();
+  const handleMapClick = useCallback(async (lat: number, lng: number) => {
+    if (!pickingLocationFromMapRef.current) return;
     const latStr = String(Number(lat.toFixed(6)));
     const lngStr = String(Number(lng.toFixed(6)));
-
-    const applyWithCountry = (countryName: string, countryCode: string) => {
-      setNewCountry((prev) => ({
-        ...prev,
-        name: countryName,
-        code: countryCode.toUpperCase(),
-        latitude: latStr,
-        longitude: lngStr,
-      }));
-      setMapCenter({ lat, lng });
-      setZoom(10);
-      setPickingLocationFromMap(false);
-      setShowAddModal(true);
-    };
-
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-      let name = '';
-      let code = '';
-      if (status === google.maps.GeocoderStatus.OK && results && results.length > 0) {
-        const comp = results[0].address_components;
-        const country = comp?.find((c) => c.types.includes('country'));
-        if (country) {
-          name = country.long_name;
-          code = country.short_name ?? '';
-        }
-      }
-      applyWithCountry(name, code);
-    });
-  }, []);
+    const { name, code } = await reverseGeocodeCountry(lat, lng);
+    setNewCountry((prev) => ({
+      ...prev,
+      ...(isCitiesSection
+        ? { code: code || prev.code }
+        : { name: name || prev.name, code: code || prev.code }),
+      latitude: latStr,
+      longitude: lngStr,
+    }));
+    setMapCenter({ lat, lng });
+    setZoom(10);
+    setPickingLocationFromMap(false);
+    setShowAddModal(true);
+  }, [isCitiesSection]);
 
   const requestCloseNotesModal = () => {
     if (isNotesFormDirty()) {
@@ -698,62 +653,6 @@ const Map = ({
     }
   };
 
-  const mapOptions = useMemo(() => {
-    const darkStyles = [
-      { featureType: "all", elementType: "geometry", stylers: [{ color: "#1a1f35" }] },
-      { featureType: "all", elementType: "labels.text.stroke", stylers: [{ color: "#0a0e1a" }] },
-      { featureType: "all", elementType: "labels.text.fill", stylers: [{ color: "#94a3b8" }] },
-      { featureType: "water", elementType: "geometry", stylers: [{ color: "#0a0e1a" }] },
-      { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#64748b" }] },
-      { featureType: "road", elementType: "geometry", stylers: [{ color: "#252b42" }] },
-      { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#1e2339" }] },
-      { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2a3049" }] },
-      { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#1a1f35" }] },
-      { featureType: "administrative.land_parcel", elementType: "labels.text.fill", stylers: [{ color: "#64748b" }] },
-      { featureType: "transit", elementType: "labels.text.fill", stylers: [{ color: "#94a3b8" }] },
-      { featureType: "poi", elementType: "geometry", stylers: [{ color: "#252b42" }] },
-      { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#94a3b8" }] },
-      { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
-      { featureType: "landscape.natural", elementType: "geometry", stylers: [{ color: "#1e2339" }] },
-      { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#252b42" }] },
-      { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "rgba(139, 92, 246, 0.3)" }] },
-      { featureType: "administrative.province", elementType: "geometry.stroke", stylers: [{ color: "#252b42" }] }
-    ];
-    const lightStyles = [
-      { featureType: "all", elementType: "geometry", stylers: [{ color: "#f1f5f9" }] },
-      { featureType: "all", elementType: "labels.text.stroke", stylers: [{ color: "#ffffff" }] },
-      { featureType: "all", elementType: "labels.text.fill", stylers: [{ color: "#475569" }] },
-      { featureType: "water", elementType: "geometry", stylers: [{ color: "#e0f2fe" }] },
-      { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#64748b" }] },
-      { featureType: "road", elementType: "geometry", stylers: [{ color: "#e2e8f0" }] },
-      { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#cbd5e1" }] },
-      { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#f1f5f9" }] },
-      { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#e2e8f0" }] },
-      { featureType: "administrative.land_parcel", elementType: "labels.text.fill", stylers: [{ color: "#64748b" }] },
-      { featureType: "transit", elementType: "labels.text.fill", stylers: [{ color: "#475569" }] },
-      { featureType: "poi", elementType: "geometry", stylers: [{ color: "#e2e8f0" }] },
-      { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#475569" }] },
-      { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
-      { featureType: "landscape.natural", elementType: "geometry", stylers: [{ color: "#f8fafc" }] },
-      { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#cbd5e1" }] },
-      { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "rgba(99, 102, 241, 0.35)" }] },
-      { featureType: "administrative.province", elementType: "geometry.stroke", stylers: [{ color: "#e2e8f0" }] }
-    ];
-    const isLight = mapTheme === 'light';
-    return {
-      styles: isLight ? lightStyles : darkStyles,
-      disableDefaultUI: false,
-      zoomControl: false,
-      streetViewControl: false,
-      mapTypeControl: false,
-      fullscreenControl: false,
-      scaleControl: false,
-      rotateControl: false,
-      mapTypeId: "roadmap",
-      backgroundColor: isLight ? "#f8fafc" : "#0a0e1a"
-    };
-  }, [mapTheme]);
-
   const listScrollRef = useRef<HTMLDivElement>(null);
 
   const applyListTab = useCallback((tab: ListTabFilterId) => {
@@ -781,7 +680,6 @@ const Map = ({
   const hasAnyPlaces = locations.length > 0;
 
   return (
-    <LoadScript googleMapsApiKey={API_KEY}>
       <div className={`map-section${isFirstUse ? ' map-section--first-use' : ''}`}>
         {isSavingStatus && (
           <div className="saving-status-banner" role="status" aria-live="polite">
@@ -806,63 +704,88 @@ const Map = ({
         <div className="dashboard-map-panel">
         <div id="travel-map" className="map-header map-header--unified">
           <div className="map-header-top">
-            <div className="map-world-map-row" role="group" aria-label="Map filters and actions">
-              <div className="map-world-map-spacer" aria-hidden="true" />
-              {hasAnyPlaces && (
-                <div className="map-header-toolbar map-header-toolbar--inline" role="group" aria-label="Filter map by status">
-                  <div className="map-header-toolbar-pills map-header-toolbar-pills--legend-style" role="group" aria-label="Filter map and switch list column">
-                    <button
-                      type="button"
-                      className={`filter-btn filter-btn-all ${listTabBelow === 'all' ? 'active' : ''}`}
-                      onClick={() => handleMapStatusFilter('all')}
-                      aria-pressed={listTabBelow === 'all'}
-                      title="Show all statuses"
-                    >
-                      <span className="filter-btn-label">All</span>
-                      <span className="filter-btn-count">{sectionLocations.length}</span>
-                    </button>
-                    <button
-                      type="button"
-                      className={`filter-btn filter-btn-done ${listTabBelow === 'done' ? 'active' : ''}`}
-                      onClick={() => handleMapStatusFilter('done')}
-                      aria-pressed={listTabBelow === 'done'}
-                      title="Show only Complete"
-                    >
-                      <span className="filter-btn-dot" aria-hidden />
-                      <span className="filter-btn-label">Complete</span>
-                      {doneLocations.length > 0 && (
-                        <span className="filter-btn-count">{doneLocations.length}</span>
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      className={`filter-btn filter-btn-in-review ${listTabBelow === 'in review' ? 'active' : ''}`}
-                      onClick={() => handleMapStatusFilter('in review')}
-                      aria-pressed={listTabBelow === 'in review'}
-                      title="Show only Review"
-                    >
-                      <span className="filter-btn-dot" aria-hidden />
-                      <span className="filter-btn-label">Review</span>
-                      {inReviewLocations.length > 0 && (
-                        <span className="filter-btn-count">{inReviewLocations.length}</span>
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      className={`filter-btn filter-btn-pending ${listTabBelow === 'pending' ? 'active' : ''}`}
-                      onClick={() => handleMapStatusFilter('pending')}
-                      aria-pressed={listTabBelow === 'pending'}
-                      title="Show only To Do"
-                    >
-                      <span className="filter-btn-dot" aria-hidden />
-                      <span className="filter-btn-label">To Do</span>
-                      {pendingLocations.length > 0 && (
-                        <span className="filter-btn-count">{pendingLocations.length}</span>
-                      )}
-                    </button>
-                  </div>
+            <div className="map-chrome-bar" role="group" aria-label="Map navigation and actions">
+              <div className="travel-section-switch travel-section-switch--in-chrome" role="tablist" aria-label="Travel section">
+                <button
+                  type="button"
+                  role="tab"
+                  className={`travel-section-switch-btn${section === 'countries' ? ' is-active' : ''}`}
+                  aria-selected={section === 'countries'}
+                  onClick={() => {
+                    hapticLight();
+                    onSectionChange?.('countries');
+                  }}
+                >
+                  Countries
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  className={`travel-section-switch-btn${section === 'cities' ? ' is-active' : ''}`}
+                  aria-selected={section === 'cities'}
+                  onClick={() => {
+                    hapticLight();
+                    onSectionChange?.('cities');
+                  }}
+                >
+                  Cities
+                </button>
+              </div>
+
+              <div className="map-header-toolbar map-header-toolbar--inline" role="group" aria-label="Filter map by status">
+                <div className="map-header-toolbar-pills map-header-toolbar-pills--legend-style" role="group" aria-label="Filter map and list">
+                  <button
+                    type="button"
+                    className={`filter-btn filter-btn-all ${listTabBelow === 'all' ? 'active' : ''}`}
+                    onClick={() => handleMapStatusFilter('all')}
+                    aria-pressed={listTabBelow === 'all'}
+                    title="Show all statuses"
+                  >
+                    <span className="filter-btn-label">All</span>
+                    <span className="filter-btn-count">{sectionLocations.length}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`filter-btn filter-btn-done ${listTabBelow === 'done' ? 'active' : ''}`}
+                    onClick={() => handleMapStatusFilter('done')}
+                    aria-pressed={listTabBelow === 'done'}
+                    title="Show only Complete"
+                  >
+                    <span className="filter-btn-dot" aria-hidden />
+                    <span className="filter-btn-label">Complete</span>
+                    {doneLocations.length > 0 && (
+                      <span className="filter-btn-count">{doneLocations.length}</span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    className={`filter-btn filter-btn-in-review ${listTabBelow === 'in review' ? 'active' : ''}`}
+                    onClick={() => handleMapStatusFilter('in review')}
+                    aria-pressed={listTabBelow === 'in review'}
+                    title="Show only Review"
+                  >
+                    <span className="filter-btn-dot" aria-hidden />
+                    <span className="filter-btn-label">Review</span>
+                    {inReviewLocations.length > 0 && (
+                      <span className="filter-btn-count">{inReviewLocations.length}</span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    className={`filter-btn filter-btn-pending ${listTabBelow === 'pending' ? 'active' : ''}`}
+                    onClick={() => handleMapStatusFilter('pending')}
+                    aria-pressed={listTabBelow === 'pending'}
+                    title="Show only To Do"
+                  >
+                    <span className="filter-btn-dot" aria-hidden />
+                    <span className="filter-btn-label">To Do</span>
+                    {pendingLocations.length > 0 && (
+                      <span className="filter-btn-count">{pendingLocations.length}</span>
+                    )}
+                  </button>
                 </div>
-              )}
+              </div>
+
               <div className="map-header-actions" role="group" aria-label="Map actions">
                 <button
                   type="button"
@@ -923,38 +846,20 @@ const Map = ({
                     </button>
                   </div>
                 )}
-                <GoogleMap
+                <TravelLeafletMap
                   key={mapTheme}
-                  mapContainerClassName="map-container"
-                  mapContainerStyle={{ height: '100%', width: '100%', borderRadius: 0 }}
                   center={mapCenter}
                   zoom={zoom}
-                  options={mapOptions}
-                  onLoad={handleMapLoad}
-                  onZoomChanged={handleMapZoomChanged}
-                  onClick={handleMapClick}
-                >
-                {filteredLocations.map((location) => {
-                  const countryLocation: CountryLocation = location;
-                  return (
-                    <Marker
-                      key={location.id}
-                      position={location.position}
-                      title={location.name}
-                      icon={getMarkerIcon(location.status)}
-                      onClick={() => handleMarkerClick(countryLocation)}
-                    />
-                  );
-                })}
-                {selectedLocation && (
-                  <InfoWindow
-                    position={selectedLocation.position}
-                    onCloseClick={() => setSelectedLocation(null)}
-                  >
-                    <MapPopup location={selectedLocation} />
-                  </InfoWindow>
-                )}
-                </GoogleMap>
+                  theme={mapTheme}
+                  locations={filteredLocations}
+                  selectedLocation={selectedLocation}
+                  pickingLocation={pickingLocationFromMap}
+                  mapRef={mapInstanceRef}
+                  onZoomChange={handleMapZoomChange}
+                  onMapClick={handleMapClick}
+                  onMarkerClick={handleMarkerClick}
+                  onPopupClose={() => setSelectedLocation(null)}
+                />
                 <MapZoomControls onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} zoom={zoom} />
                 </>
               </div>
@@ -1166,7 +1071,61 @@ const Map = ({
             onCancel={() => setConfirmLeaveModal(null)}
           />
           {!hasAnyPlaces ? (
-            pickingLocationFromMap ? (
+            <>
+              <div className="map-chrome-bar map-chrome-bar--empty" role="group" aria-label="Map navigation and actions">
+                <div className="travel-section-switch travel-section-switch--in-chrome" role="tablist" aria-label="Travel section">
+                  <button
+                    type="button"
+                    role="tab"
+                    className={`travel-section-switch-btn${section === 'countries' ? ' is-active' : ''}`}
+                    aria-selected={section === 'countries'}
+                    onClick={() => {
+                      hapticLight();
+                      onSectionChange?.('countries');
+                    }}
+                  >
+                    Countries
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    className={`travel-section-switch-btn${section === 'cities' ? ' is-active' : ''}`}
+                    aria-selected={section === 'cities'}
+                    onClick={() => {
+                      hapticLight();
+                      onSectionChange?.('cities');
+                    }}
+                  >
+                    Cities
+                  </button>
+                </div>
+                <div className="map-header-actions" role="group" aria-label="Map actions">
+                  <button
+                    type="button"
+                    className="map-header-action map-header-action--add"
+                    onClick={() => handleColumnDoubleClick('pending')}
+                    disabled={isAddingCountry}
+                    aria-label={isAddingCountry ? `Adding ${placeNoun}…` : addPlaceLabel}
+                    aria-busy={isAddingCountry}
+                  >
+                    {isAddingCountry ? (
+                      <>
+                        <span className="btn-spinner" aria-hidden />
+                        <span className="map-header-action-label">Adding…</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                          <line x1="12" y1="5" x2="12" y2="19" />
+                          <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        <span className="map-header-action-label">{addPlaceLabel}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            {pickingLocationFromMap ? (
               <div className="map-section-map-wrap">
                 <div
                   id="map-wrapper-id"
@@ -1178,16 +1137,20 @@ const Map = ({
                       Cancel
                     </button>
                   </div>
-                  <GoogleMap
+                  <TravelLeafletMap
                     key={mapTheme}
-                    mapContainerClassName="map-container"
-                    mapContainerStyle={{ height: '100%', width: '100%', borderRadius: '20px' }}
                     center={mapCenter}
                     zoom={zoom}
-                    options={mapOptions}
-                    onLoad={handleMapLoad}
-                    onZoomChanged={handleMapZoomChanged}
-                    onClick={handleMapClick}
+                    theme={mapTheme}
+                    locations={[]}
+                    selectedLocation={null}
+                    pickingLocation={pickingLocationFromMap}
+                    mapRef={mapInstanceRef}
+                    onZoomChange={handleMapZoomChange}
+                    onMapClick={handleMapClick}
+                    onMarkerClick={handleMarkerClick}
+                    onPopupClose={() => setSelectedLocation(null)}
+                    borderRadius="20px"
                   />
                   <MapZoomControls onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} zoom={zoom} />
                 </div>
@@ -1201,7 +1164,8 @@ const Map = ({
               onAddCountry={() => handleColumnDoubleClick('pending')}
               isAdding={isAddingCountry}
             />
-            )
+            )}
+            </>
           ) : (
           <>
 
@@ -1244,7 +1208,6 @@ const Map = ({
         </>
         )}
       </div>
-    </LoadScript>
   );
 };
 

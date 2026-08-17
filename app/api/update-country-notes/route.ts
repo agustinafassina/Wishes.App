@@ -3,6 +3,15 @@ import { promises as fs } from 'fs';
 import { auth0 } from '@/lib/auth0';
 import { getUserLocationsFilename, getUserLocationsFilePath } from '@/lib/user-locations';
 import { type Country } from '@/types/country';
+import { enforceSameOrigin, enforceWriteRateLimit } from '@/lib/rate-limit';
+import {
+  normalizeCountryCode,
+  normalizeNotes,
+  normalizePlaceName,
+  normalizeTags,
+  normalizeVisitedAt,
+  PLACE_LIMITS,
+} from '@/lib/place-validation';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,18 +20,51 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const originBlock = enforceSameOrigin(request);
+    if (originBlock) return originBlock;
+
+    const userKey = getUserLocationsFilename(session.user);
+    const limited = enforceWriteRateLimit(userKey);
+    if (limited) return limited;
+
     const body = await request.json();
-    const { countryCode, countryName, notes, visitedAt, tags } = body;
+    const countryCode = normalizeCountryCode(body.countryCode);
+    const countryName = normalizePlaceName(body.countryName);
 
     if (!countryCode || !countryName) {
       return NextResponse.json(
-        { error: 'Missing countryCode or countryName' },
+        { error: 'Missing or invalid countryCode or countryName' },
         { status: 400 }
       );
     }
 
-    const filename = getUserLocationsFilename(session.user);
-    const filePath = getUserLocationsFilePath(filename);
+    const notes = normalizeNotes(body.notes);
+    if (notes === null) {
+      return NextResponse.json(
+        { error: `Invalid notes (string, max ${PLACE_LIMITS.notesMax} chars)` },
+        { status: 400 }
+      );
+    }
+
+    const visitedAt = normalizeVisitedAt(body.visitedAt);
+    if (visitedAt === null) {
+      return NextResponse.json(
+        { error: `Invalid visitedAt (string, max ${PLACE_LIMITS.visitedAtMax} chars)` },
+        { status: 400 }
+      );
+    }
+
+    const tags = normalizeTags(body.tags);
+    if (tags === null) {
+      return NextResponse.json(
+        {
+          error: `Invalid tags (max ${PLACE_LIMITS.tagsMaxCount} tags, ${PLACE_LIMITS.tagMax} chars each)`,
+        },
+        { status: 400 }
+      );
+    }
+
+    const filePath = getUserLocationsFilePath(userKey);
 
     let fileContents: string;
     try {
@@ -42,10 +84,7 @@ export async function POST(request: NextRequest) {
 
     if (notes !== undefined) countries[countryIndex].notes = notes;
     if (visitedAt !== undefined) countries[countryIndex].visitedAt = visitedAt;
-    if (tags !== undefined) {
-      const arr = Array.isArray(tags) ? tags.filter((t: unknown) => typeof t === 'string' && t.trim() !== '') : [];
-      countries[countryIndex].tags = arr.map((t: string) => t.trim());
-    }
+    if (tags !== undefined) countries[countryIndex].tags = tags;
 
     await fs.writeFile(filePath, JSON.stringify(countries, null, 4), 'utf8');
 

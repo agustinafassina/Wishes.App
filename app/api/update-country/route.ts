@@ -3,6 +3,8 @@ import { promises as fs } from 'fs';
 import { auth0 } from '@/lib/auth0';
 import { getUserLocationsFilename, getUserLocationsFilePath } from '@/lib/user-locations';
 import { type Country, isCountryStatus, getPlaceKind } from '@/types/country';
+import { enforceSameOrigin, enforceWriteRateLimit } from '@/lib/rate-limit';
+import { normalizeCountryCode, normalizePlaceName } from '@/lib/place-validation';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,12 +13,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const originBlock = enforceSameOrigin(request);
+    if (originBlock) return originBlock;
+
+    const userKey = getUserLocationsFilename(session.user);
+    const limited = enforceWriteRateLimit(userKey);
+    if (limited) return limited;
+
     const body = await request.json();
-    const { countryCode, countryName, newStatus } = body;
+    const countryCode = normalizeCountryCode(body.countryCode);
+    const countryName = normalizePlaceName(body.countryName);
+    const { newStatus } = body;
 
     if (!countryCode || !countryName || !newStatus) {
       return NextResponse.json(
-        { error: 'Missing countryCode, countryName or newStatus' },
+        { error: 'Missing or invalid countryCode, countryName or newStatus' },
         { status: 400 }
       );
     }
@@ -28,8 +39,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const filename = getUserLocationsFilename(session.user);
-    const filePath = getUserLocationsFilePath(filename);
+    const filePath = getUserLocationsFilePath(userKey);
 
     let fileContents: string;
     try {
@@ -50,11 +60,9 @@ export async function POST(request: NextRequest) {
 
     countries[countryIndex].status = newStatus;
 
-    // Completing a city → sync matching country row to done
     if (newStatus === 'done' && getPlaceKind(countries[countryIndex]) === 'city') {
-      const codeUpper = String(countryCode).toUpperCase();
       const countryIdx = countries.findIndex(
-        (c) => c.code === codeUpper && getPlaceKind(c) === 'country'
+        (c) => c.code === countryCode && getPlaceKind(c) === 'country'
       );
       if (countryIdx !== -1 && countries[countryIdx].status !== 'done') {
         countries[countryIdx].status = 'done';
