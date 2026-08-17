@@ -9,12 +9,12 @@ Aplicación web para registrar países que querés visitar, los que estás plani
 </p>
 
 ## ✨ Qué hace la app
-- **Estadísticas** — contadores de visitados, en revisión y por visitar
-- **Acciones rápidas** — agregar país, compartir progreso, ir al listado
-- **Mapa mundial** — marcadores por estado; filtros sincronizados con las pestañas (**Complete**, **Review**, **To Do**)
-- **Listado** — pestañas + grilla (hasta 3 columnas), búsqueda dentro de la pestaña activa, barra de progreso en **Complete**
+- **Mapa interactivo** — marcadores por estado (**Complete**, **Review**, **To Do**)
+- **Filtros unificados** — pills arriba del mapa (**All · Complete · Review · To Do**) filtran mapa y listado
+- **Listado** — grilla de tarjetas (hasta 3 columnas), orden A–Z / Z–A y búsqueda
+- **Progreso** — barra e hitos al filtrar **Complete** (compartir enlace o imagen)
 - **Por país** — cambiar estado con **Move to**, ver/editar notas (visitados), eliminar con confirmación
-- **Compartir y exportar** — enlace o imagen de progreso; PDF; respaldo JSON o CSV
+- **Agregar país** — desde la barra del mapa (o el CTA del empty state al empezar); opcional **Pick from map** para coordenadas
 - **Temas** — claro y oscuro
 - **Auth0** — cada usuario tiene su lista privada
 
@@ -65,16 +65,16 @@ Ejemplo:
 | Área | Estado |
 |------|--------|
 | Google Maps + zoom personalizado | Hecho |
-| Filtros del mapa ↔ pestañas del listado | Hecho |
+| Pills del mapa filtran mapa + listado | Hecho |
 | Elegir coordenadas en el mapa | Hecho |
 | Alta / edición / baja de países | Hecho |
 | Notas y tags (visitados) | Hecho |
 | Tema claro / oscuro | Hecho |
-| Exportar PDF | Hecho |
-| Respaldo JSON / CSV | Hecho |
+| Compartir enlace / imagen de progreso | Hecho |
 | Login Auth0 | Hecho |
-| Búsqueda (en la pestaña activa) | Hecho |
-| Importar respaldo desde la UI | Planificado |
+| Búsqueda + orden A–Z | Hecho |
+| Hitos de progreso (10 / 25 / 50…) | Hecho |
+| Exportar / importar respaldo (JSON/CSV) | Planificado |
 
 ## 📋 Requisitos
 - Node.js 18+
@@ -205,7 +205,7 @@ cp -r public/locations/users/* ./data/locations-users/
 
 PowerShell: `Copy-Item -Path .\public\locations\users\* -Destination .\data\locations-users\ -Force`
 
-**Respaldo:** menú de la app (JSON/CSV) o copiar `./data/locations-users/` en el servidor.
+**Respaldo:** copiá `./data/locations-users/` en el servidor (o los archivos en `public/locations/users/`). Exportar/importar desde la app está planificado.
 
 ### 🚢 Publicar en Docker Hub
 ```bash
@@ -278,7 +278,7 @@ public/locations/
 2. Iniciá sesión
 3. Agregá países con **Add country** (o **Pick from map** para coordenadas)
 4. Mové estados con **Move to** y completá notas en países visitados
-5. Exportá respaldo de vez en cuando
+5. Hacé backup copiando `public/locations/users/` (export desde la UI está planificado)
 
 ## 📄 Licencia
 Proyecto personal — Agustina Fassina. Podés usar el código como referencia para tus propios proyectos.
