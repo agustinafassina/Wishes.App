@@ -4,6 +4,15 @@ import { auth0 } from '@/lib/auth0';
 import { getUserLocationsFilename, getUserLocationsFilePath, ensureUserLocationsDir } from '@/lib/user-locations';
 import { type Country, isCountryStatus, isPlaceKind, getPlaceKind } from '@/types/country';
 import { getDefaultFlagUrl } from '@/constants/country';
+import { enforceSameOrigin, enforceWriteRateLimit } from '@/lib/rate-limit';
+import {
+  normalizeCountryCode,
+  normalizeOptionalHttpsUrl,
+  normalizePhotoUrls,
+  normalizePlaceName,
+  parseLatitude,
+  parseLongitude,
+} from '@/lib/place-validation';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,12 +21,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const originBlock = enforceSameOrigin(request);
+    if (originBlock) return originBlock;
+
+    const userKey = getUserLocationsFilename(session.user);
+    const limited = enforceWriteRateLimit(userKey);
+    if (limited) return limited;
+
     const body = await request.json();
     const { name, code, latitude, longitude, flag, photos, status, kind: rawKind } = body;
 
-    if (!name || !code || latitude === undefined || longitude === undefined || !status) {
+    const nameTrim = normalizePlaceName(name);
+    const codeUpper = normalizeCountryCode(code);
+    const lat = parseLatitude(latitude);
+    const lng = parseLongitude(longitude);
+
+    if (!nameTrim || !codeUpper || lat === null || lng === null || !status) {
       return NextResponse.json(
-        { error: 'Missing required fields: name, code, latitude, longitude, status' },
+        {
+          error:
+            'Invalid or missing fields: name (max 100), code (2 letters), latitude (-90..90), longitude (-180..180), status',
+        },
         { status: 400 }
       );
     }
@@ -42,7 +66,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const filename = getUserLocationsFilename(session.user);
+    const flagUrl = normalizeOptionalHttpsUrl(flag);
+    if (flagUrl === null) {
+      return NextResponse.json(
+        { error: 'Invalid flag URL. Must be https:// without credentials' },
+        { status: 400 }
+      );
+    }
+
+    const photoUrls = normalizePhotoUrls(photos);
+    if (photoUrls === null) {
+      return NextResponse.json(
+        { error: 'Invalid photos. Use up to 10 https:// URLs' },
+        { status: 400 }
+      );
+    }
+
+    const filename = userKey;
     const filePath = getUserLocationsFilePath(filename);
 
     let countries: Country[];
@@ -54,8 +94,6 @@ export async function POST(request: NextRequest) {
       countries = [];
     }
 
-    const codeUpper = code.toUpperCase();
-    const nameTrim = String(name).trim();
     const existingCountry = countries.find((c) => c.code === codeUpper && c.name === nameTrim);
     if (existingCountry) {
       const label = kind === 'city' ? 'city' : 'country';
@@ -68,17 +106,16 @@ export async function POST(request: NextRequest) {
     const newCountry: Country = {
       name: nameTrim,
       code: codeUpper,
-      latitude: parseFloat(latitude),
-      longitude: parseFloat(longitude),
-      flag: flag && String(flag).trim() ? String(flag).trim() : getDefaultFlagUrl(code),
-      photos: Array.isArray(photos) ? photos : [],
+      latitude: lat,
+      longitude: lng,
+      flag: flagUrl ?? getDefaultFlagUrl(codeUpper),
+      photos: photoUrls,
       status,
       ...(kind === 'city' ? { kind: 'city' as const } : {}),
     };
 
     countries.push(newCountry);
 
-    // Completing a new city as done → sync matching country row to done
     if (kind === 'city' && status === 'done') {
       const countryIdx = countries.findIndex(
         (c) => c.code === codeUpper && getPlaceKind(c) === 'country'

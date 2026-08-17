@@ -9,7 +9,7 @@ A modern web app to track countries you want to visit, are planning, or have alr
 </p>
 
 ## ✨ What it does
-- **Interactive map** — Google Maps markers by status (**Complete**, **Review**, **To Do**)
+- **Interactive map** — Leaflet + CARTO tiles, markers by status (**Complete**, **Review**, **To Do**)
 - **Unified filters** — pills above the map (**All · Complete · Review · To Do**) filter both map and country list
 - **Country list** — card grid (up to 3 columns), A–Z / Z–A sort, search
 - **Progress** — bar and milestones when filtering **Complete** (share link or progress image)
@@ -21,10 +21,10 @@ A modern web app to track countries you want to visit, are planning, or have alr
 For step-by-step usage in Spanish, see [MANUAL_DE_USO.md](./MANUAL_DE_USO.md).
 
 ## 💾 How data is stored
-There is no SQL/MongoDB database. After login, the app reads and writes a **JSON file per user** under `public/locations/users/` (filename derived from the Auth0 identity, e.g. `agustinafassina_gmail_com.json`).
+There is no SQL/MongoDB database. After login, the app reads and writes a **JSON file per user** under `data/locations/users/` (filename derived from the Auth0 identity). This folder is **outside** `public/`, so files are never served as static URLs — only authenticated API routes can read/write them.
 
 - Sample / legacy data: `public/locations/web_locations.json`
-- Details: [public/locations/users/README.md](./public/locations/users/README.md)
+- Details: [data/locations/users/README.md](./data/locations/users/README.md)
 
 API routes (`app/api/*`) handle create, update, delete, and loading locations for the signed-in user.
 
@@ -64,7 +64,7 @@ Example:
 ## ✅ Features
 | Area | Status |
 |------|--------|
-| Google Maps + custom zoom | Done |
+| Leaflet + CARTO tiles + custom zoom | Done |
 | Map pills filter map + list | Done |
 | Pick coordinates from map | Done |
 | Add / update / delete countries | Done |
@@ -78,7 +78,6 @@ Example:
 
 ## 📋 Requirements
 - Node.js 18+
-- Google Maps API key
 - Auth0 application (Regular Web Application)
 
 ## ⚙️ Environment setup
@@ -92,12 +91,11 @@ cp .env.example .env
 
 | Variable | Description |
 |----------|-------------|
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps API key (client). |
 | `AUTH0_DOMAIN` | Auth0 tenant domain. |
 | `AUTH0_CLIENT_ID` | Application Client ID. |
 | `AUTH0_CLIENT_SECRET` | Application Client Secret. |
 | `AUTH0_SECRET` | Random string ≥ 32 chars for session cookies (`openssl rand -hex 32`). |
-| `APP_BASE_URL` | App URL (dev: `http://localhost:3000`). |
+| `APP_BASE_URL` | App URL (dev: `http://localhost:3000`; prod: `https://…`). |
 
 **Auth0 application URIs (development):**
 
@@ -109,7 +107,6 @@ Add the same URLs for production using your public host (see below).
 Example `.env`:
 
 ```env
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
 AUTH0_DOMAIN=your-tenant.us.auth0.com
 AUTH0_CLIENT_ID=your_client_id
 AUTH0_CLIENT_SECRET=your_client_secret
@@ -159,27 +156,21 @@ If you see `Error: Cannot find module '/app/wishes-app'`, you passed the image n
 Container filesystem is ephemeral. Mount host data so user lists survive rebuilds:
 
 ```bash
-mkdir -p ./data/locations-users
+mkdir -p ./data/locations/users
 docker run -d -p 3000:3000 --env-file .env \
-  -v "$(pwd)/data/locations-users:/app/public/locations/users" \
+  -v "$(pwd)/data/locations/users:/app/data/locations/users" \
   --name wishes-app wishes-app
 ```
 
 Windows (PowerShell):
 
 ```powershell
-docker run -d -p 3000:3000 --env-file .env -v "${PWD}\data\locations-users:/app/public/locations/users" --name wishes-app wishes-app
+docker run -d -p 3000:3000 --env-file .env -v "${PWD}\data\locations\users:/app/data/locations/users" --name wishes-app wishes-app
 ```
 
-**Seed from image (first deploy on a new server):**
+**Seed from a previous deploy (optional):** copy your backed-up JSON files into `./data/locations/users/` on the host before starting the container.
 
-```bash
-docker create --name wishes-app-seed YOUR_USER/wishes-app:latest
-docker cp wishes-app-seed:/app/public/locations/users/. ./data/locations-users/
-docker rm wishes-app-seed
-```
-
-**Backup:** copy `./data/locations-users/` on the server (or the files under `public/locations/users/`). In-app export/import is planned.
+**Backup:** copy `./data/locations/users/` on the server. In-app export/import is planned.
 
 ### 🚢 Docker Hub
 ```bash
@@ -201,11 +192,11 @@ Use a public `APP_BASE_URL` (no trailing slash), e.g. `https://yourdomain.com` o
 - Allowed Callback URLs: `https://yourdomain.com/auth/callback`
 - Allowed Logout URLs: `https://yourdomain.com`
 
-Run with `--env-file .env` and the volume mount for `public/locations/users` if you need persistence.
+Run with `--env-file .env` and the volume mount for `data/locations/users` if you need persistence.
 
 ## 🛠️ Tech stack
 - **Next.js 16** (App Router) · **React 19** · **TypeScript**
-- **@react-google-maps/api** · **@auth0/nextjs-auth0**
+- **leaflet** / **react-leaflet** · **@auth0/nextjs-auth0**
 - **html2canvas** (share image)
 - **CSS** design tokens (`app/styles/_variables.css`, `_components.css`, `_responsive.css`) + Tailwind import in `globals.css`
 - **next/font** (Poppins)
@@ -220,10 +211,10 @@ components/
   Map.tsx, HomeClient.tsx, …
   map/              # CountryListCard, modals, EmptyState, utils
 hooks/              # useLocations, useCountryActions, …
-lib/                # env, auth0, haptic, fonts
+lib/                # env, auth0, haptic, fonts, user-locations
+data/locations/users/   # private per-user JSON (gitignored *.json)
 public/locations/
   web_locations.json    # sample / legacy
-  users/*.json          # one file per Auth0 user
 ```
 
 ## 📚 Related documentations
@@ -236,9 +227,9 @@ public/locations/
 ## 🔧 Troubleshooting
 | Issue | Check |
 |-------|--------|
-| Map blank | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, Maps API enabled in Google Cloud |
+| Map blank | Network / CSP allowing CARTO tiles (`*.basemaps.cartocdn.com`) |
 | Auth errors | Auth0 domain, client id/secret, callback/logout URLs, `AUTH0_SECRET` length |
-| Data not saved | Write access to `public/locations/users/` (or Docker volume mount) |
+| Data not saved | Write access to `data/locations/users/` (or Docker volume mount) |
 | 401 / not logged in | Log in via Auth0; app requires a session |
 
 ## 📄 License

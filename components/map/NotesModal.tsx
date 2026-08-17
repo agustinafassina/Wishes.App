@@ -2,6 +2,7 @@
 
 import { forwardRef } from 'react';
 import type { CountryLocation } from '@/types/country';
+import { PLACE_LIMITS } from '@/lib/place-validation';
 
 export interface NotesFormState {
   notes: string;
@@ -53,6 +54,7 @@ const NotesModal = forwardRef<HTMLDivElement, NotesModalProps>(function NotesMod
               value={form.tags}
               onChange={(e) => onFormChange({ ...form, tags: e.target.value })}
               placeholder="e.g. color, food, mountains"
+              maxLength={PLACE_LIMITS.tagsMaxCount * (PLACE_LIMITS.tagMax + 2)}
             />
           </div>
           <div className="form-group">
@@ -66,6 +68,7 @@ const NotesModal = forwardRef<HTMLDivElement, NotesModalProps>(function NotesMod
                 onClearError('visitedAt');
               }}
               placeholder="e.g. March 2024"
+              maxLength={PLACE_LIMITS.visitedAtMax}
               aria-invalid={!!errors.visitedAt}
               aria-describedby={errors.visitedAt ? 'notes-visited-at-error' : undefined}
             />
@@ -84,6 +87,7 @@ const NotesModal = forwardRef<HTMLDivElement, NotesModalProps>(function NotesMod
               onChange={(e) => onFormChange({ ...form, notes: e.target.value })}
               placeholder="Memories, places you visited, etc."
               className="form-textarea"
+              maxLength={PLACE_LIMITS.notesMax}
             />
           </div>
         </div>

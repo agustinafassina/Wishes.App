@@ -1,9 +1,17 @@
 import path from 'path';
 import { promises as fs } from 'fs';
 
-const USER_LOCATIONS_DIR = path.join(process.cwd(), 'public', 'locations', 'users');
+/** Private storage — outside `public/` so files are not HTTP-static. */
+const USER_LOCATIONS_DIR = path.join(process.cwd(), 'data', 'locations', 'users');
 
+export function getUserLocationsDir(): string {
+  return USER_LOCATIONS_DIR;
+}
 
+/**
+ * Filename slug from Auth0 identity (email / nickname / sub).
+ * Sanitized to [a-z0-9_-] only — never use raw user input as a path segment.
+ */
 export function getUserLocationsFilename(user: {
   email?: string | null;
   nickname?: string | null;
@@ -22,11 +30,16 @@ export function getUserLocationsFilename(user: {
   return slug || 'default';
 }
 
-
+/** Absolute path to a user JSON; rejects path traversal. */
 export function getUserLocationsFilePath(filename: string): string {
-  return path.join(USER_LOCATIONS_DIR, `${filename}.json`);
+  const safeName = path.basename(filename).replace(/[^a-z0-9_-]/gi, '') || 'default';
+  const resolvedDir = path.resolve(USER_LOCATIONS_DIR);
+  const filePath = path.resolve(resolvedDir, `${safeName}.json`);
+  if (path.dirname(filePath) !== resolvedDir) {
+    throw new Error('Invalid locations path');
+  }
+  return filePath;
 }
-
 
 export async function ensureUserLocationsDir(): Promise<void> {
   await fs.mkdir(USER_LOCATIONS_DIR, { recursive: true });

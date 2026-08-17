@@ -3,6 +3,8 @@ import { promises as fs } from 'fs';
 import { auth0 } from '@/lib/auth0';
 import { getUserLocationsFilename, getUserLocationsFilePath } from '@/lib/user-locations';
 import { type Country } from '@/types/country';
+import { enforceSameOrigin, enforceWriteRateLimit } from '@/lib/rate-limit';
+import { normalizeCountryCode, normalizePlaceName } from '@/lib/place-validation';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,18 +13,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const originBlock = enforceSameOrigin(request);
+    if (originBlock) return originBlock;
+
+    const userKey = getUserLocationsFilename(session.user);
+    const limited = enforceWriteRateLimit(userKey);
+    if (limited) return limited;
+
     const body = await request.json();
-    const { countryCode, countryName } = body;
+    const countryCode = normalizeCountryCode(body.countryCode);
+    const countryName = normalizePlaceName(body.countryName);
 
     if (!countryCode || !countryName) {
       return NextResponse.json(
-        { error: 'Missing countryCode or countryName' },
+        { error: 'Missing or invalid countryCode or countryName' },
         { status: 400 }
       );
     }
 
-    const filename = getUserLocationsFilename(session.user);
-    const filePath = getUserLocationsFilePath(filename);
+    const filePath = getUserLocationsFilePath(userKey);
 
     let fileContents: string;
     try {

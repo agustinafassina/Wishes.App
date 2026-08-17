@@ -1,5 +1,3 @@
-
-
 const REQUIRED_SERVER = [
   "AUTH0_DOMAIN",
   "AUTH0_CLIENT_ID",
@@ -25,7 +23,6 @@ export type ServerEnv = {
 
 let serverEnvCache: ServerEnv | null = null;
 
-
 export function getServerEnv(): ServerEnv {
   if (serverEnvCache) return serverEnvCache;
   const missingKeys = getMissing(REQUIRED_SERVER);
@@ -44,22 +41,6 @@ export function getServerEnv(): ServerEnv {
   };
   return serverEnvCache;
 }
-
-
-const RAW_GOOGLE_MAPS = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() ?? "";
-
-if (!RAW_GOOGLE_MAPS) {
-  throw new Error(
-    "[env] NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is missing or empty. " +
-      "Add it to .env (see .env.example). The map will not work without it."
-  );
-}
-
-export const env = {
-
-  NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: RAW_GOOGLE_MAPS,
-} as const;
-
 
 if (typeof window === "undefined") {
   getServerEnv();
