@@ -23,6 +23,8 @@ ENV AUTH0_DOMAIN=$AUTH0_DOMAIN \
     APP_BASE_URL=$APP_BASE_URL
 
 COPY . .
+# Next standalone expects ./public even when empty (folder may be absent from git).
+RUN mkdir -p public
 RUN npm install
 RUN npm run build
 
