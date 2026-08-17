@@ -23,7 +23,6 @@ For step-by-step usage in Spanish, see [MANUAL_DE_USO.md](./MANUAL_DE_USO.md).
 ## 💾 How data is stored
 There is no SQL/MongoDB database. After login, the app reads and writes a **JSON file per user** under `data/locations/users/` (filename derived from the Auth0 identity). This folder is **outside** `public/`, so files are never served as static URLs — only authenticated API routes can read/write them.
 
-- Sample / legacy data: `public/locations/web_locations.json`
 - Details: [data/locations/users/README.md](./data/locations/users/README.md)
 
 API routes (`app/api/*`) handle create, update, delete, and loading locations for the signed-in user.
@@ -213,8 +212,6 @@ components/
 hooks/              # useLocations, useCountryActions, …
 lib/                # env, auth0, haptic, fonts, user-locations
 data/locations/users/   # private per-user JSON (gitignored *.json)
-public/locations/
-  web_locations.json    # sample / legacy
 ```
 
 ## 📚 Related documentations

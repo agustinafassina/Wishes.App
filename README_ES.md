@@ -23,7 +23,6 @@ Guía de uso paso a paso: [MANUAL_DE_USO.md](./MANUAL_DE_USO.md).
 ## 💾 Cómo se guardan los datos
 No hay base SQL ni MongoDB. Tras iniciar sesión, la app lee y escribe un **archivo JSON por usuario** en `data/locations/users/` (el nombre sale de la identidad Auth0). Esa carpeta está **fuera** de `public/`, así que los archivos no se sirven como URLs estáticas: solo las APIs autenticadas pueden leerlos/escribirlos.
 
-- Datos de ejemplo / legacy: `public/locations/web_locations.json`
 - Convención de archivos: [data/locations/users/README.md](./data/locations/users/README.md)
 
 Las rutas en `app/api/*` crean, actualizan, eliminan y cargan países del usuario logueado.
@@ -235,8 +234,6 @@ components/
 hooks/              # useLocations, useCountryActions, …
 lib/                # env, auth0, haptic, fonts, user-locations
 data/locations/users/   # JSON privado por usuario (*.json en gitignore)
-public/locations/
-  web_locations.json    # ejemplo / legacy
 ```
 
 ## 📚 Documentación relacionada
