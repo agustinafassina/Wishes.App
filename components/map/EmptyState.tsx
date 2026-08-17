@@ -24,6 +24,7 @@ export interface EmptyStateProps {
   hint?: string;
   onAddCountry?: () => void;
   isAdding?: boolean;
+  addLabel?: string;
 
   variant?: "inline" | "hero";
   primaryCta?: boolean;
@@ -35,6 +36,7 @@ export default function EmptyState({
   hint,
   onAddCountry,
   isAdding = false,
+  addLabel = "Add country",
   variant = "hero",
   primaryCta = false,
   className,
@@ -67,7 +69,7 @@ export default function EmptyState({
           }}
           onPointerDown={(e) => e.stopPropagation()}
           disabled={isAdding}
-          aria-label={isAdding ? "Adding country…" : "Add country"}
+          aria-label={isAdding ? `Adding…` : addLabel}
           aria-busy={isAdding}
         >
           {isAdding ? (
@@ -76,7 +78,7 @@ export default function EmptyState({
               <span>Adding…</span>
             </>
           ) : primaryCta ? (
-            <span>Add country</span>
+            <span>{addLabel}</span>
           ) : (
             <>
               <svg
@@ -93,7 +95,7 @@ export default function EmptyState({
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
-              <span>Add country</span>
+              <span>{addLabel}</span>
             </>
           )}
         </button>

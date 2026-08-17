@@ -21,6 +21,7 @@ function mapApiToLocations(data: Country[]): CountryLocation[] {
     position: { lat: country.latitude, lng: country.longitude },
     photos: country.photos ?? [],
     status: country.status ?? 'pending',
+    kind: country.kind === 'city' ? 'city' : country.kind === 'country' ? 'country' : undefined,
     flag: country.flag ?? '',
     notes: country.notes,
     visitedAt: country.visitedAt,

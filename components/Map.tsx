@@ -7,7 +7,13 @@ import { useToast } from './ToastContext';
 import { getApiErrorDisplay } from '@/lib/api-error-display';
 import { env } from '@/lib/env';
 import { hapticLight, hapticSuccess } from '@/lib/haptic';
-import type { CountryLocation } from '@/types/country';
+import type { CountryLocation, TravelSection } from '@/types/country';
+import { isCity } from '@/types/country';
+import {
+  filterBySection,
+  getVisitedCountryCount,
+  withDerivedCountryStatuses,
+} from '@/lib/place-aggregation';
 import {
   AddCountryModal,
   CountryListCard,
@@ -78,11 +84,15 @@ function MapZoomControls({
 
 interface MapProps {
   shareUserName?: string;
-
+  section?: TravelSection;
   triggerOpenAddModal?: number;
 }
 
-const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProps) => {
+const Map = ({
+  shareUserName = 'My progress',
+  section = 'countries',
+  triggerOpenAddModal = 0,
+}: MapProps) => {
   const toast = useToast();
   const [mapCenter, setMapCenter] = useState({ lat: 20.0, lng: 0.0 });
   const [zoom, setZoom] = useState(2);
@@ -180,7 +190,26 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     setShowAddModal(true);
   }, [triggerOpenAddModal]);
 
-  const filteredLocations = locations.filter(location => {
+  useEffect(() => {
+    setListTabBelow('all');
+    setListSearchQuery('');
+    setSelectedLocation(null);
+  }, [section]);
+
+  const isCitiesSection = section === 'cities';
+  const placeNoun = isCitiesSection ? 'city' : 'country';
+  const placeNounPlural = isCitiesSection ? 'cities' : 'countries';
+  const addPlaceLabel = isCitiesSection ? 'Add city' : 'Add country';
+
+  const sectionLocations = useMemo(() => {
+    const filtered = filterBySection(locations, section);
+    if (section === 'countries') {
+      return withDerivedCountryStatuses(locations).filter((loc) => !isCity(loc));
+    }
+    return filtered;
+  }, [locations, section]);
+
+  const filteredLocations = sectionLocations.filter((location) => {
     return statusFilters[location.status as keyof typeof statusFilters] === true;
   });
 
@@ -234,7 +263,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     const code = newCountry.code.trim();
     const latStr = newCountry.latitude.trim();
     const lngStr = newCountry.longitude.trim();
-    if (!name) err.name = 'Country name is required';
+    if (!name) err.name = isCitiesSection ? 'City name is required' : 'Country name is required';
     if (!code) err.code = 'Country code is required';
     else if (code.length !== 2) err.code = 'Code must be 2 letters (e.g. FR, US)';
     if (!latStr) err.latitude = 'Latitude is required';
@@ -267,6 +296,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
       flag: flagUrl,
       photos: newCountry.photos.filter(p => p.trim() !== ''),
       status: targetStatus,
+      kind: isCitiesSection ? ('city' as const) : ('country' as const),
     };
     try {
       await addCountry(payload);
@@ -274,7 +304,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
       hapticSuccess();
       setNewCountry({ name: '', code: '', latitude: '', longitude: '', flag: '', photos: [] });
     } catch (error) {
-      toast.error(getApiErrorDisplay(error, 'Failed to add country. Please try again.'));
+      toast.error(getApiErrorDisplay(error, `Failed to add ${placeNoun}. Please try again.`));
     } finally {
       setIsAddingCountry(false);
     }
@@ -513,13 +543,13 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     }
   };
 
-  const doneLocations = locations.filter(location => location.status === 'done');
-  const pendingLocations = locations.filter(location => location.status === 'pending');
-  const inReviewLocations = locations.filter(location => location.status === 'in review');
+  const doneLocations = sectionLocations.filter(location => location.status === 'done');
+  const pendingLocations = sectionLocations.filter(location => location.status === 'pending');
+  const inReviewLocations = sectionLocations.filter(location => location.status === 'in review');
 
   const sortedAllLocations = useMemo(
-    () => reorderByColumnSort(locations, columnSort),
-    [locations, columnSort, reorderByColumnSort]
+    () => reorderByColumnSort(sectionLocations, columnSort),
+    [sectionLocations, columnSort, reorderByColumnSort]
   );
 
   const locationsForListTab = useMemo(() => {
@@ -543,8 +573,9 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
         resultCount: displayLocationsBelow.length,
         tabTotalCount: locationsForListTab.length,
         tab: listTabBelow,
+        section,
       }),
-    [listSearchTrimmed, displayLocationsBelow.length, locationsForListTab.length, listTabBelow]
+    [listSearchTrimmed, displayLocationsBelow.length, locationsForListTab.length, listTabBelow, section]
   );
 
   const [listSearchAriaMessage, setListSearchAriaMessage] = useState('');
@@ -587,15 +618,16 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
   const showListSort = locationsForListTab.length > 1;
 
   const TOTAL_COUNTRIES = 195;
-  const visitedCount = doneLocations.length;
-  const remainingCount = TOTAL_COUNTRIES - visitedCount;
-  const progressPercentage = (visitedCount / TOTAL_COUNTRIES) * 100;
+  const countryVisitedCount = getVisitedCountryCount(locations);
+  const visitedCount = isCitiesSection ? doneLocations.length : countryVisitedCount;
+  const remainingCount = TOTAL_COUNTRIES - countryVisitedCount;
+  const progressPercentage = (countryVisitedCount / TOTAL_COUNTRIES) * 100;
 
   const [progressDisplay, setProgressDisplay] = useState(0);
   const hasAnimatedProgressRef = useRef(false);
   useEffect(() => {
     if (isLoadingLocations) return;
-    const pct = (locations.filter(l => l.status === 'done').length / TOTAL_COUNTRIES) * 100;
+    const pct = (getVisitedCountryCount(locations) / TOTAL_COUNTRIES) * 100;
     if (!hasAnimatedProgressRef.current) {
       hasAnimatedProgressRef.current = true;
       const duration = 820;
@@ -614,22 +646,22 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
     setProgressDisplay(pct);
   }, [isLoadingLocations, locations, TOTAL_COUNTRIES]);
 
-  const nextMilestone = PROGRESS_MILESTONES.find((m) => visitedCount < m) ?? null;
-  const reachedMilestone = [...PROGRESS_MILESTONES].reverse().find((m) => visitedCount >= m) ?? null;
+  const nextMilestone = PROGRESS_MILESTONES.find((m) => countryVisitedCount < m) ?? null;
+  const reachedMilestone = [...PROGRESS_MILESTONES].reverse().find((m) => countryVisitedCount >= m) ?? null;
 
   const [celebratingMilestone, setCelebratingMilestone] = useState<number | null>(null);
-  const prevVisitedRef = useRef(visitedCount);
+  const prevVisitedRef = useRef(countryVisitedCount);
   useEffect(() => {
     if (isLoadingLocations) return;
     const prev = prevVisitedRef.current;
-    prevVisitedRef.current = visitedCount;
-    const justCrossed = PROGRESS_MILESTONES.find((m) => visitedCount >= m && prev < m);
+    prevVisitedRef.current = countryVisitedCount;
+    const justCrossed = PROGRESS_MILESTONES.find((m) => countryVisitedCount >= m && prev < m);
     if (justCrossed !== undefined) {
       setCelebratingMilestone(justCrossed);
       const t = setTimeout(() => setCelebratingMilestone(null), 3200);
       return () => clearTimeout(t);
     }
-  }, [isLoadingLocations, visitedCount]);
+  }, [isLoadingLocations, countryVisitedCount]);
 
   const handleCopyShareLink = async () => {
     try {
@@ -654,7 +686,9 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
       const dataUrl = canvas.toDataURL('image/png');
       const a = document.createElement('a');
       a.href = dataUrl;
-      a.download = `travel-progress-${visitedCount}-${TOTAL_COUNTRIES}-countries.png`;
+      a.download = isCitiesSection
+        ? `travel-progress-${visitedCount}-cities.png`
+        : `travel-progress-${countryVisitedCount}-${TOTAL_COUNTRIES}-countries.png`;
       a.click();
     } catch (error) {
       console.error('Share image error:', error);
@@ -744,6 +778,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
   );
 
   const isFirstUse = locations.length === 0 && !pickingLocationFromMap && !isLoadingLocations;
+  const hasAnyPlaces = locations.length > 0;
 
   return (
     <LoadScript googleMapsApiKey={API_KEY}>
@@ -767,13 +802,13 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
           isSharingImage={isSharingImage}
         />
 
-        {locations.length > 0 ? (
+        {hasAnyPlaces ? (
         <div className="dashboard-map-panel">
         <div id="travel-map" className="map-header map-header--unified">
           <div className="map-header-top">
             <div className="map-world-map-row" role="group" aria-label="Map filters and actions">
               <div className="map-world-map-spacer" aria-hidden="true" />
-              {locations.length > 0 && (
+              {hasAnyPlaces && (
                 <div className="map-header-toolbar map-header-toolbar--inline" role="group" aria-label="Filter map by status">
                   <div className="map-header-toolbar-pills map-header-toolbar-pills--legend-style" role="group" aria-label="Filter map and switch list column">
                     <button
@@ -784,9 +819,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                       title="Show all statuses"
                     >
                       <span className="filter-btn-label">All</span>
-                      {locations.length > 0 && (
-                        <span className="filter-btn-count">{locations.length}</span>
-                      )}
+                      <span className="filter-btn-count">{sectionLocations.length}</span>
                     </button>
                     <button
                       type="button"
@@ -854,7 +887,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                   className="map-header-action map-header-action--add"
                   onClick={() => handleColumnDoubleClick('pending')}
                   disabled={isAddingCountry}
-                  aria-label={isAddingCountry ? 'Adding country…' : 'Add new country'}
+                  aria-label={isAddingCountry ? `Adding ${placeNoun}…` : addPlaceLabel}
                   aria-busy={isAddingCountry}
                 >
                   {isAddingCountry ? (
@@ -868,14 +901,14 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                         <line x1="12" y1="5" x2="12" y2="19" />
                         <line x1="5" y1="12" x2="19" y2="12" />
                       </svg>
-                      <span className="map-header-action-label">Add country</span>
+                      <span className="map-header-action-label">{addPlaceLabel}</span>
                     </>
                   )}
                 </button>
               </div>
             </div>
           </div>
-            {locations.length > 0 && (
+            {hasAnyPlaces && (
             <div className="map-section-map-wrap map-section-map-wrap--inside-header">
               <div
                 id="map-wrapper-id"
@@ -986,7 +1019,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                 </p>
               </div>
             </div>
-            {listTabBelow === 'done' && (
+            {listTabBelow === 'done' && !isCitiesSection && (
             <div className="progress-bar-standalone progress-bar-standalone--below-map" role="region" aria-label="Travel progress">
                   {celebratingMilestone !== null && (
                     <div className="progress-bar-standalone-celebration" role="alert" aria-live="assertive">
@@ -995,7 +1028,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                     </div>
                   )}
                   <div className="progress-bar-standalone-inner">
-                    <span className="progress-bar-standalone-count">{visitedCount} / {TOTAL_COUNTRIES}</span>
+                    <span className="progress-bar-standalone-count">{countryVisitedCount} / {TOTAL_COUNTRIES}</span>
                     <div className="progress-bar-standalone-bar">
                       <div className="progress-bar-standalone-fill" style={{ width: `${progressDisplay}%` }}>
                         <span className="progress-bar-standalone-pct">{progressPercentage.toFixed(1)}%</span>
@@ -1004,7 +1037,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                       {PROGRESS_MILESTONES.map((m) => (
                         <span
                           key={m}
-                          className={`progress-milestone-tick ${visitedCount >= m ? 'is-reached' : ''}`}
+                          className={`progress-milestone-tick ${countryVisitedCount >= m ? 'is-reached' : ''}`}
                           style={{ left: `${(m / TOTAL_COUNTRIES) * 100}%` }}
                           title={`${m} countries`}
                           aria-hidden
@@ -1039,7 +1072,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                         )}
                         <span className="progress-bar-standalone-milestone-next">
                           {reachedMilestone !== null ? ' · ' : ''}
-                          <strong>{nextMilestone - visitedCount}</strong> to your {nextMilestone}-country milestone
+                          <strong>{nextMilestone - countryVisitedCount}</strong> to your {nextMilestone}-country milestone
                         </span>
                       </span>
                     </p>
@@ -1054,9 +1087,16 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
             <div ref={shareCardRef} className="share-card-for-image" aria-hidden>
               <div className="share-card-inner">
                 <p className="share-card-name">{shareUserName}</p>
-                <p className="share-card-stats">{visitedCount} / {TOTAL_COUNTRIES} countries visited</p>
+                <p className="share-card-stats">
+                  {isCitiesSection
+                    ? `${visitedCount} ${placeNounPlural} completed`
+                    : `${countryVisitedCount} / ${TOTAL_COUNTRIES} countries visited`}
+                </p>
                 <div className="share-card-bar-wrap">
-                  <div className="share-card-bar-fill" style={{ width: `${progressPercentage}%` }} />
+                  <div
+                    className="share-card-bar-fill"
+                    style={{ width: isCitiesSection ? '0%' : `${progressPercentage}%` }}
+                  />
                 </div>
                 <p className="share-card-tagline">My travel bucket list</p>
               </div>
@@ -1080,9 +1120,11 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
                 ) : (
                   <EmptyState
                     variant="inline"
+                    addLabel={addPlaceLabel}
                     {...getEmptyStateCopy({
                       search: listSearchTrimmed || undefined,
                       tab: listTabBelow,
+                      section,
                     })}
                     onAddCountry={() => {
                       hapticLight();
@@ -1099,7 +1141,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
 
         <ConfirmModal
             open={confirmDeleteLocation !== null}
-            title="Delete country"
+            title={confirmDeleteLocation && isCity(confirmDeleteLocation) ? 'Delete city' : 'Delete country'}
             message={confirmDeleteLocation ? `Delete "${confirmDeleteLocation.name}" from the list?` : ''}
             confirmLabel="Delete"
             cancelLabel="Cancel"
@@ -1123,7 +1165,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
             onConfirm={confirmLeaveAndClose}
             onCancel={() => setConfirmLeaveModal(null)}
           />
-          {locations.length === 0 ? (
+          {!hasAnyPlaces ? (
             pickingLocationFromMap ? (
               <div className="map-section-map-wrap">
                 <div
@@ -1154,7 +1196,8 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
             <EmptyState
               variant="hero"
               primaryCta
-              {...getFirstUseEmptyStateCopy()}
+              addLabel={addPlaceLabel}
+              {...getFirstUseEmptyStateCopy(section)}
               onAddCountry={() => handleColumnDoubleClick('pending')}
               isAdding={isAddingCountry}
             />
@@ -1191,6 +1234,7 @@ const Map = ({ shareUserName = 'My progress', triggerOpenAddModal = 0 }: MapProp
           errors={addCountryErrors}
           targetStatus={targetStatus}
           isAdding={isAddingCountry}
+          placeKind={isCitiesSection ? 'city' : 'country'}
           onClose={requestCloseAddModal}
           onFormChange={setNewCountry}
           onClearError={(field) => setAddCountryErrors((prev) => ({ ...prev, [field]: '' }))}

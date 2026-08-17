@@ -475,5 +475,15 @@
         "flag": "https://flagcdn.com/w40/dk.png",
         "photos": [],
         "status": "in review"
+    },
+    {
+        "name": "Cordoba",
+        "code": "AR",
+        "latitude": -31.427952,
+        "longitude": -63.714692,
+        "flag": "https://flagcdn.com/w40/ar.png",
+        "photos": [],
+        "status": "pending",
+        "kind": "city"
     }
 ]

@@ -26,7 +26,7 @@ export function useCountryActions({
       throw new Error(typeof data?.error === 'string' ? data.error : `Error (${response.status})`);
     }
     await refetchLocations();
-    toast.success('Country removed.');
+    toast.success(location.kind === 'city' ? 'City removed.' : 'Country removed.');
   };
 
   const moveToStatus = async (location: CountryLocation, newStatus: string) => {
@@ -51,6 +51,8 @@ export function useCountryActions({
         const data = await response.json().catch(() => ({}));
         throw new Error(typeof data?.error === 'string' ? data.error : `Error (${response.status})`);
       }
+      // Refetch so synced country status (city → country done) is reflected
+      await refetchLocations();
       toast.success(`${location.name} moved to ${getStatusDisplayLabel(newStatus)}`);
     } catch (error) {
       console.error('Error updating country status:', error);
@@ -92,6 +94,7 @@ export function useCountryActions({
     flag?: string;
     photos: string[];
     status: string;
+    kind?: 'country' | 'city';
   }) => {
     const response = await fetch('/api/add-country', {
       method: 'POST',

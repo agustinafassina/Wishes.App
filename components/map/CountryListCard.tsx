@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { CountryLocation } from '@/types/country';
+import { isCity } from '@/types/country';
 import { getStatusDisplayLabel, normalizeTags, STATUS_OPTIONS } from './utils';
 
 interface CountryListCardProps {
@@ -89,6 +90,9 @@ export default function CountryListCard({
         )}
         <div className="country-list-card-title-wrap">
           <h3 className="country-list-card-name">{location.name}</h3>
+          {isCity(location) && (
+            <p className="country-list-card-subtitle">Country: {location.code}</p>
+          )}
         </div>
         <div className="country-list-card-actions" ref={moreRef}>
           <button

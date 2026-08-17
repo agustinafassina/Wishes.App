@@ -7,6 +7,8 @@ import Map from "./Map";
 import ThemeToggle from "./ThemeToggle";
 import { hapticLight } from "@/lib/haptic";
 import { getDisplayName } from "@/lib/user-display-name";
+import { APP_VERSION } from "@/lib/app-version";
+import type { TravelSection } from "@/types/country";
 
 export default function HomeClient() {
   const { user } = useUser();
@@ -16,6 +18,7 @@ export default function HomeClient() {
   const menuPortalRef = useRef<HTMLDivElement>(null);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const [section, setSection] = useState<TravelSection>("countries");
   const displayName = user ? getDisplayName(user) : null;
 
   const scrollToSection = (id: string) => {
@@ -138,6 +141,9 @@ export default function HomeClient() {
                         <span>Log in</span>
                       </a>
                     )}
+                    <p className="hamburger-menu-version" aria-label={`App version ${APP_VERSION}`}>
+                      v{APP_VERSION}
+                    </p>
                   </div>
                 </div>,
                 document.body
@@ -150,7 +156,33 @@ export default function HomeClient() {
 
       <main id="main-content" className="main-content" ref={contentRef} tabIndex={-1}>
         <div className="content-section">
-          <Map shareUserName={displayName ?? "User"} />
+          <div className="travel-section-switch" role="tablist" aria-label="Travel section">
+            <button
+              type="button"
+              role="tab"
+              className={`travel-section-switch-btn${section === "countries" ? " is-active" : ""}`}
+              aria-selected={section === "countries"}
+              onClick={() => {
+                hapticLight();
+                setSection("countries");
+              }}
+            >
+              Countries
+            </button>
+            <button
+              type="button"
+              role="tab"
+              className={`travel-section-switch-btn${section === "cities" ? " is-active" : ""}`}
+              aria-selected={section === "cities"}
+              onClick={() => {
+                hapticLight();
+                setSection("cities");
+              }}
+            >
+              Cities
+            </button>
+          </div>
+          <Map section={section} shareUserName={displayName ?? "User"} />
         </div>
       </main>
     </>

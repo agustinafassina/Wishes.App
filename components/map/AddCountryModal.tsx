@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef } from 'react';
+import type { PlaceKind } from '@/types/country';
 import { getStatusDisplayLabel } from './utils';
 
 export interface AddCountryFormState {
@@ -18,6 +19,7 @@ interface AddCountryModalProps {
   errors: Record<string, string>;
   targetStatus: string;
   isAdding: boolean;
+  placeKind?: PlaceKind;
   onClose: () => void;
   onFormChange: (next: AddCountryFormState) => void;
   onClearError: (field: string) => void;
@@ -32,6 +34,7 @@ const AddCountryModal = forwardRef<HTMLDivElement, AddCountryModalProps>(functio
     errors,
     targetStatus,
     isAdding,
+    placeKind = 'country',
     onClose,
     onFormChange,
     onClearError,
@@ -41,6 +44,15 @@ const AddCountryModal = forwardRef<HTMLDivElement, AddCountryModalProps>(functio
   ref
 ) {
   if (!open) return null;
+
+  const isCity = placeKind === 'city';
+  const title = isCity ? 'Add new city' : 'Add new country';
+  const nameLabel = isCity ? 'City name *' : 'Country name *';
+  const namePlaceholder = isCity ? 'Ex: Paris' : 'Ex: France';
+  const codeLabel = isCity ? 'Country code (ISO) *' : 'Country code (ISO) *';
+  const codeHelp = isCity ? 'ISO code of the country this city belongs to (e.g. FR).' : undefined;
+  const statusNoun = isCity ? 'city' : 'country';
+  const submitLabel = isCity ? 'Add city' : 'Add country';
 
   return (
     <div
@@ -53,7 +65,7 @@ const AddCountryModal = forwardRef<HTMLDivElement, AddCountryModalProps>(functio
       <div ref={ref} className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 id="add-modal-title" className="modal-title">
-            Add new country
+            {title}
           </h2>
           <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
             ×
@@ -61,7 +73,7 @@ const AddCountryModal = forwardRef<HTMLDivElement, AddCountryModalProps>(functio
         </div>
         <div className="modal-body">
           <div className="form-group">
-            <label htmlFor="country-name">Country name *</label>
+            <label htmlFor="country-name">{nameLabel}</label>
             <input
               id="country-name"
               type="text"
@@ -70,7 +82,7 @@ const AddCountryModal = forwardRef<HTMLDivElement, AddCountryModalProps>(functio
                 onFormChange({ ...form, name: e.target.value });
                 onClearError('name');
               }}
-              placeholder="Ex: France"
+              placeholder={namePlaceholder}
               aria-invalid={!!errors.name}
               aria-describedby={errors.name ? 'country-name-error' : undefined}
             />
@@ -81,7 +93,7 @@ const AddCountryModal = forwardRef<HTMLDivElement, AddCountryModalProps>(functio
             )}
           </div>
           <div className="form-group">
-            <label htmlFor="country-code">Country code (ISO) *</label>
+            <label htmlFor="country-code">{codeLabel}</label>
             <input
               id="country-code"
               type="text"
@@ -93,8 +105,13 @@ const AddCountryModal = forwardRef<HTMLDivElement, AddCountryModalProps>(functio
               placeholder="Ex: FR"
               maxLength={2}
               aria-invalid={!!errors.code}
-              aria-describedby={errors.code ? 'country-code-error' : undefined}
+              aria-describedby={errors.code ? 'country-code-error' : codeHelp ? 'country-code-help' : undefined}
             />
+            {codeHelp && !errors.code && (
+              <p id="country-code-help" className="form-help">
+                {codeHelp}
+              </p>
+            )}
             {errors.code && (
               <p id="country-code-error" className="form-error" role="alert">
                 {errors.code}
@@ -113,7 +130,7 @@ const AddCountryModal = forwardRef<HTMLDivElement, AddCountryModalProps>(functio
                   onFormChange({ ...form, latitude: e.target.value });
                   onClearError('latitude');
                 }}
-                placeholder="Ex: 46.2276"
+                placeholder={isCity ? 'Ex: 48.8566' : 'Ex: 46.2276'}
                 aria-invalid={!!errors.latitude}
                 aria-describedby={errors.latitude ? 'country-latitude-error' : undefined}
               />
@@ -134,7 +151,7 @@ const AddCountryModal = forwardRef<HTMLDivElement, AddCountryModalProps>(functio
                   onFormChange({ ...form, longitude: e.target.value });
                   onClearError('longitude');
                 }}
-                placeholder="Ex: 2.2137"
+                placeholder={isCity ? 'Ex: 2.3522' : 'Ex: 2.2137'}
                 aria-invalid={!!errors.longitude}
                 aria-describedby={errors.longitude ? 'country-longitude-error' : undefined}
               />
@@ -145,7 +162,7 @@ const AddCountryModal = forwardRef<HTMLDivElement, AddCountryModalProps>(functio
               )}
             </div>
           </div>
-          <div className="form-group form-group-pick-map">
+          <div className="form-group">
             <button
               type="button"
               className="btn-pick-from-map"
@@ -187,7 +204,7 @@ const AddCountryModal = forwardRef<HTMLDivElement, AddCountryModalProps>(functio
               Status: <strong>{getStatusDisplayLabel(targetStatus)}</strong>
             </label>
             <p className="form-help">
-              This country will be added to {getStatusDisplayLabel(targetStatus)}.
+              This {statusNoun} will be added to {getStatusDisplayLabel(targetStatus)}.
             </p>
           </div>
         </div>
@@ -200,7 +217,7 @@ const AddCountryModal = forwardRef<HTMLDivElement, AddCountryModalProps>(functio
             className="btn-submit"
             onClick={onSubmit}
             disabled={isAdding}
-            aria-label={isAdding ? 'Adding country…' : 'Add new country'}
+            aria-label={isAdding ? `Adding ${statusNoun}…` : submitLabel}
             aria-busy={isAdding}
           >
             {isAdding ? (
@@ -209,7 +226,7 @@ const AddCountryModal = forwardRef<HTMLDivElement, AddCountryModalProps>(functio
                 <span>Adding...</span>
               </>
             ) : (
-              'Add country'
+              submitLabel
             )}
           </button>
         </div>

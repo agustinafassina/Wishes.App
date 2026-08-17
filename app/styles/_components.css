@@ -190,6 +190,18 @@
   padding-top: 0.5rem;
 }
 
+.hamburger-menu-version {
+  margin: 0.35rem 0 0;
+  padding: 0.45rem 0.75rem 0.35rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+  text-align: center;
+  user-select: text;
+}
+
 .header-nav-right {
   display: flex;
   align-items: center;
@@ -1124,10 +1136,32 @@ a.header-btn {
   transform: none;
 }
 
+html[data-theme="light"] .map-header-action {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: var(--text-secondary);
+  box-shadow: none;
+}
+
+html[data-theme="light"] .map-header-action svg {
+  color: var(--text-secondary);
+}
+
+html[data-theme="light"] .map-header-action:hover {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: var(--text-primary);
+  transform: none;
+}
+
+html[data-theme="light"] .map-header-action:hover svg {
+  color: var(--text-primary);
+}
+
 html[data-theme="light"] .map-header-action--add {
   color: var(--primary-purple-dark);
-  background: var(--accent-primary-bg-soft);
-  border-color: var(--accent-primary-border-mid);
+  background: color-mix(in srgb, var(--primary-purple, #7c3aed) 10%, #fff);
+  border-color: rgba(0, 0, 0, 0.08);
 }
 
 html[data-theme="light"] .map-header-action--add svg {
@@ -1136,8 +1170,8 @@ html[data-theme="light"] .map-header-action--add svg {
 
 html[data-theme="light"] .map-header-action--add:hover {
   color: var(--primary-purple-dark);
-  background: var(--accent-primary-bg-hover);
-  border-color: var(--accent-primary-border-strong);
+  background: color-mix(in srgb, var(--primary-purple, #7c3aed) 16%, #fff);
+  border-color: rgba(0, 0, 0, 0.12);
 }
 
 html[data-theme="light"] .map-header-action--add:hover svg {
@@ -1758,6 +1792,66 @@ html[data-theme="light"] .list-sort-btn:hover {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   word-break: break-word;
+}
+
+.country-list-card-subtitle {
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0.01em;
+}
+
+.travel-section-switch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  margin: 0 auto 0.75rem;
+  padding: 0.25rem;
+  width: fit-content;
+  max-width: 100%;
+  border-radius: var(--radius-md, 10px);
+  background: color-mix(in srgb, var(--surface-elevated, #1e2339) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-subtle, rgba(255,255,255,0.08)) 100%, transparent);
+}
+
+[data-theme="light"] .travel-section-switch {
+  background: color-mix(in srgb, var(--surface-elevated, #fff) 92%, #e8ecf4);
+  border-color: color-mix(in srgb, var(--border-subtle, #d0d7e2) 100%, transparent);
+}
+
+.travel-section-switch-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #94a3b8);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding: 0.45rem 1rem;
+  border-radius: calc(var(--radius-md, 10px) - 2px);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.travel-section-switch-btn:hover {
+  color: var(--text-primary);
+}
+
+.travel-section-switch-btn.is-active {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--accent, #3b82f6) 18%, transparent);
+}
+
+[data-theme="light"] .travel-section-switch-btn.is-active {
+  background: color-mix(in srgb, var(--accent, #2563eb) 12%, #fff);
+}
+
+.travel-section-switch-btn:focus-visible {
+  outline: 2px solid var(--accent, #3b82f6);
+  outline-offset: 2px;
 }
 
 .country-list-card-meta {
@@ -5472,31 +5566,80 @@ html[data-theme="light"] .map-header-toolbar-sep {
 
 html[data-theme="light"] .map-header .map-header-toolbar-pills:not(.map-header-toolbar-pills--legend-style) .filter-btn {
   background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.07);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="light"] .map-header .map-header-toolbar-pills:not(.map-header-toolbar-pills--legend-style) .filter-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* Light: status pills match Countries/Cities switch + search chrome */
+html[data-theme="light"] .map-header-toolbar-pills--legend-style,
+html[data-theme="light"] .map-world-map-row .map-header-toolbar--inline .map-header-toolbar-pills--legend-style {
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: var(--radius-md, 10px);
+  background: color-mix(in srgb, #fff 92%, #e8ecf4);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="light"] .map-header .map-header-toolbar-pills--legend-style .filter-btn {
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius-md, 10px) - 2px);
+  box-shadow: none;
+  min-height: auto;
+  padding: 0.4rem 0.75rem;
+  font-weight: 600;
+}
+
+html[data-theme="light"] .map-header .map-header-toolbar-pills--legend-style .filter-btn:hover {
+  color: var(--text-primary);
+  background: transparent;
+  opacity: 1;
 }
 
 html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-all.active,
 html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-done.active,
 html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-in-review.active,
 html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-pending.active {
-  background: rgba(0, 0, 0, 0.06);
-  border-color: rgba(0, 0, 0, 0.12);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: none;
+  box-shadow: none;
+  font-weight: 600;
+}
+
+html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-all.active {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--accent, #2563eb) 12%, #fff);
+}
+
+html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-done.active {
+  color: #047857;
+  background: color-mix(in srgb, #059669 12%, #fff);
+}
+
+html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-in-review.active {
+  color: #b45309;
+  background: color-mix(in srgb, #d97706 12%, #fff);
+}
+
+html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-pending.active {
+  color: #b91c1c;
+  background: color-mix(in srgb, #dc2626 12%, #fff);
 }
 
 html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-done.active .filter-btn-dot,
 html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-in-review.active .filter-btn-dot,
 html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-pending.active .filter-btn-dot {
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+  box-shadow: none;
 }
 
-html[data-theme="light"] .map-header .map-header-toolbar-pills:not(.map-header-toolbar-pills--legend-style) .filter-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.1);
-}
-
-html[data-theme="light"] .map-header .map-header-toolbar-pills--legend-style .filter-btn {
-  color: var(--text-secondary);
+html[data-theme="light"] .map-header-toolbar-pills--legend-style .filter-btn-count {
+  background: transparent;
+  color: inherit;
+  opacity: 0.75;
 }
 
 html[data-theme="light"] .country-card {
@@ -5621,12 +5764,14 @@ html[data-theme="light"] .view-modal-tag {
 }
 
 html[data-theme="light"] .filter-btn {
-  background: #e8e8ec;
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
   color: var(--text-secondary);
 }
 
 html[data-theme="light"] .filter-btn:hover {
-  background: #e0e0e5;
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
   color: var(--text-primary);
 }
 
