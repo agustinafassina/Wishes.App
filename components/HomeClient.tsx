@@ -150,7 +150,16 @@ export default function HomeClient() {
               )}
           </div>
         </div>
-        <h1 className="header-title">My Travel Track</h1>
+        <h1 className="header-title">
+          <img
+            src="/logo-mark.png"
+            alt=""
+            className="header-logo-mark"
+            width={28}
+            height={28}
+          />
+          <span className="header-title-text">My Travel Track</span>
+        </h1>
         <div className="header-nav-right" aria-hidden="true" />
       </header>
 
