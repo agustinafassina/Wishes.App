@@ -9,14 +9,15 @@ A modern web app to track countries you want to visit, are planning, or have alr
 </p>
 
 ## ✨ What it does
+- **Countries & Cities** — switch between sections in the map chrome; cities carry a country `code` and optional city name
 - **Interactive map** — Leaflet + CARTO tiles, markers by status (**Complete**, **Review**, **To Do**)
-- **Unified filters** — pills above the map (**All · Complete · Review · To Do**) filter both map and country list
-- **Country list** — card grid (up to 3 columns), A–Z / Z–A sort, search
-- **Progress** — bar and milestones when filtering **Complete** (share link or progress image)
-- **Per country** — change status via **Move to**, view/edit notes (visited), delete with confirmation
-- **Add country** — from the map toolbar (or empty-state CTA on first use); optional **Pick from map** for coordinates
+- **Unified filters** — pills (**All · Complete · Review · To Do**) filter both map and list for the active section
+- **Place list** — card grid (up to 3 columns), A–Z / Z–A sort, search
+- **Progress** — bar and milestones for **countries** when filtering **Complete** (share link or progress image); cities do not use the /195 bar
+- **Per place** — change status via **Move to**, view/edit notes (visited), delete with confirmation
+- **Add country / city** — from the map toolbar (or empty-state CTA); optional **Pick from map** for coordinates (Nominatim reverse-geocode)
 - **Themes** — light and dark mode
-- **Auth0** — each user has a private list
+- **Auth0** — each user has a private list; brand mark available for Universal Login
 
 For step-by-step usage in Spanish, see [MANUAL_DE_USO.md](./MANUAL_DE_USO.md).
 
@@ -27,16 +28,17 @@ There is no SQL/MongoDB database. After login, the app reads and writes a **JSON
 
 API routes (`app/api/*`) handle create, update, delete, and loading locations for the signed-in user.
 
-## 🏳️ Country object
+## 🏳️ Place object (country or city)
 Each entry in the user JSON array can include:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `name` | string | Yes | Country name (e.g. `"Italy"`). |
-| `code` | string | Yes | ISO 3166-1 alpha-2 (e.g. `"IT"`). Must be unique per user list. |
+| `name` | string | Yes | Place name (e.g. `"Italy"` or `"Rome"`). |
+| `code` | string | Yes | ISO 3166-1 alpha-2 country code (e.g. `"IT"`). |
 | `latitude` | number | Yes | Map marker latitude. |
 | `longitude` | number | Yes | Map marker longitude. |
 | `status` | string | Yes | `"done"`, `"in review"`, or `"pending"`. |
+| `kind` | string | No | `"country"` (default if omitted) or `"city"`. |
 | `flag` | string | No | Flag image URL (defaults via [flagcdn.com](https://flagcdn.com) from `code`). |
 | `photos` | string[] | No | Photo URLs. |
 | `notes` | string | No | Travel notes (typically when `status` is `"done"`). |
@@ -44,7 +46,9 @@ Each entry in the user JSON array can include:
 | `tags` | string[] | No | Tags (e.g. `["food", "history"]`). |
 | `tag` | string | No | Legacy single tag; ignored if `tags` is set. |
 
-Example:
+**Uniqueness:** the pair `(code, name)` must be unique per user (same code with a different name is allowed, e.g. England vs Scotland).
+
+Country example:
 
 ```json
 {
@@ -52,6 +56,7 @@ Example:
   "code": "IT",
   "latitude": 41.8719,
   "longitude": 12.5674,
+  "kind": "country",
   "flag": "https://flagcdn.com/w40/it.png",
   "status": "done",
   "notes": "Amazing trip.",
@@ -60,17 +65,32 @@ Example:
 }
 ```
 
+City example:
+
+```json
+{
+  "name": "Rome",
+  "code": "IT",
+  "latitude": 41.9028,
+  "longitude": 12.4964,
+  "kind": "city",
+  "status": "done",
+  "visitedAt": "2024"
+}
+```
+
 ## ✅ Features
 | Area | Status |
 |------|--------|
+| Countries / Cities sections | Done |
 | Leaflet + CARTO tiles + custom zoom | Done |
 | Map pills filter map + list | Done |
-| Pick coordinates from map | Done |
-| Add / update / delete countries | Done |
+| Pick coordinates from map (Nominatim) | Done |
+| Add / update / delete places | Done |
 | Notes & tags (visited) | Done |
 | Light / dark theme | Done |
 | Share link / progress image | Done |
-| Auth0 login | Done |
+| Auth0 login + brand assets | Done |
 | Search + A–Z sort | Done |
 | Progress milestones (10 / 25 / 50…) | Done |
 | Export / import backup (JSON/CSV) | Planned |
@@ -94,7 +114,7 @@ cp .env.example .env
 | `AUTH0_CLIENT_ID` | Application Client ID. |
 | `AUTH0_CLIENT_SECRET` | Application Client Secret. |
 | `AUTH0_SECRET` | Random string ≥ 32 chars for session cookies (`openssl rand -hex 32`). |
-| `APP_BASE_URL` | App URL (dev: `http://localhost:3000`; prod: `https://…`). |
+| `APP_BASE_URL` | App URL (dev: `http://localhost:3000`; prod: `https://…`). No trailing slash. |
 
 **Auth0 application URIs (development):**
 
@@ -102,6 +122,12 @@ cp .env.example .env
 - Allowed Logout URLs: `http://localhost:3000`
 
 Add the same URLs for production using your public host (see below).
+
+**Auth0 Universal Login logo** (public URL, no auth required):
+
+- Mark (triangle): `{APP_BASE_URL}/logo-mark.png`
+- Full logo: `{APP_BASE_URL}/logo.jpeg`
+- Favicon: `{APP_BASE_URL}/favicon.png`
 
 Example `.env`:
 
@@ -112,6 +138,9 @@ AUTH0_CLIENT_SECRET=your_client_secret
 AUTH0_SECRET=your_long_random_secret_at_least_32_chars
 APP_BASE_URL=http://localhost:3000
 ```
+
+### 🗺️ Map (Leaflet + CARTO)
+No Maps API key. The map uses CARTO tiles (`light_all` / `dark_all`). **Pick from map** reverse-geocodes via Nominatim when available.
 
 ## 🚀 Install and run
 ```bash
@@ -131,11 +160,21 @@ npm start
 ## 🐳 Docker
 Default port **3000** (override with build arg or `PORT` env).
 
-**Build:**
+Auth0 env vars are required at **image build** time (`next build` constructs the Auth0 client) and again at **runtime**.
+
+**Build** (pass the same values as in `.env`):
 
 ```bash
-docker build -t wishes-app .
+docker build -t wishes-app \
+  --build-arg AUTH0_DOMAIN=your-tenant.us.auth0.com \
+  --build-arg AUTH0_CLIENT_ID=your_client_id \
+  --build-arg AUTH0_CLIENT_SECRET=your_client_secret \
+  --build-arg AUTH0_SECRET=your_long_random_secret_at_least_32_chars \
+  --build-arg APP_BASE_URL=http://localhost:3000 \
+  .
 ```
+
+`AUTH0_AUDIENCE` is accepted as an optional build-arg (usually empty for this app).
 
 **Run:**
 
@@ -150,6 +189,16 @@ docker run -d -p 3000:3000 --env-file .env --name wishes-app wishes-app
 ```
 
 If you see `Error: Cannot find module '/app/wishes-app'`, you passed the image name as a command. Use only `docker run -p 3000:3000 wishes-app`.
+
+**Other port (e.g. 8080):**
+
+```bash
+docker build --build-arg PORT=8080 -t wishes-app \
+  --build-arg AUTH0_DOMAIN=... --build-arg AUTH0_CLIENT_ID=... \
+  --build-arg AUTH0_CLIENT_SECRET=... --build-arg AUTH0_SECRET=... \
+  --build-arg APP_BASE_URL=http://localhost:8080 .
+docker run -p 8080:8080 -e PORT=8080 --env-file .env wishes-app
+```
 
 ### 📁 Persist user JSON with a volume
 Container filesystem is ephemeral. Mount host data so user lists survive rebuilds:
@@ -205,13 +254,17 @@ Run with `--env-file .env` and the volume mount for `data/locations/users` if yo
 app/
   api/              # add-country, delete-country, locations, update-country, …
   styles/           # variables, components, responsive
+  icon.png, apple-icon.png   # favicon / PWA icon (App Router)
   layout.tsx, page.tsx, globals.css
 components/
   Map.tsx, HomeClient.tsx, …
-  map/              # CountryListCard, modals, EmptyState, utils
+  map/              # CountryListCard, TravelLeafletMap, modals, EmptyState, utils
 hooks/              # useLocations, useCountryActions, …
-lib/                # env, auth0, haptic, fonts, user-locations
+lib/                # env, auth0, place-aggregation, place-validation, reverse-geocode, …
 data/locations/users/   # private per-user JSON (gitignored *.json)
+public/
+  logo-mark.png, logo.jpeg, favicon.png   # static brand (Auth0 / UI)
+  brand/            # original logo sources
 ```
 
 ## 📚 Related documentations
@@ -220,6 +273,8 @@ data/locations/users/   # private per-user JSON (gitignored *.json)
 | [README_ES.md](./README_ES.md) | Spanish | This readme in Spanish |
 | [MANUAL_DE_USO.md](./MANUAL_DE_USO.md) | Spanish | End-user guide |
 | [MEDIUM.md](./MEDIUM.md) | English | Build story / Cursor notes |
+| [Security-Checklist.md](./Security-Checklist.md) | Spanish | Security hardening checklist |
+| [UXUI-CHECKLIST.md](./UXUI-CHECKLIST.md) | Spanish | UX/UI checklist |
 
 ## 🔧 Troubleshooting
 | Issue | Check |
@@ -228,6 +283,7 @@ data/locations/users/   # private per-user JSON (gitignored *.json)
 | Auth errors | Auth0 domain, client id/secret, callback/logout URLs, `AUTH0_SECRET` length |
 | Data not saved | Write access to `data/locations/users/` (or Docker volume mount) |
 | 401 / not logged in | Log in via Auth0; app requires a session |
+| `docker build` fails on Auth0/env | Pass Auth0 / `APP_BASE_URL` as `--build-arg` (needed at build time) |
 
 ## 📄 License
 By Agustina Fassina — personal project; use as reference for your own work.
