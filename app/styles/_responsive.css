@@ -36,9 +36,9 @@
   }
 
   .page-header {
-    padding: 0.5rem 0.75rem;
-    padding-top: max(0.5rem, calc(0.5rem + var(--safe-area-inset-top)));
-    padding-bottom: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    padding-top: max(0.625rem, calc(0.625rem + var(--safe-area-inset-top)));
+    padding-bottom: 0.625rem;
   }
 
   .content-section {
@@ -155,11 +155,13 @@
     border-bottom: 1px solid var(--shell-divider);
     border-radius: 0;
     box-shadow: none;
-    padding: 0.5rem 1rem;
-    padding-top: max(0.5rem, calc(0.5rem + var(--safe-area-inset-top)));
-    padding-bottom: 0.5rem;
+    padding: 0.625rem 1rem;
+    padding-top: max(0.625rem, calc(0.625rem + var(--safe-area-inset-top)));
+    padding-bottom: 0.625rem;
     padding-left: max(1rem, var(--safe-area-inset-left));
     padding-right: max(1rem, var(--safe-area-inset-right));
+    height: calc(var(--header-height) + var(--safe-area-inset-top));
+    min-height: calc(var(--header-height) + var(--safe-area-inset-top));
     gap: 0.75rem;
   }
 
@@ -925,11 +927,13 @@
   }
 
   .page-header {
-    padding: 0.5rem 0.75rem;
-    padding-top: max(0.5rem, calc(0.5rem + var(--safe-area-inset-top)));
-    padding-bottom: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    padding-top: max(0.625rem, calc(0.625rem + var(--safe-area-inset-top)));
+    padding-bottom: 0.625rem;
     padding-left: max(0.75rem, var(--safe-area-inset-left));
     padding-right: max(0.75rem, var(--safe-area-inset-right));
+    height: calc(var(--header-height) + var(--safe-area-inset-top));
+    min-height: calc(var(--header-height) + var(--safe-area-inset-top));
     gap: 0.75rem;
   }
 
@@ -1093,11 +1097,13 @@
   }
 
   .page-header {
-    padding: 0.5rem 0.625rem;
-    padding-top: max(0.5rem, calc(0.5rem + var(--safe-area-inset-top)));
-    padding-bottom: 0.5rem;
+    padding: 0.625rem 0.625rem;
+    padding-top: max(0.625rem, calc(0.625rem + var(--safe-area-inset-top)));
+    padding-bottom: 0.625rem;
     padding-left: max(0.625rem, var(--safe-area-inset-left));
     padding-right: max(0.625rem, var(--safe-area-inset-right));
+    height: calc(var(--header-height) + var(--safe-area-inset-top));
+    min-height: calc(var(--header-height) + var(--safe-area-inset-top));
   }
 
   .header-identity {
