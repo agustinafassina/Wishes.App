@@ -11,8 +11,8 @@ Guía para usar tu lista de viajes (travel bucket list) en Wishes.
 ## 2. 🏠 Pantalla principal
 Después de iniciar sesión verás:
 
-- 📌 **Header:** tu nombre o avatar, el menú (tema 🌞/🌙 y **Log out**).
-- 🔀 **Sección Countries | Cities:** interruptor arriba del contenido para elegir qué lista estás viendo.
+- 📌 **Header:** menú (avatar o hamburguesa) con tema 🌞/🌙, navegación y **Log out**.
+- 🔀 **Sección Countries | Cities:** interruptor en la barra del mapa para elegir qué lista estás viendo.
 - 🗺️ **Mapa:** el mapa con tus lugares de la sección activa. En su barra superior están los filtros (**All · Complete · Review · To Do**, con conteo) y las acciones **Share** (ícono) y **Add country** / **Add city**.
 - 📋 **Listado:** debajo del mapa, las tarjetas (filtradas por los pills del mapa), con orden A–Z y búsqueda.
 
@@ -79,7 +79,7 @@ En el menú del header podés cambiar entre tema **claro** y **oscuro**. La pref
 ## ⚡ Resumen rápido
 | Quiero… | Cómo hacerlo |
 |---------|----------------|
-| 🔀 Ver países o ciudades | Interruptor **Countries \| Cities** arriba del mapa. |
+| 🔀 Ver países o ciudades | Interruptor **Countries \| Cities** en la barra del mapa. |
 | ➕ Agregar un país | Sección Countries → **Add country**. |
 | ➕ Agregar una ciudad | Sección Cities → **Add city**. |
 | ↔️ Cambiar de estado | Menú **⋯** → **Move to**. |

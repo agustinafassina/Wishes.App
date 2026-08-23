@@ -283,7 +283,7 @@ public/
 |---------|--------|-----|
 | [README.md](./README.md) | Inglés | Este readme en inglés |
 | [MANUAL_DE_USO.md](./MANUAL_DE_USO.md) | Español | Manual para usuarios |
-| [MEDIUM.md](./MEDIUM.md) | Inglés | Notas del proyecto con Cursor |
+| [app/api/README.md](./app/api/README.md) | Inglés | Contrato de la API interna |
 | [Security-Checklist.md](./Security-Checklist.md) | Español | Checklist de seguridad |
 | [UXUI-CHECKLIST.md](./UXUI-CHECKLIST.md) | Español | Checklist UX/UI |
 

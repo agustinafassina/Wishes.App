@@ -272,7 +272,7 @@ public/
 |------|----------|---------|
 | [README_ES.md](./README_ES.md) | Spanish | This readme in Spanish |
 | [MANUAL_DE_USO.md](./MANUAL_DE_USO.md) | Spanish | End-user guide |
-| [MEDIUM.md](./MEDIUM.md) | English | Build story / Cursor notes |
+| [app/api/README.md](./app/api/README.md) | English | Internal API contract |
 | [Security-Checklist.md](./Security-Checklist.md) | Spanish | Security hardening checklist |
 | [UXUI-CHECKLIST.md](./UXUI-CHECKLIST.md) | Spanish | UX/UI checklist |
 
