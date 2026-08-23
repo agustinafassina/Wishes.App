@@ -124,7 +124,7 @@
 
   --touch-target: 44px;
 
-  --header-height: calc(var(--touch-target) + 0.2rem);
+  --header-height: calc(var(--touch-target) + 1rem);
 
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;

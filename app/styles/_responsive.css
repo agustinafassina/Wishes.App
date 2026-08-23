@@ -36,8 +36,9 @@
   }
 
   .page-header {
-    padding: 0.25rem 0.75rem;
-    padding-top: max(0.25rem, calc(0.15rem + var(--safe-area-inset-top)));
+    padding: 0.5rem 0.75rem;
+    padding-top: max(0.5rem, calc(0.5rem + var(--safe-area-inset-top)));
+    padding-bottom: 0.5rem;
   }
 
   .content-section {
@@ -154,8 +155,9 @@
     border-bottom: 1px solid var(--shell-divider);
     border-radius: 0;
     box-shadow: none;
-    padding: 0.2rem 1rem;
-    padding-top: max(0.2rem, calc(0.1rem + var(--safe-area-inset-top)));
+    padding: 0.5rem 1rem;
+    padding-top: max(0.5rem, calc(0.5rem + var(--safe-area-inset-top)));
+    padding-bottom: 0.5rem;
     padding-left: max(1rem, var(--safe-area-inset-left));
     padding-right: max(1rem, var(--safe-area-inset-right));
     gap: 0.75rem;
@@ -923,8 +925,9 @@
   }
 
   .page-header {
-    padding: 0.25rem 0.75rem;
-    padding-top: max(0.25rem, var(--safe-area-inset-top));
+    padding: 0.5rem 0.75rem;
+    padding-top: max(0.5rem, calc(0.5rem + var(--safe-area-inset-top)));
+    padding-bottom: 0.5rem;
     padding-left: max(0.75rem, var(--safe-area-inset-left));
     padding-right: max(0.75rem, var(--safe-area-inset-right));
     gap: 0.75rem;
@@ -1090,7 +1093,9 @@
   }
 
   .page-header {
-    padding: 0.25rem 0.625rem;
+    padding: 0.5rem 0.625rem;
+    padding-top: max(0.5rem, calc(0.5rem + var(--safe-area-inset-top)));
+    padding-bottom: 0.5rem;
     padding-left: max(0.625rem, var(--safe-area-inset-left));
     padding-right: max(0.625rem, var(--safe-area-inset-right));
   }
