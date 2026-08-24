@@ -1,5 +1,5 @@
-# ✈️ Wishes — Manual de uso
-Guía para usar tu lista de viajes (travel bucket list) en Wishes.
+# ✈️ Travel Track — Manual de uso
+Guía para usar tu lista de viajes (travel bucket list) en Travel Track.
 
 ## 1. 🔐 Entrar a la app
 - 🌐 Abrí la aplicación en el navegador.
