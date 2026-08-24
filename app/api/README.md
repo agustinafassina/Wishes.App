@@ -1,5 +1,5 @@
-# TravelTrack API
-Internal REST API for the TravelTrack app. All endpoints that manage locations require an authenticated user (Auth0 session). This README documents the contract so the frontend and any future backend (e.g. database-backed) can stay aligned.
+# Travel Track API
+Internal REST API for the Travel Track app. All endpoints that manage locations require an authenticated user (Auth0 session). This README documents the contract so the frontend and any future backend (e.g. database-backed) can stay aligned.
 
 ---
 

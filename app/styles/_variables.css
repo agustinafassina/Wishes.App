@@ -107,8 +107,8 @@
 
   --tab-text: var(--text-secondary);
   --tab-text-hover: var(--text-primary);
-  --tab-text-active: #93c5fd;
-  --tab-indicator: #3b82f6;
+  --tab-text-active: var(--accent-primary-light);
+  --tab-indicator: var(--accent-primary);
 
 
   --focus-ring-color: rgba(167, 139, 250, 0.95);
@@ -164,8 +164,8 @@ html[data-theme="light"] {
   --text-tertiary: #6e6e76;
   --tab-text: var(--text-secondary);
   --tab-text-hover: var(--text-primary);
-  --tab-text-active: #1e40af;
-  --tab-indicator: #2563eb;
+  --tab-text-active: var(--accent-on-light);
+  --tab-indicator: var(--primary-purple);
   --focus-ring-color: rgba(76, 29, 149, 0.55);
   --focus-ring: 0 0 0 2px var(--focus-ring-color);
   --border: rgba(0, 0, 0, 0.1);

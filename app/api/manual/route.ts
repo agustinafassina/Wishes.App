@@ -10,7 +10,7 @@ export async function GET() {
       status: 200,
       headers: {
         'Content-Type': 'text/markdown; charset=utf-8',
-        'Content-Disposition': 'attachment; filename="Manual-de-uso-Wishes.md"',
+        'Content-Disposition': 'attachment; filename="Manual-de-uso-Travel-Track.md"',
       },
     });
   } catch (error) {

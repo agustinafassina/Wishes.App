@@ -1003,7 +1003,7 @@ const Map = ({
                     style={{ width: isCitiesSection ? '0%' : `${progressPercentage}%` }}
                   />
                 </div>
-                <p className="share-card-tagline">My travel bucket list</p>
+                <p className="share-card-tagline">Travel Track</p>
               </div>
             </div>
             <div className="list-section-below-map-content">

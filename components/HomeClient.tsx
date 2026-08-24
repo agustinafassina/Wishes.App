@@ -158,7 +158,7 @@ export default function HomeClient() {
             width={28}
             height={28}
           />
-          <span className="header-title-text">My Travel Track</span>
+          <span className="header-title-text">Travel Track</span>
         </h1>
         <div className="header-nav-right" aria-hidden="true" />
       </header>

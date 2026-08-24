@@ -6,13 +6,13 @@ import { ToastProvider } from "../components/ToastContext";
 import Auth0ProviderWrapper from "../components/Auth0ProviderWrapper";
 
 export const metadata: Metadata = {
-  title: "TravelTrack App",
+  title: "Travel Track",
   description: "Track and explore your travel bucket list. Mark countries as done, in review or pending.",
-  applicationName: "TravelTrack App",
+  applicationName: "Travel Track",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "TravelTrack App",
+    title: "Travel Track",
   },
 };
 

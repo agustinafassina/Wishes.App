@@ -1,4 +1,4 @@
-# ✈️ Wishes App - Personal Travel Bucket List
+# ✈️ Travel Track - Personal Travel Bucket List
 A modern web app to track countries you want to visit, are planning, or have already explored — with an interactive world map, progress stats, and per-user storage.
 
 **Español:** [README_ES.md](./README_ES.md)

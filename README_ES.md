@@ -1,4 +1,4 @@
-# ✈️ Wishes App - Mi lista de viajes y deseos
+# ✈️ Travel Track - Mi lista de viajes y deseos
 Aplicación web para registrar países que querés visitar, los que estás planificando y los que ya exploraste, con mapa mundial interactivo, estadísticas y datos por usuario.
 
 **English:** [README.md](./README.md)
